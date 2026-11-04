@@ -1,6 +1,20 @@
-# MediBenin 🇧🇯🩺
-> **Plateforme multimodale de triage clinique, d'orientation d'urgence et de santé des populations.**  
-> *Développé par l'équipe **CareX** (Orace ATTINMAWASSONOU & Bienderan EGBO).*
+<p align="center">
+  <img src="docs/logo.png" alt="MediBenin Logo" width="160" />
+</p>
+
+<h1 align="center">MediBenin 🇧🇯🩺</h1>
+
+<p align="center">
+  <strong>Plateforme multimodale de triage clinique, d'orientation d'urgence et de santé des populations.</strong><br>
+  <em>Développé par l'équipe <strong>CareX</strong> (Orace ATTINMAWASSONOU, Bienderan EGBO, Uriel KPEGBE & l'équipe).</em>
+</p>
+
+<p align="center">
+  <a href="https://github.com/orace229/medibenin"><img src="https://img.shields.io/badge/GitHub-orace229%2Fmedibenin-blue?logo=github" alt="GitHub Repo" /></a>
+  <img src="https://img.shields.io/badge/Challenge-Future%20Health%20Challenge%20Abu%20Dhabi-gold" alt="Future Health Challenge" />
+  <img src="https://img.shields.io/badge/Norme-PCIME%20OMS%20%2F%20TETU-emerald" alt="Clinical Matrix" />
+  <img src="https://img.shields.io/badge/Conformit%C3%A9-APDP%20B%C3%A9nin%20(Loi%202017--20)-green" alt="APDP Bénin" />
+</p>
 
 ---
 
@@ -83,8 +97,10 @@ flutter run
 
 ---
 
-## 👥 Équipe CareX
+## 👥 Équipe CareX (5 Membres)
 - **Orace ATTINMAWASSONOU**
 - **Bienderan EGBO**
+- **Uriel KPEGBE**
+- *(+ 2 membres de l'équipe CareX)*
 
 *Projet soumis dans le cadre du **Future Health Challenge** (MBZUAI / Microsoft / Inception 42) — Axe 02 : Santé des populations.*

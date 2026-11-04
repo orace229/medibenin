@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Globe, AlertTriangle } from 'lucide-react';
+import { Globe, AlertTriangle } from 'lucide-react';
 import { LanguageInfo, LocalLanguage } from '../types';
 import { LANGUAGES } from '../data/mockData';
 
@@ -24,9 +24,11 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-medigreen-700 to-medigreen-800 flex items-center justify-center text-white shadow-md shadow-medigreen-700/20">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
+          <img
+            src="/logo.png"
+            alt="MediBenin Logo"
+            className="w-11 h-11 rounded-2xl shadow-md shadow-medigreen-700/20 object-contain hover:scale-105 transition-transform"
+          />
           <div>
             <div className="flex items-center gap-2">
               <span className="font-black text-xl tracking-wider text-medigreen-800">MEDIBENIN</span>
@@ -35,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             <p className="text-xs text-gray-500 font-medium hidden md:block">
-              Télémédecine Intelligente & Multilingue au Bénin
+              Télémédecine Intelligente & Santé des Populations au Bénin
             </p>
           </div>
         </div>
