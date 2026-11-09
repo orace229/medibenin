@@ -18,7 +18,7 @@ import { FamilyRecord } from './components/FamilyRecord';
 import { MedicalCommitteeAudit } from './components/MedicalCommitteeAudit';
 import { FooterLegal } from './components/FooterLegal';
 
-import { Language } from './i18n/translations';
+import { Language, TRANSLATIONS } from './i18n/translations';
 import { SYNTHETIC_PERSONAS } from './data/personas';
 import { PersonaProfile, FollowupState } from './types/medisense';
 import { PatientProfile, TriageResult, LocalLanguage } from './types';
@@ -195,13 +195,13 @@ export const App: React.FC = () => {
             className="hover:text-slate-900 font-medium underline underline-offset-2 transition"
           >
             {showHistoricTriageMode
-              ? '← Revenir à MediSense (Défi 04 Abu Dhabi • Prévention de Précision)'
-              : 'Basculer vers le socle académique initial (Triage Aigu de Symptômes)'}
+              ? TRANSLATIONS[appLang].historicToggle.backToMediSense
+              : TRANSLATIONS[appLang].historicToggle.switchToHistoric}
           </button>
         </div>
 
         {/* Footer Institutionnel */}
-        <FooterLegal />
+        <FooterLegal currentLang={appLang} />
       </div>
     </div>
   );

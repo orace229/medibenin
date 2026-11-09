@@ -205,6 +205,27 @@ export interface TranslationDictionary {
       deltaCol: string;
     };
   };
+  footer: {
+    disclaimerTitle: string;
+    disclaimerText: string;
+    brandTagline: string;
+    brandMission: string;
+    complianceTitle: string;
+    complianceLaw: string;
+    complianceEncryption: string;
+    compliancePseudonymization: string;
+    complianceDhis2: string;
+    challengeTitle: string;
+    challengeTopic: string;
+    challengeOrg: string;
+    copyright: string;
+    developedWith: string;
+    forBenin: string;
+  };
+  historicToggle: {
+    switchToHistoric: string;
+    backToMediSense: string;
+  };
 }
 
 export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
@@ -412,6 +433,27 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
         baselineCol: 'Règle Âge / Sexe Seul',
         deltaCol: 'Gain / Différentiel'
       }
+    },
+    footer: {
+      disclaimerTitle: 'Avertissement Médical Légal Obligatoire :',
+      disclaimerText: '« MediBenin est un outil d\'aide à l\'orientation et au triage médical. Il ne se substitue pas à une consultation médicale présentielle et ne pose aucun diagnostic définitif. En cas de détresse respiratoire, convulsion ou perte de connaissance, appelez immédiatement le SAMU Bénin au 112 ou rendez-vous au centre de santé le plus proche. »',
+      brandTagline: '« La santé est un droit, pas un privilège urbain. »',
+      brandMission: 'Conçu pour combler les déserts médicaux en Afrique de l\'Ouest grâce à une IA vocale multilingue adaptée aux réalités du Bénin.',
+      complianceTitle: 'Conformité Numérique & APDP',
+      complianceLaw: '• Loi n° 2017-20 portant Code du Numérique au Bénin',
+      complianceEncryption: '• Chiffrement fort des données de santé (AES-256)',
+      compliancePseudonymization: '• Pseudonymisation intégrale des identités patients',
+      complianceDhis2: '• Interopérabilité sanitaire format DHIS2',
+      challengeTitle: 'Future Health Challenge 2026',
+      challengeTopic: 'Défi 04 : Prévention & Dépistage de Précision.',
+      challengeOrg: 'Mohamed bin Zayed University of Artificial Intelligence (MBZUAI) • Abu Dhabi, EAU.',
+      copyright: '© 2026 MediBenin • CareX. Tous droits réservés.',
+      developedWith: 'Développé avec',
+      forBenin: 'pour le Bénin'
+    },
+    historicToggle: {
+      switchToHistoric: 'Basculer vers le socle académique initial (Triage Aigu de Symptômes)',
+      backToMediSense: '← Revenir à MediSense (Défi 04 Abu Dhabi • Prévention de Précision)'
     }
   },
   en: {
@@ -618,6 +660,27 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
         baselineCol: 'Age & Sex Baseline',
         deltaCol: 'Differential / Gain'
       }
+    },
+    footer: {
+      disclaimerTitle: 'Mandatory Legal Medical Disclaimer:',
+      disclaimerText: '“MediBenin is a clinical decision-support and triage tool. It does not replace an in-person medical consultation and does not establish a definitive diagnosis. In case of respiratory distress, seizure, or loss of consciousness, immediately call emergency medical services or proceed to the nearest healthcare facility.”',
+      brandTagline: '“Healthcare is a right, not an urban privilege.”',
+      brandMission: 'Designed to bridge healthcare deserts in West Africa through multilingual speech AI tailored to local realities.',
+      complianceTitle: 'Digital Compliance & APDP',
+      complianceLaw: '• Law No. 2017-20 on the Digital Code in Benin',
+      complianceEncryption: '• Strong health data encryption (AES-256)',
+      compliancePseudonymization: '• Full pseudonymization of patient records',
+      complianceDhis2: '• DHIS2 healthcare interoperability standards',
+      challengeTitle: 'Future Health Challenge 2026',
+      challengeTopic: 'Challenge 04: Precision Prevention & Screening.',
+      challengeOrg: 'Mohamed bin Zayed University of Artificial Intelligence (MBZUAI) • Abu Dhabi, UAE.',
+      copyright: '© 2026 MediBenin • CareX. All rights reserved.',
+      developedWith: 'Developed with',
+      forBenin: 'for Benin'
+    },
+    historicToggle: {
+      switchToHistoric: 'Switch to initial academic baseline (Acute Symptom Triage)',
+      backToMediSense: '← Return to MediSense (Challenge 04 Abu Dhabi • Precision Prevention)'
     }
   }
 };
