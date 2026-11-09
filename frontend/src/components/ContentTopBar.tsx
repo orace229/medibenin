@@ -10,6 +10,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { PersonaProfile } from '../types/medisense';
+import { Language, TRANSLATIONS } from '../i18n/translations';
 
 interface ContentTopBarProps {
   activeTab: MediSenseTab;
@@ -17,8 +18,8 @@ interface ContentTopBarProps {
   selectedPersona?: PersonaProfile;
   personas?: PersonaProfile[];
   onSelectPersona?: (p: PersonaProfile) => void;
-  currentLang: 'ar' | 'en';
-  onToggleLang: (lang: 'ar' | 'en') => void;
+  currentLang: Language;
+  onToggleLang: (lang: Language) => void;
   onSosClick: () => void;
 }
 
@@ -32,36 +33,38 @@ export const ContentTopBar: React.FC<ContentTopBarProps> = ({
   onToggleLang,
   onSosClick
 }) => {
+  const t = TRANSLATIONS[currentLang];
+
   const getTabInfo = () => {
     switch (activeTab) {
       case 'population':
         return {
-          title: 'Priorisation Population',
-          sub: 'Attribution des Créneaux • Sprio',
+          title: t.nav.population.title,
+          sub: t.nav.population.sub,
           icon: Users
         };
       case 'clinical':
         return {
-          title: 'Fiche Clinique Individuelle',
-          sub: 'Face au praticien • Arbres décisionnels',
+          title: t.nav.clinical.title,
+          sub: t.nav.clinical.sub,
           icon: Stethoscope
         };
       case 'safeguards':
         return {
-          title: 'Garde-fous & Équité',
-          sub: 'Masquage n < 10 & Wilson 95%',
+          title: t.nav.safeguards.title,
+          sub: t.nav.safeguards.sub,
           icon: ShieldCheck
         };
       case 'engagement':
         return {
-          title: 'Consentement & Choix Réel',
-          sub: '5 finalités & Aides à la décision',
+          title: t.nav.engagement.title,
+          sub: t.nav.engagement.sub,
           icon: HeartHandshake
         };
       case 'benchmark':
         return {
-          title: 'Banc d’Essai 50k',
-          sub: 'Validation scientifique sur 50 000 profils',
+          title: t.nav.benchmark.title,
+          sub: t.nav.benchmark.sub,
           icon: BarChart3
         };
     }
@@ -79,10 +82,10 @@ export const ContentTopBar: React.FC<ContentTopBarProps> = ({
           <button
             onClick={onOpenSidebar}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 shadow-xs font-semibold text-xs transition active:scale-95 shrink-0"
-            title="Ouvrir les modules du Défi 04"
+            title={t.nav.menuTitle}
           >
             <PanelLeft className="w-4 h-4 text-emerald-400" />
-            <span className="hidden xs:inline">Modules</span>
+            <span className="hidden xs:inline">{t.nav.modules}</span>
           </button>
 
           {/* Logo & Titre de page */}
@@ -96,7 +99,7 @@ export const ContentTopBar: React.FC<ContentTopBarProps> = ({
                   {info.title}
                 </span>
                 <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/60 hidden md:inline shrink-0">
-                  DoH
+                  {t.brand.dohBadge}
                 </span>
               </div>
               <p className="text-[10px] text-slate-400 truncate hidden sm:block">
@@ -135,30 +138,31 @@ export const ContentTopBar: React.FC<ContentTopBarProps> = ({
           </div>
         )}
 
-        {/* Right Actions: SOS + Language Switcher */}
+        {/* Right Actions: SOS + Language Switcher (FR / EN) */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button
             onClick={onSosClick}
             className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold transition active:scale-95"
-            title="Urgence vitale immédiate - Règle de sortie E0"
+            title={t.topBar.sosTooltip}
           >
             <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-            <span className="hidden sm:inline">SOS</span>
+            <span className="hidden sm:inline">{t.topBar.sos}</span>
           </button>
 
+          {/* Bascule FR / EN */}
           <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold shrink-0">
             <button
-              onClick={() => onToggleLang('ar')}
-              className={`px-2 py-0.5 rounded-md text-[11px] sm:text-xs transition ${
-                currentLang === 'ar' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+              onClick={() => onToggleLang('fr')}
+              className={`px-2.5 py-0.5 rounded-md text-[11px] sm:text-xs font-bold transition ${
+                currentLang === 'fr' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              العربية
+              FR
             </button>
             <button
               onClick={() => onToggleLang('en')}
-              className={`px-2 py-0.5 rounded-md text-[11px] sm:text-xs transition ${
-                currentLang === 'en' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+              className={`px-2.5 py-0.5 rounded-md text-[11px] sm:text-xs font-bold transition ${
+                currentLang === 'en' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               EN

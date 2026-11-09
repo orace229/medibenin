@@ -4,9 +4,18 @@ import {
   CheckCircle2, XCircle, 
   Clock, Shield, MessageSquare
 } from 'lucide-react';
+import { Language, TRANSLATIONS } from '../i18n/translations';
 
-export const EngagementChoiceView: React.FC = () => {
-  const [selectedLang, setSelectedLang] = useState<'ar' | 'en'>('ar');
+interface EngagementChoiceViewProps {
+  currentLang?: Language;
+  onToggleLang?: (lang: Language) => void;
+}
+
+export const EngagementChoiceView: React.FC<EngagementChoiceViewProps> = ({
+  currentLang = 'fr',
+  onToggleLang
+}) => {
+  const t = TRANSLATIONS[currentLang];
   const [decisionAidTopic, setDecisionAidTopic] = useState<'fit' | 'wcv' | 'diabetes'>('fit');
   const [refusalRecorded, setRefusalRecorded] = useState(false);
   const [consentState, setConsentState] = useState<ConsentPurposes>({
@@ -33,36 +42,37 @@ export const EngagementChoiceView: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full bg-purple-500/30 text-purple-200 border border-purple-400/30 text-[11px] font-bold uppercase tracking-wider">
-                Écran 4 • Engagement & Consentement
+                {currentLang === 'fr' ? 'Écran 4 • Engagement & Consentement' : 'Screen 4 • Engagement & Consent'}
               </span>
               <span className="text-xs text-purple-200 font-medium">CDC §3.3 & §6</span>
             </div>
-            <h2 className="text-xl font-black mt-1">Engagement Culturellement Adapté & Choix Éclairé</h2>
+            <h2 className="text-xl font-black mt-1">{t.engagement.headerTitle}</h2>
             <p className="text-xs text-purple-100 max-w-2xl mt-1 leading-relaxed">
-              MediSense respecte l'autonomie des familles : <strong>aides à la décision courtes en arabe et anglais</strong>, 
-              <strong>consentement granulaire par finalité</strong>, et <strong>arrêt immédiat des relances en cas de refus</strong> sans pénalité d'accès aux soins.
+              {t.engagement.headerDesc}
             </p>
           </div>
 
-          {/* Sélecteur de Langue Arabe / Anglais */}
-          <div className="flex items-center gap-1.5 bg-white/10 p-1.5 rounded-xl border border-white/20">
-            <button
-              onClick={() => setSelectedLang('ar')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                selectedLang === 'ar' ? 'bg-white text-purple-950 shadow-sm' : 'text-purple-200 hover:text-white'
-              }`}
-            >
-              العربية (Arabe)
-            </button>
-            <button
-              onClick={() => setSelectedLang('en')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                selectedLang === 'en' ? 'bg-white text-purple-950 shadow-sm' : 'text-purple-200 hover:text-white'
-              }`}
-            >
-              English
-            </button>
-          </div>
+          {/* Sélecteur de Langue FR / EN */}
+          {onToggleLang && (
+            <div className="flex items-center gap-1.5 bg-white/10 p-1.5 rounded-xl border border-white/20 shrink-0">
+              <button
+                onClick={() => onToggleLang('fr')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  currentLang === 'fr' ? 'bg-white text-purple-950 shadow-sm' : 'text-purple-200 hover:text-white'
+                }`}
+              >
+                Français (FR)
+              </button>
+              <button
+                onClick={() => onToggleLang('en')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  currentLang === 'en' ? 'bg-white text-purple-950 shadow-sm' : 'text-purple-200 hover:text-white'
+                }`}
+              >
+                English (EN)
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -70,10 +80,10 @@ export const EngagementChoiceView: React.FC = () => {
         {/* Colonne 1 : Aides à la Décision & Messages d'Invitation */}
         <div className="space-y-4">
           <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-purple-700" />
-                <span>Aide à la Décision (3 à 5 phrases)</span>
+                <span>{t.engagement.decisionAidsTitle}</span>
               </h3>
               <div className="flex gap-1">
                 <button
@@ -82,7 +92,7 @@ export const EngagementChoiceView: React.FC = () => {
                     decisionAidTopic === 'fit' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  Dépistage FIT
+                  {t.engagement.topics.fit}
                 </button>
                 <button
                   onClick={() => setDecisionAidTopic('wcv')}
@@ -90,7 +100,7 @@ export const EngagementChoiceView: React.FC = () => {
                     decisionAidTopic === 'wcv' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  Visite Enfant
+                  {t.engagement.topics.wcv}
                 </button>
                 <button
                   onClick={() => setDecisionAidTopic('diabetes')}
@@ -98,164 +108,210 @@ export const EngagementChoiceView: React.FC = () => {
                     decisionAidTopic === 'diabetes' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  Bilan Diabète
+                  {t.engagement.topics.diabetes}
                 </button>
               </div>
             </div>
 
-            {/* Contenu de l'aide à la décision (Annexe D) */}
-            <div className={`p-4 rounded-xl border ${selectedLang === 'ar' ? 'text-right' : 'text-left'} bg-purple-50/40 border-purple-100`}>
-              {selectedLang === 'ar' ? (
-                decisionAidTopic === 'fit' ? (
-                  <div className="text-xs text-gray-800 space-y-2 leading-relaxed" dir="rtl">
-                    <p className="font-bold text-purple-900">فحص الكشف المبكر عن سرطان القولون (FIT) :</p>
-                    <p>هذا الفحص البسيط يبحث عن آثار دم خفية في البراز ويتم إجراؤه في منزلك خلال دقائق معدودة.</p>
-                    <p>يساعد الفحص في اكتشاف الأورام الحميدة في مرحلة مبكرة حيث يسهل علاجها بنجاح كبير.</p>
-                    <p>النتيجة الإيجابية لا تعني بالضرورة وجود ورم خبيث، بل تتطلب فقط فحصاً تأكيدياً بالمنظار.</p>
-                    <p className="text-gray-500 font-semibold">يحق لك الرفض أو تأجيل الموعد دون أي تأثير على رعايتك الصحية.</p>
-                  </div>
-                ) : decisionAidTopic === 'wcv' ? (
-                  <div className="text-xs text-gray-800 space-y-2 leading-relaxed" dir="rtl">
-                    <p className="font-bold text-purple-900">زيارة صحة الطفل الدورية (18 شهراً) :</p>
-                    <p>تهدف هذه الزيارة إلى متابعة نمو طفلكم، واكتمال تطوره الحركي واللغوي، وتلقي الجرعات التنشيطية.</p>
-                    <p>تشمل الزيارة فحصاً مبكراً للأنيميا واختبار التفاعل الاجتماعي المعتمد من دائرة الصحة.</p>
-                    <p className="text-gray-500 font-semibold">المشاركة تضمن حماية الطفل وتسهيل تسجيله في الروضة والمدرسة.</p>
-                  </div>
-                ) : (
-                  <div className="text-xs text-gray-800 space-y-2 leading-relaxed" dir="rtl">
-                    <p className="font-bold text-purple-900">فحص السكري والكوليسترول الشامل (IFHAS) :</p>
-                    <p>فحص دوري موصى به للأفراد المعرضين لعوامل الخطر الأسرية أو نمط الحياة للوقاية قبل ظهور الأعراض.</p>
-                    <p className="text-gray-500 font-semibold">تحليل دم بسيط على الريق يتيح ضبط الخطة الوقائية مبكراً.</p>
-                  </div>
-                )
+            {/* Contenu de l'aide à la décision (Bilingue FR / EN) */}
+            <div className="p-4 rounded-xl border bg-purple-50/40 border-purple-100">
+              {decisionAidTopic === 'fit' ? (
+                <div className="text-xs text-gray-800 space-y-2 leading-relaxed">
+                  <p className="font-bold text-purple-900">{t.engagement.fitText.title}</p>
+                  <p>{t.engagement.fitText.p1}</p>
+                  <p>{t.engagement.fitText.p2}</p>
+                  <p>{t.engagement.fitText.p3}</p>
+                  <p className="text-gray-500 font-semibold">{t.engagement.fitText.disclaimer}</p>
+                </div>
+              ) : decisionAidTopic === 'wcv' ? (
+                <div className="text-xs text-gray-800 space-y-2 leading-relaxed">
+                  <p className="font-bold text-purple-900">{t.engagement.wcvText.title}</p>
+                  <p>{t.engagement.wcvText.p1}</p>
+                  <p>{t.engagement.wcvText.p2}</p>
+                  <p>{t.engagement.wcvText.p3}</p>
+                  <p className="text-gray-500 font-semibold">{t.engagement.wcvText.disclaimer}</p>
+                </div>
               ) : (
-                decisionAidTopic === 'fit' ? (
-                  <div className="text-xs text-gray-800 space-y-2 leading-relaxed">
-                    <p className="font-bold text-purple-900">Colorectal Cancer Screening (FIT Test):</p>
-                    <p>This test checks for invisible traces of blood in the stool. It takes only a few minutes in the privacy of your home.</p>
-                    <p>It helps find early non-cancerous growths when treatment is easiest and most effective.</p>
-                    <p>A positive result does not mean cancer: most follow-up checks are reassuring, but an assessment is necessary.</p>
-                    <p className="text-gray-500 font-semibold">You have the full right to accept, postpone, or refuse without any penalty to your healthcare access.</p>
-                  </div>
-                ) : decisionAidTopic === 'wcv' ? (
-                  <div className="text-xs text-gray-800 space-y-2 leading-relaxed">
-                    <p className="font-bold text-purple-900">Well-Child Preventive Visit (18 Months):</p>
-                    <p>This visit tracks your child's physical growth, speech milestones, and required immunization booster doses.</p>
-                    <p>It includes a painless screening for infant anemia and developmental milestones per Abu Dhabi DoH standards.</p>
-                    <p className="text-gray-500 font-semibold">Supporting your child’s health now prevents future delays and supports school readiness.</p>
-                  </div>
-                ) : (
-                  <div className="text-xs text-gray-800 space-y-2 leading-relaxed">
-                    <p className="font-bold text-purple-900">Cardiometabolic Screening (IFHAS Program):</p>
-                    <p>A comprehensive assessment to detect high blood pressure and blood sugar risks before any symptoms arise.</p>
-                    <p className="text-gray-500 font-semibold">Early detection enables personalized nutrition and physical activity to prevent complications.</p>
-                  </div>
-                )
+                <div className="text-xs text-gray-800 space-y-2 leading-relaxed">
+                  <p className="font-bold text-purple-900">{t.engagement.diabetesText.title}</p>
+                  <p>{t.engagement.diabetesText.p1}</p>
+                  <p>{t.engagement.diabetesText.p2}</p>
+                  <p className="text-gray-500 font-semibold">{t.engagement.diabetesText.disclaimer}</p>
+                </div>
               )}
             </div>
 
             {/* Boutons d'action du patient : Choix Réel (Section 6.5) */}
             <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
-              <button className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-medigreen-700 hover:bg-medigreen-800 text-white font-bold text-xs transition active:scale-95">
+              <button className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition active:scale-95">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>{selectedLang === 'ar' ? 'تأكيد الموعد (Confirmer)' : 'Confirm Appointment'}</span>
+                <span>{currentLang === 'fr' ? 'Confirmer le rendez-vous' : 'Confirm Appointment'}</span>
               </button>
               <button className="w-full sm:w-auto flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition">
                 <Clock className="w-4 h-4" />
-                <span>{selectedLang === 'ar' ? 'اختيار تاريخ آخر (Reporter)' : 'Postpone Date'}</span>
+                <span>{currentLang === 'fr' ? 'Reporter la date' : 'Postpone Date'}</span>
               </button>
               <button
                 onClick={handleRefusal}
                 className="w-full sm:w-auto flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs border border-red-200 transition"
               >
                 <XCircle className="w-4 h-4" />
-                <span>{selectedLang === 'ar' ? 'رفض المشاركة (Refuser)' : 'Decline (No penalty)'}</span>
+                <span>{currentLang === 'fr' ? 'Refuser (Arrêter les relances)' : 'Decline (Stop Reminders)'}</span>
               </button>
             </div>
 
+            {/* Message immédiat de prise en compte du refus */}
             {refusalRecorded && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-900 rounded-xl text-xs flex items-center gap-2 animate-in fade-in">
-                <CheckCircle2 className="w-4 h-4 text-red-600 shrink-0" />
-                <span>
-                  <strong>Refus pris en compte immédiatement (CDC §5.4) :</strong> Toutes les relances de rappel sont désactivées. La personne reste pleinement couverte pour ses soins futurs.
-                </span>
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-900 flex items-start gap-2">
+                <XCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-bold">
+                    {currentLang === 'fr' ? 'Refus enregistré conformément au CDC §6.5' : 'Refusal recorded per CDC §6.5'}
+                  </div>
+                  <p className="text-[11px] text-red-700 mt-0.5">
+                    {t.engagement.refusalNotice}
+                  </p>
+                </div>
               </div>
             )}
           </div>
+
+          {/* Journal d'usage des données (Transparence) */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-3">
+            <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+              <Shield className="w-4 h-4 text-emerald-700" />
+              <span>{currentLang === 'fr' ? 'Journal d’Usage des Données (Audit Patient)' : 'Data Usage Log (Patient Audit)'}</span>
+            </h3>
+            <p className="text-xs text-gray-500">
+              {currentLang === 'fr'
+                ? 'Conformément au CDC §6.4, chaque lecture ou calcul algorithmique est tracé et consultable par la famille :'
+                : 'Per CDC §6.4, every data access or algorithmic inference is logged and visible to the family:'}
+            </p>
+            <div className="space-y-2 text-xs font-mono">
+              <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-between">
+                <span>08/11/2026 14:32</span>
+                <span className="font-bold text-gray-700">Calcul Sprio (Coordination)</span>
+                <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">Finalité 1</span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-between">
+                <span>08/11/2026 09:15</span>
+                <span className="font-bold text-gray-700">Envoi SMS Rappel (Al Bateen)</span>
+                <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">Finalité 2</span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-between">
+                <span>05/11/2026 18:00</span>
+                <span className="font-bold text-gray-700">Agrégation Statistique Anonyme</span>
+                <span className="text-[10px] bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Finalité 4</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Colonne 2 : Consentement Granulaire par Finalité (CDC §3.3) */}
+        {/* Colonne 2 : Les 5 Finalités de Consentement Granulaire */}
         <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-            <div>
-              <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
-                <Shield className="w-4 h-4 text-medigreen-700" />
-                <span>Consentement Granulaire par Finalité (5 Clés)</span>
-              </h3>
-              <p className="text-[11px] text-gray-500 mt-0.5">
-                Conformité Loi Fédérale n°2/2019 et Décret PDPL n°45/2021
-              </p>
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-sm text-gray-900">
+              {t.engagement.consentPurposesTitle}
+            </h3>
+            <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+              Opt-in Indépendant
+            </span>
+          </div>
+
+          <p className="text-xs text-gray-500 leading-relaxed">
+            {currentLang === 'fr'
+              ? 'Conformément au CDC §6.3, le consentement n’est jamais global. Le refus d’une finalité (ex: recherche) ne bloque jamais les soins :'
+              : 'Per CDC §6.3, consent is never bundled. Declining one purpose (e.g., research) never blocks clinical care:'}
+          </p>
+
+          <div className="space-y-3">
+            {/* Finalité 1 */}
+            <div className="p-3.5 rounded-xl border border-gray-200 flex items-start justify-between gap-3 bg-gray-50/50">
+              <div>
+                <div className="font-bold text-xs text-gray-900">1. Évaluation du calendrier de prévention</div>
+                <div className="text-[11px] text-gray-500 mt-0.5">
+                  Autorise l'algorithme à calculer les lacunes selon votre profil et âge.
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={consentState.evaluationCalendar}
+                onChange={() => toggleConsent('evaluationCalendar')}
+                className="w-5 h-5 text-purple-600 rounded cursor-pointer mt-0.5"
+              />
+            </div>
+
+            {/* Finalité 2 */}
+            <div className="p-3.5 rounded-xl border border-gray-200 flex items-start justify-between gap-3 bg-gray-50/50">
+              <div>
+                <div className="font-bold text-xs text-gray-900">2. Envoi des rappels et invitations</div>
+                <div className="text-[11px] text-gray-500 mt-0.5">
+                  Réception de notifications WhatsApp, SMS ou portail pour vos rendez-vous.
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={consentState.channelReminders}
+                onChange={() => toggleConsent('channelReminders')}
+                className="w-5 h-5 text-purple-600 rounded cursor-pointer mt-0.5"
+              />
+            </div>
+
+            {/* Finalité 3 */}
+            <div className="p-3.5 rounded-xl border border-gray-200 flex items-start justify-between gap-3 bg-gray-50/50">
+              <div>
+                <div className="font-bold text-xs text-gray-900">3. Transmission au centre de soins sélectionné</div>
+                <div className="text-[11px] text-gray-500 mt-0.5">
+                  Partage sécurisé du dossier préalable avec le praticien pour préparer la visite.
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={consentState.transmissionToFacility}
+                onChange={() => toggleConsent('transmissionToFacility')}
+                className="w-5 h-5 text-purple-600 rounded cursor-pointer mt-0.5"
+              />
+            </div>
+
+            {/* Finalité 4 */}
+            <div className="p-3.5 rounded-xl border border-gray-200 flex items-start justify-between gap-3 bg-gray-50/50">
+              <div>
+                <div className="font-bold text-xs text-gray-900">4. Statistiques agrégées et anonymes de santé publique</div>
+                <div className="text-[11px] text-gray-500 mt-0.5">
+                  Contribution anonymisée au pilotage territorial d'Abu Dhabi (ADPHC).
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={consentState.anonymousAggregatedStats}
+                onChange={() => toggleConsent('anonymousAggregatedStats')}
+                className="w-5 h-5 text-purple-600 rounded cursor-pointer mt-0.5"
+              />
+            </div>
+
+            {/* Finalité 5 (Génomique) */}
+            <div className="p-3.5 rounded-xl border border-purple-200 flex items-start justify-between gap-3 bg-purple-50/30">
+              <div>
+                <div className="font-bold text-xs text-purple-950 flex items-center gap-1.5">
+                  <span>5. Utilisation des données génomiques existantes (Emirati Genome Program)</span>
+                  <span className="text-[9px] bg-purple-200 text-purple-900 px-1.5 py-0.2 rounded font-bold">Spécifique</span>
+                </div>
+                <div className="text-[11px] text-gray-600 mt-0.5">
+                  Recherche de variants monogéniques actionnables uniquement si vous avez déjà participé au programme national.
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={consentState.genomicExistingUse}
+                onChange={() => toggleConsent('genomicExistingUse')}
+                className="w-5 h-5 text-purple-600 rounded cursor-pointer mt-0.5"
+              />
             </div>
           </div>
 
-          <div className="space-y-3">
-            {[
-              {
-                key: 'evaluationCalendar' as keyof ConsentPurposes,
-                title: '1. Évaluation et calendrier de prévention',
-                desc: 'Permet le croisement des données d’âge, mesures cliniques et antécédents familiaux.'
-              },
-              {
-                key: 'channelReminders' as keyof ConsentPurposes,
-                title: '2. Envoi de rappels sur le canal choisi',
-                desc: 'Permet la notification par SMS ou WhatsApp sécurisé avant l’échéance du dépistage.'
-              },
-              {
-                key: 'transmissionToFacility' as keyof ConsentPurposes,
-                title: '3. Transmission de l’orientation au centre de santé',
-                desc: 'Transmet le code d’orientation (CarePlan FHIR) à la clinique de rattachement DoH.'
-              },
-              {
-                key: 'anonymousAggregatedStats' as keyof ConsentPurposes,
-                title: '4. Statistiques de santé publique anonymisées',
-                desc: 'Participe aux indicateurs de couverture régionale sans transmission de données nominatives.'
-              },
-              {
-                key: 'genomicExistingUse' as keyof ConsentPurposes,
-                title: '5. Utilisation d’un score génomique existant',
-                desc: 'Permet uniquement de vérifier l’éligibilité à un bilan précoce (Règle G1). Ne retarde jamais un soin.'
-              }
-            ].map((purpose) => {
-              const isChecked = consentState[purpose.key];
-
-              return (
-                <div
-                  key={purpose.key}
-                  onClick={() => toggleConsent(purpose.key)}
-                  className={`p-3 rounded-xl border transition cursor-pointer flex items-start justify-between gap-3 ${
-                    isChecked
-                      ? 'bg-medigreen-50/50 border-medigreen-300'
-                      : 'bg-gray-50 border-gray-200 opacity-70'
-                  }`}
-                >
-                  <div>
-                    <div className="font-bold text-xs text-gray-900">{purpose.title}</div>
-                    <div className="text-[11px] text-gray-500 mt-0.5 leading-snug">{purpose.desc}</div>
-                  </div>
-
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => {}}
-                    className="w-4 h-4 text-medigreen-700 rounded border-gray-300 mt-0.5 pointer-events-none"
-                  />
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-[11px] text-gray-500">
-            <strong>Droit de retrait permanent :</strong> Chaque case peut être décochée à tout instant. Les données sont alors immédiatement exclues du moteur de calcul.
+          <div className="pt-2 text-[11px] text-gray-400 border-t border-gray-100 flex items-center justify-between">
+            <span>Révocation possible à tout instant via l'application mobile.</span>
+            <span className="font-mono font-bold text-emerald-700">Chiffré AES-256</span>
           </div>
         </div>
       </div>

@@ -9,14 +9,15 @@ import {
   AlertCircle, 
   PanelLeftClose
 } from 'lucide-react';
+import { Language, TRANSLATIONS } from '../i18n/translations';
 
 interface SidebarNavigationProps {
   isOpen: boolean;
   onClose: () => void;
   activeTab: MediSenseTab;
   onSelectTab: (tab: MediSenseTab) => void;
-  currentLang: 'ar' | 'en';
-  onToggleLang: (lang: 'ar' | 'en') => void;
+  currentLang: Language;
+  onToggleLang: (lang: Language) => void;
   onSosClick: () => void;
 }
 
@@ -29,41 +30,43 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   onToggleLang,
   onSosClick
 }) => {
+  const t = TRANSLATIONS[currentLang];
+
   const navItems = [
     {
       id: 'population' as MediSenseTab,
-      label: 'Priorisation Population',
-      sub: 'Score Sprio & Attribution Créneaux',
+      label: t.nav.population.title,
+      sub: t.nav.population.sub,
       icon: Users,
-      badge: 'Sprio'
+      badge: t.nav.population.badge
     },
     {
       id: 'clinical' as MediSenseTab,
-      label: 'Fiche Clinique Individuelle',
-      sub: 'Soignant & Arbres Décisionnels',
+      label: t.nav.clinical.title,
+      sub: t.nav.clinical.sub,
       icon: Stethoscope,
-      badge: 'CDC §5'
+      badge: t.nav.clinical.badge
     },
     {
       id: 'safeguards' as MediSenseTab,
-      label: 'Garde-fous & Équité',
-      sub: 'Wilson 95% & Masquage n < 10',
+      label: t.nav.safeguards.title,
+      sub: t.nav.safeguards.sub,
       icon: ShieldCheck,
-      badge: 'CDC §7'
+      badge: t.nav.safeguards.badge
     },
     {
       id: 'engagement' as MediSenseTab,
-      label: 'Consentement & Choix',
-      sub: '5 finalités & Aides à la décision',
+      label: t.nav.engagement.title,
+      sub: t.nav.engagement.sub,
       icon: HeartHandshake,
-      badge: 'CDC §6'
+      badge: t.nav.engagement.badge
     },
     {
       id: 'benchmark' as MediSenseTab,
-      label: 'Banc d’Essai 50k',
-      sub: 'Cohorte synthétique & Équité',
+      label: t.nav.benchmark.title,
+      sub: t.nav.benchmark.sub,
       icon: BarChart3,
-      badge: 'CDC §8'
+      badge: t.nav.benchmark.badge
     }
   ];
 
@@ -102,14 +105,14 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-extrabold text-base tracking-tight text-slate-900">
-                    MediSense
+                    {t.brand.title}
                   </span>
                   <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/70">
-                    DoH
+                    {t.brand.dohBadge}
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-400 font-medium">
-                  Prévention de Précision • EAU 2026
+                  {t.sidebar.challengeSubtitle}
                 </p>
               </div>
             </div>
@@ -126,7 +129,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
           {/* Liste des modules - Pleine largeur, texte jamais coupé */}
           <div className="p-3 space-y-1.5">
             <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Modules du Défi 04 (Abu Dhabi)
+              {t.nav.menuTitle}
             </div>
 
             {navItems.map((item) => {
@@ -187,8 +190,8 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
             <div className="flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 text-rose-600 group-hover:scale-110 transition-transform" />
               <div className="text-left">
-                <div className="text-xs font-bold leading-tight">Urgence Vitale SOS</div>
-                <div className="text-[10px] text-rose-600 leading-tight">Règle de sortie E0</div>
+                <div className="text-xs font-bold leading-tight">{t.sidebar.sosLabel}</div>
+                <div className="text-[10px] text-rose-600 leading-tight">{t.sidebar.sosRule}</div>
               </div>
             </div>
             <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-rose-200/80 text-rose-900">
@@ -198,18 +201,19 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
 
           {/* Langue & Challenge */}
           <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/60">
+            {/* Bascule FR / EN */}
             <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200 shadow-2xs text-xs font-semibold">
               <button
-                onClick={() => onToggleLang('ar')}
-                className={`px-2.5 py-1 rounded-md transition ${
-                  currentLang === 'ar' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
+                onClick={() => onToggleLang('fr')}
+                className={`px-3 py-1 rounded-md font-bold transition ${
+                  currentLang === 'fr' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
-                العربية
+                FR
               </button>
               <button
                 onClick={() => onToggleLang('en')}
-                className={`px-2.5 py-1 rounded-md transition ${
+                className={`px-3 py-1 rounded-md font-bold transition ${
                   currentLang === 'en' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
@@ -219,7 +223,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
 
             <div className="text-right">
               <div className="text-[10px] font-bold text-slate-700">MBZUAI • 2026</div>
-              <div className="text-[9px] text-slate-400">Abu Dhabi, UAE</div>
+              <div className="text-[9px] text-slate-400">{t.sidebar.footerCity}</div>
             </div>
           </div>
         </div>

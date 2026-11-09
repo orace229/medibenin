@@ -18,6 +18,7 @@ import { FamilyRecord } from './components/FamilyRecord';
 import { MedicalCommitteeAudit } from './components/MedicalCommitteeAudit';
 import { FooterLegal } from './components/FooterLegal';
 
+import { Language } from './i18n/translations';
 import { SYNTHETIC_PERSONAS } from './data/personas';
 import { PersonaProfile, FollowupState } from './types/medisense';
 import { PatientProfile, TriageResult, LocalLanguage } from './types';
@@ -28,7 +29,7 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<MediSenseTab>('population');
   const [personas, setPersonas] = useState<PersonaProfile[]>(SYNTHETIC_PERSONAS);
   const [selectedPersona, setSelectedPersona] = useState<PersonaProfile>(SYNTHETIC_PERSONAS[0]);
-  const [appLang, setAppLang] = useState<'ar' | 'en'>('en');
+  const [appLang, setAppLang] = useState<Language>('fr');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   // Mode d'affichage : Défi 04 Abu Dhabi (par défaut) vs Mode Triage Aigu
@@ -138,7 +139,10 @@ export const App: React.FC = () => {
               )}
 
               {activeTab === 'engagement' && (
-                <EngagementChoiceView />
+                <EngagementChoiceView
+                  currentLang={appLang}
+                  onToggleLang={setAppLang}
+                />
               )}
 
               {activeTab === 'benchmark' && (
