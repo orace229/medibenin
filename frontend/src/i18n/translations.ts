@@ -53,15 +53,65 @@ export interface TranslationDictionary {
     sosRule: string;
     footerCity: string;
   };
+  prioritization: {
+    title: string;
+    badge: string;
+    subtitle: string;
+    capacityTitle: string;
+    capacitySlots: string;
+    ethicalRuleTitle: string;
+    ethicalRuleDesc: string;
+    dossiersCount: string;
+    selectedCount: string;
+    selectAll: string;
+    validateInvitations: string;
+    scoreSprio: string;
+    openClinical: string;
+    batchSuccessNotice: string;
+    yearsOld: string;
+    monthsOld: string;
+  };
   clinical: {
     backToPopulation: string;
     sprioForbiddenNotice: string;
+    primaryCenter: string;
+    syntheticId: string;
+    ageLabel: string;
+    genderLabel: string;
+    regionLabel: string;
+    languageLabel: string;
     vitalsTitle: string;
+    signalsTitle: string;
     carePlanTitle: string;
     simulatorsTitle: string;
     growthChartTitle: string;
     qrModalTitle: string;
     levelGreyButton: string;
+    levelGreyActive: string;
+    levelGreyDesc: string;
+    vitals: {
+      bp: string;
+      bpNotMeasured: string;
+      bmi: string;
+      waist: string;
+      waistNotMeasured: string;
+      smoking: string;
+      nonSmoker: string;
+      findrisc: string;
+      findriscCalc: string;
+      genomics: string;
+      genomicsNotRequired: string;
+    };
+    status: {
+      validated: string;
+      invited: string;
+      reminded: string;
+      booked: string;
+      attended: string;
+      noShow: string;
+      declined: string;
+      completed: string;
+    };
   };
   engagement: {
     headerTitle: string;
@@ -100,6 +150,14 @@ export interface TranslationDictionary {
     headerDesc: string;
     antiReidBadge: string;
     antiReidSub: string;
+    alertC3Title: string;
+    alertC3Badge: string;
+    alertC3Desc: string;
+    alertC3Action: string;
+    alertC1Title: string;
+    alertC1Badge: string;
+    alertC1Desc: string;
+    alertC1Action: string;
     filters: {
       title: string;
       all: string;
@@ -116,17 +174,35 @@ export interface TranslationDictionary {
       falseNegatives: string;
       status: string;
     };
+    maskedText: string;
+    confirmedWilson: string;
+    antiReidStatus: string;
+    methodologyTitle: string;
+    methodologyDesc: string;
   };
   benchmark: {
     headerTitle: string;
     headerDesc: string;
+    badge: string;
+    sub: string;
     integrityTitle: string;
     integrityDesc: string;
-    metrics: {
+    kpi: {
       yieldGain: string;
-      falseNegativesAvoided: string;
-      zeroDoseResolved: string;
+      yieldGainSub: string;
+      falseNegAvoided: string;
+      falseNegSub: string;
+      zeroDose: string;
+      zeroDoseSub: string;
       gapDetection: string;
+      gapDetectionSub: string;
+    };
+    table: {
+      title: string;
+      metricCol: string;
+      medisenseCol: string;
+      baselineCol: string;
+      deltaCol: string;
     };
   };
 }
@@ -185,15 +261,65 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
       sosRule: 'Règle de sortie E0',
       footerCity: 'Abu Dhabi, UAE'
     },
+    prioritization: {
+      title: 'Priorisation de la Population',
+      badge: 'Console Coordinateur',
+      subtitle: 'Ordonnancement des invitations selon le score Sprio et la capacité des créneaux',
+      capacityTitle: 'Capacité centres du jour',
+      capacitySlots: 'créneaux alloués (74%)',
+      ethicalRuleTitle: 'RÈGLE CDC §5.2 — Séparation stricte Logistique / Clinique :',
+      ethicalRuleDesc: 'Le score Sprio sert uniquement à ordonnancer les invitations selon les créneaux disponibles. Il est strictement interdit d’afficher ce score dans la fiche clinique individuelle pour ne pas biaiser la décision du médecin ou de l’infirmier.',
+      dossiersCount: 'dossiers priorisés',
+      selectedCount: 'sélectionné(s) pour invitation',
+      selectAll: 'Tout sélectionner',
+      validateInvitations: 'Valider le lot d’invitations',
+      scoreSprio: 'Score Sprio',
+      openClinical: 'Fiche Clinique',
+      batchSuccessNotice: 'Lot d’invitations validé : les convocations ont été transmises aux centres Al Bateen et Al Hili.',
+      yearsOld: 'ans',
+      monthsOld: 'mois'
+    },
     clinical: {
       backToPopulation: 'Retour à la Priorisation Population',
       sprioForbiddenNotice: 'Fiche Clinique Individuelle • Écran 2 (Sprio exclu selon CDC §5.2)',
+      primaryCenter: 'Centre de rattachement :',
+      syntheticId: 'ID Synthétique :',
+      ageLabel: 'Âge :',
+      genderLabel: 'Sexe :',
+      regionLabel: 'Région :',
+      languageLabel: 'Langue :',
       vitalsTitle: 'Constantes & Données Biocliniques',
+      signalsTitle: 'Signaux Détectés & Arbres Décisionnels (Règles P, A, G, C)',
       carePlanTitle: 'Plan de Soins Personnalisé (CarePlan unifié)',
       simulatorsTitle: 'Simulateur Interactif de Risque & Facteurs Modifiables',
       growthChartTitle: 'Courbe de Croissance OMS 2006 (0 à 24 mois)',
       qrModalTitle: 'Pass Sanitaire de Prévention (QR Code sécurisé)',
-      levelGreyButton: 'Activer / Tester le Niveau Gris'
+      levelGreyButton: 'Activer / Tester le Niveau Gris',
+      levelGreyActive: 'Niveau Gris Activé (Données insuffisantes pour statuer)',
+      levelGreyDesc: 'Données insuffisantes pour un algorithme déterministe. Échappement vers une consultation présentielle de cadrage clinique sans extrapolation.',
+      vitals: {
+        bp: 'TENSION',
+        bpNotMeasured: 'Non mesurée',
+        bmi: 'IMC / POIDS',
+        waist: 'TOUR DE TAILLE',
+        waistNotMeasured: 'Non mesuré',
+        smoking: 'TABAGISME',
+        nonSmoker: 'Non-fumeur',
+        findrisc: 'SCORE FINDRISC',
+        findriscCalc: 'Calculé',
+        genomics: 'GÉNOMIQUE',
+        genomicsNotRequired: 'Non requis'
+      },
+      status: {
+        validated: 'Validée',
+        invited: 'Invitée',
+        reminded: 'Rappelée',
+        booked: 'Rendez-vous pris',
+        attended: 'Présentée',
+        noShow: 'Non présentée',
+        declined: 'Refusée',
+        completed: 'Complétée'
+      }
     },
     engagement: {
       headerTitle: 'Engagement Culturellement Adapté & Choix Éclairé',
@@ -232,6 +358,14 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
       headerDesc: 'Masquage strict des petits effectifs (n < 10), intervalles de Wilson à 95 % et alertes d’équité culturelle C1–C4.',
       antiReidBadge: 'Anti-Réidentification',
       antiReidSub: 'Suppression primaire & secondaire active',
+      alertC3Title: 'Alerte d’Écart d’Adoption (Règle C3)',
+      alertC3Badge: 'JAUNE',
+      alertC3Desc: 'Segment Asie du Sud : Taux d’adoption (64,2% [63,2% – 65,2%]) inférieur de plus de 10 points à la moyenne (74,8%), avec intervalles de Wilson disjoints.',
+      alertC3Action: '→ Action : Adapter les messages en Ourdou/Hindi et ouvrir des créneaux en soirée pour les travailleurs postés.',
+      alertC1Title: 'Alerte Zone Sous-Couverte (Règle C1)',
+      alertC1Badge: 'ORANGE',
+      alertC1Desc: 'Région Al Dhafra : Borne haute de l’intervalle de portée (73,9%) sous la cible du programme (85%). Accès routier moyen > 30 minutes.',
+      alertC1Action: '→ Action : Déploiement d’une unité mobile de dépistage itinérante avec relais communautaires.',
       filters: {
         title: 'Dimension d’analyse :',
         all: 'Tous les segments',
@@ -247,18 +381,36 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
         falsePositives: 'Faux Positifs',
         falseNegatives: 'Faux Négatifs',
         status: 'Garde-fou Statut'
-      }
+      },
+      maskedText: 'Masqué (n < 10)',
+      confirmedWilson: 'CONFIRMÉ WILSON',
+      antiReidStatus: 'ANTI-RÉIDENTIFICATION',
+      methodologyTitle: 'Explication méthodologique du masquage (CDC §7.3) :',
+      methodologyDesc: 'Toute cellule dont l’effectif est strictement inférieur à 10 est systématiquement masquée (primaire) pour protéger le secret statistique. La cellule complémentaire de la même ligne ou colonne est également masquée (suppression secondaire) pour empêcher tout recalcul par déduction mathématique.'
     },
     benchmark: {
       headerTitle: 'Banc d’Essai & Évaluation sur 50 000 Profils Synthétiques',
       headerDesc: 'Validation expérimentale sur une cohorte représentative d’Abu Dhabi démontrant un gain de rendement x4.02 sans biais d’exclusion.',
+      badge: 'CDC §8 • 50 000 profils',
+      sub: 'Comparaison à capacité de centres égale (65 créneaux / jour)',
       integrityTitle: 'Clause d’Intégrité Scientifique (CDC §8.4)',
       integrityDesc: 'Les métriques présentées ici valident l’exécution du pipeline algorithmique et le déclenchement des garde-fous sur données synthétiques. Elles ne constituent pas une validation clinique en conditions réelles, laquelle sera menée lors de la phase pilote à Abu Dhabi.',
-      metrics: {
+      kpi: {
         yieldGain: 'Gain de Rendement',
-        falseNegativesAvoided: 'Faux Négatifs Évités',
-        zeroDoseResolved: 'Zero-Dose Identifiés',
-        gapDetection: 'Taux de Détection des Lacunes'
+        yieldGainSub: 'Cas à haut risque détectés vs ciblage par âge seul',
+        falseNegAvoided: 'Faux Négatifs Évités',
+        falseNegSub: 'Repérage actif des lacunes silencieuses',
+        zeroDose: 'Zero-Dose Identifiés',
+        zeroDoseSub: 'Enfants sans aucun vaccin orientés vers la clinique',
+        gapDetection: 'Détection des Lacunes',
+        gapDetectionSub: 'Taux de conformité aux recommandations DoH'
+      },
+      table: {
+        title: 'Tableau Comparatif d’Efficacité Algorithmique (Capacité Fixe)',
+        metricCol: 'Indicateur de Santé Publique',
+        medisenseCol: 'MediSense (Précision)',
+        baselineCol: 'Règle Âge / Sexe Seul',
+        deltaCol: 'Gain / Différentiel'
       }
     }
   },
@@ -315,15 +467,65 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
       sosRule: 'Safety Rule E0',
       footerCity: 'Abu Dhabi, UAE'
     },
+    prioritization: {
+      title: 'Population Prioritization',
+      badge: 'Coordinator Console',
+      subtitle: 'Ordering invitation outreach using Sprio scores and clinic slot capacity',
+      capacityTitle: 'Clinic Daily Capacity',
+      capacitySlots: 'slots allocated (74%)',
+      ethicalRuleTitle: 'CDC RULE §5.2 — Strict Logistics / Clinical Separation:',
+      ethicalRuleDesc: 'The Sprio score is used exclusively for logistics slot scheduling. Displaying this score inside the individual clinical record is strictly prohibited to avoid biasing medical decision-making.',
+      dossiersCount: 'prioritized profiles',
+      selectedCount: 'selected for invitation',
+      selectAll: 'Select all',
+      validateInvitations: 'Approve Invitation Batch',
+      scoreSprio: 'Sprio Score',
+      openClinical: 'Clinical Record',
+      batchSuccessNotice: 'Batch approved: Outreach notices routed to Al Bateen and Al Hili community healthcare centers.',
+      yearsOld: 'yrs',
+      monthsOld: 'mo'
+    },
     clinical: {
       backToPopulation: 'Back to Population Prioritization',
       sprioForbiddenNotice: 'Individual Clinical Record • Screen 2 (Sprio strictly forbidden per CDC §5.2)',
-      vitalsTitle: 'Bioclinical Vitals & Signals',
+      primaryCenter: 'Assigned Center:',
+      syntheticId: 'Synthetic ID:',
+      ageLabel: 'Age:',
+      genderLabel: 'Sex:',
+      regionLabel: 'Region:',
+      languageLabel: 'Language:',
+      vitalsTitle: 'Bioclinical Vitals & Laboratory Signals',
+      signalsTitle: 'Detected Signals & Rule Engines (P, A, G, C Rules)',
       carePlanTitle: 'Personalized Unified CarePlan',
       simulatorsTitle: 'Interactive Risk Simulator & Modifiable Factors',
       growthChartTitle: 'WHO 2006 Pediatric Growth Chart (0-24m)',
       qrModalTitle: 'Health Prevention Pass (Secure QR Code)',
-      levelGreyButton: 'Toggle / Test Level Grey Fallback'
+      levelGreyButton: 'Toggle / Test Level Grey Fallback',
+      levelGreyActive: 'Level Grey Active (Insufficient data to compute deterministic rule)',
+      levelGreyDesc: 'Insufficient clinical data for rule firing. Escapes gracefully to an in-person clinical scoping consultation without unverified inference.',
+      vitals: {
+        bp: 'BLOOD PRESSURE',
+        bpNotMeasured: 'Not measured',
+        bmi: 'BMI / WEIGHT',
+        waist: 'WAIST CIRC.',
+        waistNotMeasured: 'Not measured',
+        smoking: 'SMOKING',
+        nonSmoker: 'Non-smoker',
+        findrisc: 'FINDRISC SCORE',
+        findriscCalc: 'Calculated',
+        genomics: 'GENOMICS',
+        genomicsNotRequired: 'Not required'
+      },
+      status: {
+        validated: 'Validated',
+        invited: 'Invited',
+        reminded: 'Reminded',
+        booked: 'Booked',
+        attended: 'Attended',
+        noShow: 'No-show',
+        declined: 'Declined',
+        completed: 'Completed'
+      }
     },
     engagement: {
       headerTitle: 'Culturally Adapted Engagement & Informed Choice',
@@ -362,6 +564,14 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
       headerDesc: 'Strict small-cell masking (n < 10), Wilson 95% confidence intervals, and cultural equity alerts C1–C4.',
       antiReidBadge: 'Anti-Reidentification',
       antiReidSub: 'Primary & secondary suppression active',
+      alertC3Title: 'Adoption Disparity Alert (Rule C3)',
+      alertC3Badge: 'YELLOW',
+      alertC3Desc: 'South Asian Segment: Adoption rate (64.2% [63.2% – 65.2%]) is >10 points lower than the overall mean (74.8%), with disjoint Wilson confidence intervals.',
+      alertC3Action: '→ Action: Tailor reminders in Urdu/Hindi and establish evening outreach clinic slots for shift workers.',
+      alertC1Title: 'Under-Covered Geographic Zone Alert (Rule C1)',
+      alertC1Badge: 'ORANGE',
+      alertC1Desc: 'Al Dhafra Region: Upper bound of reach interval (73.9%) remains below program target (85%). Mean travel time > 30 minutes.',
+      alertC1Action: '→ Action: Deploy itinerant mobile screening clinic with local community healthcare workers.',
       filters: {
         title: 'Analysis Dimension:',
         all: 'All Segments',
@@ -377,18 +587,36 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
         falsePositives: 'False Positives',
         falseNegatives: 'False Negatives',
         status: 'Safeguard Status'
-      }
+      },
+      maskedText: 'Masked (n < 10)',
+      confirmedWilson: 'CONFIRMED WILSON',
+      antiReidStatus: 'ANTI-REIDENTIFICATION',
+      methodologyTitle: 'Masking Methodology Disclosure (CDC §7.3):',
+      methodologyDesc: 'Any cell with a count strictly below 10 is systematically suppressed (primary suppression) to protect statistical confidentiality. A complementary cell on the same row or column is also suppressed (secondary suppression) to prevent mathematical recalculation.'
     },
     benchmark: {
       headerTitle: 'Benchmark & Evaluation on 50,000 Synthetic Profiles',
       headerDesc: 'Experimental pipeline validation on a representative Abu Dhabi synthetic cohort demonstrating a x4.02 yield gain without disparity.',
+      badge: 'CDC §8 • 50,000 profiles',
+      sub: 'Comparison at equal clinic capacity (65 slots / day)',
       integrityTitle: 'Scientific Integrity Clause (CDC §8.4)',
       integrityDesc: 'The metrics presented here validate algorithmic pipeline execution and safety guard triggers on synthetic data. They do not constitute real-world clinical validation, which will occur during the post-competition Abu Dhabi pilot.',
-      metrics: {
+      kpi: {
         yieldGain: 'Yield Gain',
-        falseNegativesAvoided: 'False Negatives Avoided',
-        zeroDoseResolved: 'Zero-Dose Resolved',
-        gapDetection: 'Gap Detection Rate'
+        yieldGainSub: 'High-risk cases detected vs age-only baseline',
+        falseNegAvoided: 'False Negatives Avoided',
+        falseNegSub: 'Active identification of silent care gaps',
+        zeroDose: 'Zero-Dose Resolved',
+        zeroDoseSub: 'Children without any vaccine directed to clinic',
+        gapDetection: 'Gap Detection Rate',
+        gapDetectionSub: 'DoH guideline adherence rate'
+      },
+      table: {
+        title: 'Algorithmic Yield Benchmark Table (Fixed Clinic Capacity)',
+        metricCol: 'Public Health Indicator',
+        medisenseCol: 'MediSense (Precision)',
+        baselineCol: 'Age & Sex Baseline',
+        deltaCol: 'Differential / Gain'
       }
     }
   }

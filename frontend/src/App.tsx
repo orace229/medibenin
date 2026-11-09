@@ -123,6 +123,7 @@ export const App: React.FC = () => {
                   personas={personas}
                   onSelectPersonaForClinicalView={handleSelectPersonaForClinical}
                   onApproveInvitationsBatch={handleBatchApprove}
+                  currentLang={appLang}
                 />
               )}
 
@@ -131,11 +132,12 @@ export const App: React.FC = () => {
                   persona={selectedPersona}
                   onBackToPopulationView={() => setActiveTab('population')}
                   onUpdateActionState={handleUpdateActionState}
+                  currentLang={appLang}
                 />
               )}
 
               {activeTab === 'safeguards' && (
-                <PopulationSafeguardsView />
+                <PopulationSafeguardsView currentLang={appLang} />
               )}
 
               {activeTab === 'engagement' && (
@@ -146,7 +148,7 @@ export const App: React.FC = () => {
               )}
 
               {activeTab === 'benchmark' && (
-                <BenchmarkEvaluationView />
+                <BenchmarkEvaluationView currentLang={appLang} />
               )}
             </main>
           </>
