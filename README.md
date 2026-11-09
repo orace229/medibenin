@@ -11,8 +11,13 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/orace229/medibenin"><img src="https://img.shields.io/badge/GitHub-orace229%2Fmedibenin-blue?logo=github" alt="GitHub Repo" /></a>
+  <a href="https://frontend-one-flax-65.vercel.app"><img src="https://img.shields.io/badge/Live%20Demo-frontend--one--flax--65.vercel.app-emerald?style=for-the-badge&logo=vercel" alt="Live Demo Vercel" /></a>
+  <a href="https://github.com/orace229/medibenin"><img src="https://img.shields.io/badge/GitHub-orace229%2Fmedibenin-blue?style=for-the-badge&logo=github" alt="GitHub Repo" /></a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Challenge-Future%20Health%20Abu%20Dhabi%202026-gold" alt="Future Health Challenge" />
+  <img src="https://img.shields.io/badge/Langues-Fran%C3%A7ais%20%7C%20English%20(100%25)-indigo" alt="Bilingual" />
   <img src="https://img.shields.io/badge/Standards-DoH%20WCV%20%2F%20IFHAS%20%2F%20WHO%20HEARTS-emerald" alt="Clinical Standards" />
   <img src="https://img.shields.io/badge/Garde--fous-Wilson%2095%25%20CI%20%26%20Masquage%20n%3C10-purple" alt="Statistical Safeguards" />
   <img src="https://img.shields.io/badge/Interop-FHIR%20R4%20%2F%20Malaffi%20Ready-blue" alt="FHIR R4" />
@@ -33,9 +38,14 @@
 
 ---
 
-## 🖥️ Les 5 Écrans du Prototype de Démonstration (Section 11)
+## 🖥️ Les Écrans du Prototype de Démonstration (Section 11)
 
-L'application Web (`frontend/`) met en scène de bout en bout les exigences du concours :
+L'application Web ([frontend-one-flax-65.vercel.app](https://frontend-one-flax-65.vercel.app)) met en scène de bout en bout les exigences du concours, entièrement bilingue (**Français / English**) :
+
+0. **🏠 Écran d'Accueil : Vue d’Ensemble Exécutive**
+   - Synthèse du Défi 04 (Abu Dhabi) et des 3 piliers (gain $\times 4.02$, équité sans biais, boucle fermée).
+   - Accès direct en un clic aux 5 perspectives fonctionnelles.
+   - Sélection rapide des 3 personas de démonstration clinique.
 
 1. **👥 Écran 1 : Priorisation de la Population (Coordinateur)**
    - Tri logistique par le score $S_{\text{prio}} = 100 \times (0{,}40 I_{\text{risque}} + 0{,}25 I_{\text{lacune}} + 0{,}20 I_{\text{retard}} + 0{,}15 I_{\text{vuln}})$.
