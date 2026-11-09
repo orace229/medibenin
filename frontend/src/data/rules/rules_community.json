@@ -1,0 +1,39 @@
+{
+  "table": "COMMUNITY_RULES",
+  "version": "7.0.0",
+  "signature": "SHA256:a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+  "jurisdiction": "Abu Dhabi Public Health Center (ADPHC) / Wilson 95% CI",
+  "last_reviewed": "2026-11-08",
+  "signed_by": "Dr. Sydney KPEGBE, MD (Referent Medical CareX)",
+  "minimum_cell_size": 30,
+  "rules": [
+    {
+      "id": "C1",
+      "title": "Zone géographique sous-couverte",
+      "condition": "La borne haute de l'intervalle de Wilson à 95% du taux de visites à jour est inférieure à la cible du programme (cible = 85%)",
+      "level": "Orange",
+      "action_proposed": "Déploiement d'une unité mobile de santé et campagne d'invitations ciblée de proximité"
+    },
+    {
+      "id": "C2",
+      "title": "Foyer d'enfants zéro-dose",
+      "condition": "Au moins 5 enfants zéro-dose repérés dans la zone en 90 jours (affichage soumis au masquage anti-réidentification n < 10)",
+      "level": "Orange",
+      "action_proposed": "Mission d'intervention de rattrapage vaccinal communautaire immédiate"
+    },
+    {
+      "id": "C3",
+      "title": "Alerte d'écart d'adoption culturelle",
+      "condition": "L'adoption dans un segment de population est inférieure de > 10 points à la moyenne, avec intervalles de Wilson disjoints, alors que le taux d'invitation est comparable",
+      "level": "Jaune",
+      "action_proposed": "Revue des canaux de communication, de la langue, des horaires et engagement des médiateurs culturels locaux"
+    },
+    {
+      "id": "C4",
+      "title": "Alerte d'écart de faux négatifs (Équité clinique)",
+      "condition": "Le taux de faux négatifs d'un segment dépasse la moyenne de > 5 points (avec au moins 5 événements)",
+      "level": "Rouge",
+      "action_proposed": "Extension du programme bloquée pour ce segment ; saisine d'urgence de la gouvernance clinique"
+    }
+  ]
+}

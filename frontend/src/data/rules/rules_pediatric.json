@@ -1,0 +1,142 @@
+{
+  "table": "PEDIATRIC_RULES",
+  "version": "7.0.0",
+  "signature": "SHA256:d8b24ef098a543cd89e1a2b345c6789f",
+  "jurisdiction": "Abu Dhabi (DoH standard) / WHO international",
+  "last_reviewed": "2026-11-08",
+  "signed_by": "Dr. Sydney KPEGBE, MD (Referent Medical CareX)",
+  "rules": [
+    {
+      "id": "P1",
+      "age_min_months": 0,
+      "age_max_months": 59,
+      "title": "Malnutrition aiguë sévère",
+      "condition": "Z-score poids-pour-taille < -3 OU périmètre brachial (MUAC) < 115 mm (6-59m) OU œdèmes bilatéraux",
+      "type": "Risque élevé",
+      "level": "Rouge",
+      "deadline_days": 1,
+      "reference": "OMS, standards de croissance 2006",
+      "status": "Publié"
+    },
+    {
+      "id": "P2",
+      "age_min_months": 0,
+      "age_max_months": 59,
+      "title": "Retard de croissance / Risque pondéral pédiatrique",
+      "condition": "Z-score poids-pour-taille ou taille-pour-âge entre -3 et -2 (Orange) ; IMC-pour-âge > +2 (Jaune) ou > +3 (Orange)",
+      "type": "Risque élevé",
+      "level": "Orange",
+      "deadline_days": 14,
+      "reference": "OMS, standards de croissance 2006",
+      "status": "Publié"
+    },
+    {
+      "id": "P3",
+      "age_min_months": 0,
+      "age_max_months": 72,
+      "title": "Visite de l'enfant manquée (Well-Child Visit)",
+      "condition": "Une visite hors fenêtre (Jaune) ; deux visites consécutives manquées (Orange)",
+      "type": "Soins manqués / en retard",
+      "level": "Jaune",
+      "deadline_days": 30,
+      "reference": "Standard DoH DOH/WCV/SD",
+      "status": "[À VÉRIFIER] V3"
+    },
+    {
+      "id": "P4",
+      "age_min_months": 0,
+      "age_max_months": 204,
+      "title": "Retard vaccinal / Enfant zéro dose",
+      "condition": "Dose vaccinale en retard de > 30 jours (Jaune), > 60 jours (Orange). Enfant zéro dose : aucune dose DTC à 14 semaines (Orange)",
+      "type": "Soins manqués / en retard",
+      "level": "Orange",
+      "deadline_days": 14,
+      "reference": "Calendrier national des ÉAU ; définition zéro-dose Gavi/OMS",
+      "status": "Calendrier [À VÉRIFIER] V3"
+    },
+    {
+      "id": "P5",
+      "age_min_months": 12,
+      "age_max_months": 24,
+      "title": "Dépistage de l'anémie infantile",
+      "condition": "Dépistage d'anémie non réalisé dans la fenêtre 12-24m (Jaune) ; hémoglobine < 11,0 g/dL (Orange)",
+      "type": "Soins manqués / risque élevé",
+      "level": "Jaune",
+      "deadline_days": 30,
+      "reference": "Seuil OMS (6-59 mois) ; fenêtre selon standard DoH",
+      "status": "Fenêtre [À VÉRIFIER] V3"
+    },
+    {
+      "id": "P6",
+      "age_min_months": 16,
+      "age_max_months": 30,
+      "title": "Dépistage autisme (M-CHAT-R)",
+      "condition": "Score 3 à 7 -> entretien de suivi (Jaune) ; score >= 8 ou entretien de suivi >= 2 -> orientation (Orange)",
+      "type": "Risque élevé",
+      "level": "Jaune",
+      "deadline_days": 21,
+      "reference": "Grille M-CHAT-R/F publiée (Robins et al.)",
+      "status": "Publié ; licence requise en prod"
+    },
+    {
+      "id": "P7",
+      "age_min_months": 1,
+      "age_max_months": 66,
+      "title": "Dépistage développemental (ASQ-3)",
+      "condition": "Score sous seuil de référence dans >= 1 domaine (Orange) ; zone de surveillance (Jaune) ; perte d'acquis (Orange)",
+      "type": "Risque élevé",
+      "level": "Orange",
+      "deadline_days": 14,
+      "reference": "Seuils publiés ASQ-3 (Squires & Bricker)",
+      "status": "Publié ; licence requise en prod"
+    },
+    {
+      "id": "P8",
+      "age_min_months": 60,
+      "age_max_months": 204,
+      "title": "Surveillance IMC adolescent (5-17 ans)",
+      "condition": "IMC-pour-âge OMS 2007 : > +1 (Jaune), > +2 obésité (Orange), < -2 (Jaune), < -3 (Orange)",
+      "type": "Risque élevé",
+      "level": "Orange",
+      "deadline_days": 30,
+      "reference": "Référence de croissance OMS 2007",
+      "status": "Publié"
+    },
+    {
+      "id": "P9",
+      "age_min_months": 12,
+      "age_max_months": 204,
+      "title": "Tension artérielle pédiatrique",
+      "condition": "Avant 13 ans : >= 95e percentile taille/âge/sexe ; à partir de 13 ans : >= 130/80 mmHg (Orange)",
+      "type": "Risque élevé",
+      "level": "Orange",
+      "deadline_days": 14,
+      "reference": "Recommandation AAP 2017 (Clinical Practice Guideline)",
+      "status": "Publié"
+    },
+    {
+      "id": "P10",
+      "age_min_months": 24,
+      "age_max_months": 204,
+      "title": "Hypercholestérolémie familiale (Voie d'accélération sans génomique)",
+      "condition": "Antécédent familial au 1er degré d'hypercholestérolémie familiale ou d'événement CV précoce, sans bilan lipidique",
+      "type": "Risque élevé",
+      "level": "Orange",
+      "deadline_days": 30,
+      "reference": "Consensus international pédiatrique sur l'hypercholestérolémie familiale",
+      "status": "Publié [À VÉRIFIER V6]"
+    },
+    {
+      "id": "P11",
+      "age_min_months": 120,
+      "age_max_months": 204,
+      "title": "Vaccins de l'adolescence",
+      "condition": "Vaccin HPV, méningocoque ou rappels DTC non faits dans la fenêtre nationale",
+      "type": "Soins manqués",
+      "level": "Jaune",
+      "deadline_days": 60,
+      "reference": "Calendrier national des ÉAU (santé scolaire)",
+      "status": "[À VÉRIFIER] V3"
+    }
+  ]
+}

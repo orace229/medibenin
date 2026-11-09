@@ -1,0 +1,142 @@
+{
+  "table": "ADULT_RULES",
+  "version": "7.0.0",
+  "signature": "SHA256:e7a9b1c2d3e4f5a6b7c8d9e0f1a2b3c4",
+  "jurisdiction": "Abu Dhabi (DoH IFHAS) / WHO international",
+  "last_reviewed": "2026-11-08",
+  "signed_by": "Dr. Sydney KPEGBE, MD (Referent Medical CareX)",
+  "rules": [
+    {
+      "id": "A1",
+      "age_min_years": 18,
+      "age_max_years": 120,
+      "title": "Tension artérielle adulte (OMS HEARTS)",
+      "condition": "Systolique 140-179 ou diastolique 90-109 mmHg (Orange) ; systolique 130-139 ou diastolique 85-89 mmHg (Jaune)",
+      "type": "Risque élevé",
+      "level": "Orange",
+      "deadline_days": 14,
+      "reference": "OMS HEARTS ; seuil de vigilance (H2)",
+      "status": "Publié / H"
+    },
+    {
+      "id": "A2",
+      "age_min_years": 40,
+      "age_max_years": 80,
+      "title": "Risque cardiovasculaire à 10 ans (OMS 2019 non-labo)",
+      "condition": "Modèle OMS 2019 : >= 20% (Orange prioritaire), 10 à < 20% (Orange), 5 à < 10% (Jaune). Hors grossesse",
+      "type": "Risque élevé",
+      "level": "Orange",
+      "deadline_days": 14,
+      "reference": "OMS 2019 (Lancet Global Health) ; seuil 5% = H3",
+      "status": "Publié ; seuil 5% = H3"
+    },
+    {
+      "id": "A3",
+      "age_min_years": 18,
+      "age_max_years": 120,
+      "title": "Risque de diabète type 2 (FINDRISC & HbA1c)",
+      "condition": "FINDRISC >= 15 (Orange), 12 à 14 (Jaune). HbA1c >= 6,5% sans diagnostic connu (Orange), 5,7 à 6,4% (Jaune)",
+      "type": "Risque élevé",
+      "level": "Orange",
+      "deadline_days": 14,
+      "reference": "Lindström & Tuomilehto 2003 ; seuils ADA",
+      "status": "Publié"
+    },
+    {
+      "id": "A4",
+      "age_min_years": 18,
+      "age_max_years": 120,
+      "title": "Dépistage glycémique ciblé (Origine asiatique & surpoids)",
+      "condition": "Origine d'Asie du Sud ou d'Asie de l'Est ET IMC >= 23, sans dépistage glycémique depuis > 3 ans -> Dépistage HbA1c",
+      "type": "Risque élevé",
+      "level": "Jaune",
+      "deadline_days": 30,
+      "reference": "Seuils d'IMC asiatiques OMS 2004 ; recommandation ADA",
+      "status": "Publié ; adaptation locale H4"
+    },
+    {
+      "id": "A5",
+      "age_min_years": 25,
+      "age_max_years": 65,
+      "title": "Dépistage du cancer du col de l'utérus",
+      "condition": "Frottis ou test HPV non fait dans l'intervalle national",
+      "type": "Soins manqués / en retard",
+      "level": "Jaune",
+      "deadline_days": 60,
+      "reference": "Programme national de dépistage ÉAU",
+      "status": "[À VÉRIFIER] V4"
+    },
+    {
+      "id": "A6",
+      "age_min_years": 40,
+      "age_max_years": 69,
+      "title": "Dépistage du cancer du sein (Mammographie)",
+      "condition": "Mammographie de dépistage non faite dans l'intervalle national (suspendue pendant la grossesse)",
+      "type": "Soins manqués / en retard",
+      "level": "Jaune",
+      "deadline_days": 45,
+      "reference": "Programme national de dépistage ÉAU",
+      "status": "[À VÉRIFIER] V4"
+    },
+    {
+      "id": "A7",
+      "age_min_years": 40,
+      "age_max_years": 75,
+      "title": "Dépistage du cancer colorectal",
+      "condition": "Test immunologique fécal (FIT) ou coloscopie hors intervalle. Antécédent familial 1er degré : dépistage précoce",
+      "type": "Soins manqués / risque élevé",
+      "level": "Jaune",
+      "deadline_days": 60,
+      "reference": "Programme national de dépistage ÉAU",
+      "status": "[À VÉRIFIER] V4"
+    },
+    {
+      "id": "A8",
+      "age_min_years": 18,
+      "age_max_years": 75,
+      "title": "Bilan de santé complet adulte (IFHAS)",
+      "condition": "Aucun bilan complet adulte dans l'intervalle prévu par le programme DoH IFHAS",
+      "type": "Soins manqués",
+      "level": "Jaune",
+      "deadline_days": 90,
+      "reference": "Programme DoH IFHAS (Comprehensive Screening)",
+      "status": "[À VÉRIFIER] V4"
+    },
+    {
+      "id": "A9",
+      "age_min_years": 18,
+      "age_max_years": 120,
+      "title": "Suivi interrompu (Maladie chronique / Orientation sans suite)",
+      "condition": "Maladie chronique connue sans visite > 6 mois OU orientation Orange/Rouge sans présentation dans le délai",
+      "type": "Suivi interrompu",
+      "level": "Orange",
+      "deadline_days": 7,
+      "reference": "OMS PEN ; règle de boucle fermée",
+      "status": "Délai = H5"
+    },
+    {
+      "id": "A10",
+      "age_min_years": 65,
+      "age_max_years": 120,
+      "title": "Risque de chute et autonomie (Seniors)",
+      "condition": "Chute dans l'année, trouble de l'équilibre ou déficit sensoriel non corrigé",
+      "type": "Risque élevé",
+      "level": "Jaune",
+      "deadline_days": 30,
+      "reference": "CDC STEADI (Stopping Elderly Accidents, Deaths & Injuries)",
+      "status": "Publié ; IFHAS [À VÉRIFIER V4]"
+    },
+    {
+      "id": "A11",
+      "age_min_years": 15,
+      "age_max_years": 49,
+      "title": "Vigilance obstétricale (Suspicion de prééclampsie)",
+      "condition": "Grossesse en cours ET tension >= 140/90 après 20 SA (Rouge) ; >= 160/110 (Rouge le jour même). Suspend A2, A3, A6",
+      "type": "Risque élevé",
+      "level": "Rouge",
+      "deadline_days": 1,
+      "reference": "Recommandations obstétricales internationales (ACOG / FIGO)",
+      "status": "Publié"
+    }
+  ]
+}

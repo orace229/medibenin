@@ -26,18 +26,18 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-3">
           <img
             src="/logo.png"
-            alt="MediBenin Logo"
+            alt="MediSense Logo"
             className="w-11 h-11 rounded-2xl shadow-md shadow-medigreen-700/20 object-contain hover:scale-105 transition-transform"
           />
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-xl tracking-wider text-medigreen-800">MEDIBENIN</span>
+              <span className="font-black text-xl tracking-wider text-medigreen-800">MEDISENSE</span>
               <span className="hidden sm:inline-block text-[11px] font-bold px-2 py-0.5 rounded-full bg-medigreen-50 text-medigreen-700 border border-medigreen-200">
-                CareX
+                CareX • Challenge 04
               </span>
             </div>
             <p className="text-xs text-gray-500 font-medium hidden md:block">
-              Télémédecine Intelligente & Santé des Populations au Bénin
+              Prévention & Dépistage de Précision • Abu Dhabi 2026
             </p>
           </div>
         </div>
@@ -45,7 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Central Network / Slogan */}
         <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-medium text-gray-600">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Réseau Santé National Connecté (DHIS2 Ready)</span>
+          <span>Standards DoH / ADPHC • FHIR R4 Ready</span>
         </div>
 
         {/* Actions : SOS + Langue + Comité Médical */}

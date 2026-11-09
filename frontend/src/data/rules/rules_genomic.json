@@ -1,0 +1,39 @@
+{
+  "table": "GENOMIC_RULES",
+  "version": "7.0.0",
+  "signature": "SHA256:f1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6",
+  "jurisdiction": "Emirati Genome Program (simulé) / HL7 Genomics Reporting",
+  "last_reviewed": "2026-11-08",
+  "signed_by": "Dr. Sydney KPEGBE, MD (Referent Medical CareX)",
+  "principles": {
+    "no_risk_modification": "L'estimation du risque OMS reste celle de l'OMS (calibrable). Le signal génomique agit comme règle d'éligibilité indépendante.",
+    "no_delay_on_low_risk": "Un score bas ou négatif ne retarde ni ne supprime jamais un dépistage prévu.",
+    "equity_safeguard": "La voie d'accélération par antécédents familiaux (P10, A7) assure l'accès pour tous sans dépendre du test génétique."
+  },
+  "rules": [
+    {
+      "id": "G1",
+      "title": "Score de risque polygénique élevé (PRS)",
+      "condition": "Score polygénique coronarien ou diabète au 90e percentile ou plus (résultat interprété et autorisé)",
+      "action": "Avance l'éligibilité au bilan cardiométabolique complet (lipides, HbA1c)",
+      "level": "Orange",
+      "status": "Simulé (Ressource FHIR fictive, aucune donnée réelle)"
+    },
+    {
+      "id": "G2",
+      "title": "Variant monogénique actionnable (Actionable Tier 1)",
+      "condition": "Variant pathogène validé (BRCA1/2, syndrome de Lynch, mutation récepteur LDL hypercholestérolémie)",
+      "action": "Orientation vers consultation génétique spécialisée ; calendrier de surveillance intensifié",
+      "level": "Orange",
+      "status": "Simulé"
+    },
+    {
+      "id": "G3",
+      "title": "Score génomique moyen ou bas",
+      "condition": "Percentile < 90 ou absence de variant pathogène",
+      "action": "Aucun effet modificateur (le calendrier standard par âge, sexe et antécédents reste inchangé)",
+      "level": "Neutre",
+      "status": "Simulé"
+    }
+  ]
+}
