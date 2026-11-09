@@ -36,77 +36,81 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
   return (
     <div className="space-y-10 pb-16 animate-in fade-in duration-300">
       {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-medigreen-950 text-white p-6 sm:p-10 shadow-xl border border-slate-800">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-80 h-80 rounded-full bg-medigreen-500/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 -mb-10 w-64 h-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-800 via-medigreen-800 to-teal-950 text-white p-6 sm:p-10 shadow-xl border border-emerald-600/40">
+        {/* Luminous ambient glows */}
+        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 -mb-12 w-80 h-80 rounded-full bg-teal-300/15 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-4xl space-y-6">
-          {/* Badge officiel du concours */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs text-medigreen-300 font-semibold shadow-inner">
-            <span className="w-2 h-2 rounded-full bg-medigreen-400 animate-pulse" />
-            <Award className="w-3.5 h-3.5 text-amber-300" />
-            <span>{h.heroBadge}</span>
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          {/* Colonne Gauche (7 cols) : Titre, Slogan & Boutons d'Action */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* Badge officiel du concours */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-xs text-emerald-100 font-semibold shadow-inner">
+              <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
+              <Award className="w-3.5 h-3.5 text-amber-300" />
+              <span>{h.heroBadge}</span>
+            </div>
+
+            {/* Titre Principal */}
+            <div className="space-y-2">
+              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+                MediSense <span className="text-emerald-300 font-light">•</span> {h.heroTitle}
+              </h1>
+              <p className="text-lg sm:text-2xl font-medium text-emerald-100/90">
+                {h.heroSubtitle}
+              </p>
+            </div>
+
+            {/* Boutons d'Action Rapide */}
+            <div className="pt-2 flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => onNavigate('clinical')}
+                className="px-5 py-3 rounded-xl bg-white hover:bg-emerald-50 text-emerald-900 font-black text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-black/15 transition active:scale-95 cursor-pointer"
+              >
+                <Stethoscope className="w-4 h-4 text-emerald-700" />
+                <span>{h.ctaClinical}</span>
+                <ArrowRight className="w-4 h-4 text-emerald-700" />
+              </button>
+
+              <button
+                onClick={() => onNavigate('population')}
+                className="px-4 py-3 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm flex items-center gap-2 border border-white/25 backdrop-blur-sm transition active:scale-95 cursor-pointer"
+              >
+                <Users className="w-4 h-4 text-emerald-200" />
+                <span>{h.ctaPopulation}</span>
+              </button>
+
+              <button
+                onClick={() => onNavigate('benchmark')}
+                className="px-4 py-3 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm flex items-center gap-2 border border-white/25 backdrop-blur-sm transition active:scale-95 cursor-pointer"
+              >
+                <BarChart3 className="w-4 h-4 text-emerald-200" />
+                <span>{h.ctaBenchmark}</span>
+              </button>
+            </div>
           </div>
 
-          {/* Titre Principal */}
-          <div className="space-y-2">
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-              MediSense <span className="text-medigreen-400 font-light">•</span> {h.heroTitle}
-            </h1>
-            <p className="text-lg sm:text-2xl font-medium text-slate-300">
-              {h.heroSubtitle}
-            </p>
-          </div>
-
-          {/* Exposé du Défi & Solution */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 text-sm leading-relaxed">
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1.5">
+          {/* Colonne Droite (5 cols) : Les 2 Cartes Vitrées (Constat & Réponse MediSense) pour meubler l'espace */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-sm space-y-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
                 <span>⚠️</span>
                 <span>{currentLang === 'fr' ? 'Le Constat (Défi 04)' : 'The Challenge (Track 04)'}</span>
               </span>
-              <p className="text-slate-300 text-xs sm:text-sm">
+              <p className="text-emerald-50 text-xs sm:text-sm leading-relaxed">
                 {h.heroProblem}
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-medigreen-500/10 border border-medigreen-500/20 space-y-1.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-medigreen-300 flex items-center gap-1.5">
+            <div className="p-5 rounded-2xl bg-emerald-950/40 backdrop-blur-md border border-emerald-400/30 shadow-sm space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>{currentLang === 'fr' ? 'La Réponse MediSense' : 'The MediSense Solution'}</span>
               </span>
-              <p className="text-slate-200 text-xs sm:text-sm">
+              <p className="text-emerald-100 text-xs sm:text-sm leading-relaxed">
                 {h.heroSolution}
               </p>
             </div>
-          </div>
-
-          {/* Boutons d'Action Rapide */}
-          <div className="pt-2 flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => onNavigate('clinical')}
-              className="px-5 py-3 rounded-xl bg-medigreen-600 hover:bg-medigreen-500 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-medigreen-600/30 transition active:scale-95 cursor-pointer"
-            >
-              <Stethoscope className="w-4 h-4" />
-              <span>{h.ctaClinical}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={() => onNavigate('population')}
-              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs sm:text-sm flex items-center gap-2 border border-white/20 transition active:scale-95 cursor-pointer"
-            >
-              <Users className="w-4 h-4 text-medigreen-300" />
-              <span>{h.ctaPopulation}</span>
-            </button>
-
-            <button
-              onClick={() => onNavigate('benchmark')}
-              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs sm:text-sm flex items-center gap-2 border border-white/20 transition active:scale-95 cursor-pointer"
-            >
-              <BarChart3 className="w-4 h-4 text-indigo-300" />
-              <span>{h.ctaBenchmark}</span>
-            </button>
           </div>
         </div>
       </section>
