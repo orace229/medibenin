@@ -1,53 +1,67 @@
 import React from 'react';
 import { MediSenseTab } from './NavigationTabs';
-import { Menu, Stethoscope, Users, ShieldCheck, HeartHandshake, BarChart3 } from 'lucide-react';
+import { 
+  PanelLeft, 
+  Stethoscope, 
+  Users, 
+  ShieldCheck, 
+  HeartHandshake, 
+  BarChart3,
+  AlertCircle
+} from 'lucide-react';
 import { PersonaProfile } from '../types/medisense';
 
 interface ContentTopBarProps {
   activeTab: MediSenseTab;
-  onOpenMobileSidebar: () => void;
+  onOpenSidebar: () => void;
   selectedPersona?: PersonaProfile;
   personas?: PersonaProfile[];
   onSelectPersona?: (p: PersonaProfile) => void;
+  currentLang: 'ar' | 'en';
+  onToggleLang: (lang: 'ar' | 'en') => void;
+  onSosClick: () => void;
 }
 
 export const ContentTopBar: React.FC<ContentTopBarProps> = ({
   activeTab,
-  onOpenMobileSidebar,
+  onOpenSidebar,
   selectedPersona,
   personas,
-  onSelectPersona
+  onSelectPersona,
+  currentLang,
+  onToggleLang,
+  onSosClick
 }) => {
   const getTabInfo = () => {
     switch (activeTab) {
       case 'population':
         return {
-          title: 'Priorisation de la Population & Créneaux',
-          breadcrumb: 'Console Coordinateur de Santé Publique',
+          title: 'Priorisation Population',
+          sub: 'Attribution des Créneaux • Sprio',
           icon: Users
         };
       case 'clinical':
         return {
-          title: 'Fiche Clinique & Arbres Décisionnels',
-          breadcrumb: 'Console Praticien (Médecin / Infirmier)',
+          title: 'Fiche Clinique Individuelle',
+          sub: 'Face au praticien • Arbres décisionnels',
           icon: Stethoscope
         };
       case 'safeguards':
         return {
-          title: 'Garde-fous, Masquage n<10 & Intervalles de Wilson',
-          breadcrumb: 'Console Gouvernance & Équité Sanitaire',
+          title: 'Garde-fous & Équité',
+          sub: 'Masquage n < 10 & Wilson 95%',
           icon: ShieldCheck
         };
       case 'engagement':
         return {
-          title: 'Consentement Éclairé & Choix Réel',
-          breadcrumb: 'Portail Patient & Aides à la Décision',
+          title: 'Consentement & Choix Réel',
+          sub: '5 finalités & Aides à la décision',
           icon: HeartHandshake
         };
       case 'benchmark':
         return {
-          title: 'Banc d’Essai & Évaluation sur 50 000 Profils',
-          breadcrumb: 'Validation Scientifique & Détection des Lacunes',
+          title: 'Banc d’Essai 50k',
+          sub: 'Validation scientifique sur 50 000 profils',
           icon: BarChart3
         };
     }
@@ -57,81 +71,101 @@ export const ContentTopBar: React.FC<ContentTopBarProps> = ({
   const Icon = info.icon;
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
-      <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Left: Mobile hamburger + Page Breadcrumb */}
-        <div className="flex items-center gap-3 min-w-0">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs w-full">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3">
+        {/* Left: Menu Drawer Toggle + Logo + Active Page Title */}
+        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+          {/* Bouton Menu Tiroir Gauche */}
           <button
-            onClick={onOpenMobileSidebar}
-            className="md:hidden p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
-            title="Ouvrir le menu de navigation"
+            onClick={onOpenSidebar}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 shadow-xs font-semibold text-xs transition active:scale-95 shrink-0"
+            title="Ouvrir les modules du Défi 04"
           >
-            <Menu className="w-5 h-5" />
+            <PanelLeft className="w-4 h-4 text-emerald-400" />
+            <span className="hidden xs:inline">Modules</span>
           </button>
 
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 hidden sm:flex">
+          {/* Logo & Titre de page */}
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center shrink-0">
               <Icon className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[11px] font-semibold text-slate-500 truncate">
-                {info.breadcrumb}
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-xs sm:text-sm text-slate-900 truncate">
+                  {info.title}
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/60 hidden md:inline shrink-0">
+                  DoH
+                </span>
               </div>
-              <h1 className="text-sm sm:text-base font-bold text-slate-900 truncate">
-                {info.title}
-              </h1>
+              <p className="text-[10px] text-slate-400 truncate hidden sm:block">
+                {info.sub}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Right: Challenge Live Badge & Persona Quick Switch if in Clinical Tab */}
-        <div className="flex items-center gap-2 shrink-0">
-          {activeTab === 'clinical' && personas && onSelectPersona && selectedPersona && (
-            <div className="hidden lg:flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-1 rounded-xl text-xs">
-              <span className="text-[11px] font-semibold text-slate-500 px-2">Patient :</span>
-              {personas.map((p) => (
+        {/* Center/Right: Clinical Persona Switcher (Clean, compact, NO scrollbar) */}
+        {activeTab === 'clinical' && personas && onSelectPersona && selectedPersona && (
+          <div className="flex items-center gap-1 shrink-0 bg-slate-100 p-0.5 rounded-xl border border-slate-200/80">
+            {personas.map((p) => {
+              const isSelected = selectedPersona.id === p.id;
+              const shortName = p.fullName.split(' ')[0];
+              const shortAge = p.ageYears >= 1 ? `${p.ageYears}a` : `${Math.round(p.ageYears * 12)}m`;
+
+              return (
                 <button
                   key={p.id}
                   onClick={() => onSelectPersona(p)}
-                  className={`px-2.5 py-1 rounded-lg font-medium transition ${
-                    selectedPersona.id === p.id
-                      ? 'bg-slate-900 text-white font-semibold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+                    isSelected
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                   }`}
+                  title={`${p.fullName} (${p.ageYears} ans)`}
                 >
-                  {p.fullName.split(' ')[0]} ({p.ageYears >= 1 ? `${p.ageYears}a` : `${Math.round(p.ageYears * 12)}m`})
+                  <span>{shortName}</span>
+                  <span className={`text-[10px] ml-1 font-normal ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
+                    ({shortAge})
+                  </span>
                 </button>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
+        )}
 
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/70 text-emerald-800 text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="hidden sm:inline">Défi 04</span>
-            <span>Abu Dhabi 2026</span>
+        {/* Right Actions: SOS + Language Switcher */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <button
+            onClick={onSosClick}
+            className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold transition active:scale-95"
+            title="Urgence vitale immédiate - Règle de sortie E0"
+          >
+            <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+            <span className="hidden sm:inline">SOS</span>
+          </button>
+
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold shrink-0">
+            <button
+              onClick={() => onToggleLang('ar')}
+              className={`px-2 py-0.5 rounded-md text-[11px] sm:text-xs transition ${
+                currentLang === 'ar' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              العربية
+            </button>
+            <button
+              onClick={() => onToggleLang('en')}
+              className={`px-2 py-0.5 rounded-md text-[11px] sm:text-xs transition ${
+                currentLang === 'en' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              EN
+            </button>
           </div>
         </div>
       </div>
-
-      {/* Subheader Persona Bar for small screens when activeTab is clinical */}
-      {activeTab === 'clinical' && personas && onSelectPersona && selectedPersona && (
-        <div className="lg:hidden px-4 py-2 bg-slate-50/80 border-t border-slate-200 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-          <span className="text-[11px] font-semibold text-slate-500 shrink-0">Dossier :</span>
-          {personas.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => onSelectPersona(p)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition border ${
-                selectedPersona.id === p.id
-                  ? 'bg-slate-900 text-white border-slate-900 font-semibold shadow-xs'
-                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-              }`}
-            >
-              {p.fullName} ({p.ageYears >= 1 ? `${p.ageYears}a` : `${Math.round(p.ageYears * 12)}m`})
-            </button>
-          ))}
-        </div>
-      )}
     </header>
   );
 };

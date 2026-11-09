@@ -93,31 +93,34 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] selection:bg-emerald-100 selection:text-emerald-900 w-full overflow-x-hidden flex flex-col md:flex-row">
-      {/* Sidebar Latérale Médicale Fixe (Style Epic Systems / Linear) */}
+    <div className="min-h-screen bg-[#F8F9FA] selection:bg-emerald-100 selection:text-emerald-900 w-full overflow-x-hidden flex flex-col">
+      {/* Tiroir Latéral Rétractable (S'ouvre au clic sur le bouton Menu en haut à gauche) */}
       {!showHistoricTriageMode && (
         <SidebarNavigation
+          isOpen={isMobileSidebarOpen}
+          onClose={() => setIsMobileSidebarOpen(false)}
           activeTab={activeTab}
           onSelectTab={setActiveTab}
           currentLang={appLang}
           onToggleLang={setAppLang}
           onSosClick={handleSosClick}
-          isOpenMobile={isMobileSidebarOpen}
-          onCloseMobile={() => setIsMobileSidebarOpen(false)}
         />
       )}
 
-      {/* Zone de contenu principale (décalée de 72 = 288px sur desktop) */}
-      <div className={`flex-1 flex flex-col min-w-0 ${!showHistoricTriageMode ? 'md:pl-72' : ''}`}>
+      {/* Zone de contenu principale (Pleine largeur 100% respirante) */}
+      <div className="flex-1 flex flex-col w-full min-w-0">
         {!showHistoricTriageMode ? (
           <>
-            {/* TopBar épurée avec breadcrumb et sélection de patient */}
+            {/* TopBar épurée avec bouton Menu, logo, titre et sélection de patient compacte */}
             <ContentTopBar
               activeTab={activeTab}
-              onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+              onOpenSidebar={() => setIsMobileSidebarOpen(true)}
               selectedPersona={selectedPersona}
               personas={personas}
               onSelectPersona={setSelectedPersona}
+              currentLang={appLang}
+              onToggleLang={setAppLang}
+              onSosClick={handleSosClick}
             />
 
             {/* Contrôleur flottant de démonstration (Chronométré 8 min, minimisable) */}

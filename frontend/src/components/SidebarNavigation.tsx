@@ -7,54 +7,54 @@ import {
   HeartHandshake, 
   BarChart3, 
   AlertCircle, 
-  X
+  PanelLeftClose
 } from 'lucide-react';
 
 interface SidebarNavigationProps {
+  isOpen: boolean;
+  onClose: () => void;
   activeTab: MediSenseTab;
   onSelectTab: (tab: MediSenseTab) => void;
   currentLang: 'ar' | 'en';
   onToggleLang: (lang: 'ar' | 'en') => void;
   onSosClick: () => void;
-  isOpenMobile: boolean;
-  onCloseMobile: () => void;
 }
 
 export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
+  isOpen,
+  onClose,
   activeTab,
   onSelectTab,
   currentLang,
   onToggleLang,
-  onSosClick,
-  isOpenMobile,
-  onCloseMobile
+  onSosClick
 }) => {
   const navItems = [
     {
       id: 'population' as MediSenseTab,
       label: 'Priorisation Population',
-      sub: 'Score Sprio & Créneaux',
+      sub: 'Score Sprio & Attribution Créneaux',
       icon: Users,
       badge: 'Sprio'
     },
     {
       id: 'clinical' as MediSenseTab,
       label: 'Fiche Clinique Individuelle',
-      sub: 'Face au praticien',
+      sub: 'Soignant & Arbres Décisionnels',
       icon: Stethoscope,
       badge: 'CDC §5'
     },
     {
       id: 'safeguards' as MediSenseTab,
       label: 'Garde-fous & Équité',
-      sub: 'Wilson 95% & Masquage n<10',
+      sub: 'Wilson 95% & Masquage n < 10',
       icon: ShieldCheck,
       badge: 'CDC §7'
     },
     {
       id: 'engagement' as MediSenseTab,
       label: 'Consentement & Choix',
-      sub: '5 finalités & Aides décision',
+      sub: '5 finalités & Aides à la décision',
       icon: HeartHandshake,
       badge: 'CDC §6'
     },
@@ -67,30 +67,32 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     }
   ];
 
-  const handleItemClick = (tab: MediSenseTab) => {
+  const handleSelect = (tab: MediSenseTab) => {
     onSelectTab(tab);
-    onCloseMobile();
+    onClose();
   };
 
   return (
     <>
-      {/* Mobile Backdrop */}
-      {isOpenMobile && (
-        <div 
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 md:hidden"
-          onClick={onCloseMobile}
-        />
-      )}
+      {/* Backdrop sombre flouté */}
+      <div 
+        className={`fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 transition-opacity duration-300 ${
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={onClose}
+      />
 
-      {/* Sidebar Container */}
-      <aside className={`
-        fixed top-0 bottom-0 left-0 z-50 w-72 bg-white border-r border-slate-200/90 flex flex-col justify-between transition-transform duration-200 ease-in-out
-        md:translate-x-0
-        ${isOpenMobile ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
-      `}>
-        {/* Top Section: Brand & Mobile Close */}
+      {/* Tiroir latéral gauche (Drawer) */}
+      <aside 
+        className={`
+          fixed top-0 bottom-0 left-0 z-50 w-80 sm:w-88 bg-white border-r border-slate-200/90 shadow-2xl flex flex-col justify-between
+          transition-transform duration-300 ease-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        {/* Header du tiroir */}
         <div>
-          <div className="h-16 px-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="h-16 px-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <div className="flex items-center gap-3">
               <img
                 src="/logo.png"
@@ -112,19 +114,19 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
               </div>
             </div>
 
-            {/* Mobile Close Button */}
             <button
-              onClick={onCloseMobile}
-              className="md:hidden p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+              onClick={onClose}
+              className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition active:scale-95"
+              title="Fermer le menu"
             >
-              <X className="w-5 h-5" />
+              <PanelLeftClose className="w-5 h-5 text-slate-500" />
             </button>
           </div>
 
-          {/* Navigation Section */}
-          <div className="px-3 py-4 space-y-1">
-            <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Modules du Défi 04
+          {/* Liste des modules - Pleine largeur, texte jamais coupé */}
+          <div className="p-3 space-y-1.5">
+            <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Modules du Défi 04 (Abu Dhabi)
             </div>
 
             {navItems.map((item) => {
@@ -134,27 +136,27 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
               return (
                 <button
                   key={item.id}
-                  onClick={() => handleItemClick(item.id)}
+                  onClick={() => handleSelect(item.id)}
                   className={`
-                    w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all group
+                    w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-left transition-all group
                     ${isActive
                       ? 'bg-slate-900 text-white shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
                     }
                   `}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`
-                      p-1.5 rounded-lg transition
-                      ${isActive ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-800'}
+                      p-2 rounded-lg transition shrink-0
+                      ${isActive ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-900'}
                     `}>
-                      <Icon className="w-4 h-4 shrink-0" />
+                      <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-semibold truncate leading-tight">
+                      <div className="text-xs font-bold leading-tight">
                         {item.label}
                       </div>
-                      <div className={`text-[10px] truncate leading-tight ${isActive ? 'text-slate-300' : 'text-slate-400'}`}>
+                      <div className={`text-[11px] leading-tight mt-0.5 ${isActive ? 'text-slate-300' : 'text-slate-400'}`}>
                         {item.sub}
                       </div>
                     </div>
@@ -172,28 +174,30 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
           </div>
         </div>
 
-        {/* Bottom Section: Safety, Language & Challenge info */}
-        <div className="p-3 border-t border-slate-100 space-y-2.5 bg-slate-50/50">
-          {/* Urgence Vitale SOS Button */}
+        {/* Bas du tiroir : SOS + Langue + Roster */}
+        <div className="p-4 border-t border-slate-100 space-y-3 bg-slate-50/60">
+          {/* Touche SOS Urgence Vitale */}
           <button
-            onClick={onSosClick}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 transition active:scale-98 group"
+            onClick={() => {
+              onSosClick();
+              onClose();
+            }}
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 transition active:scale-98 group"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 text-rose-600 group-hover:scale-110 transition-transform" />
               <div className="text-left">
                 <div className="text-xs font-bold leading-tight">Urgence Vitale SOS</div>
                 <div className="text-[10px] text-rose-600 leading-tight">Règle de sortie E0</div>
               </div>
             </div>
-            <span className="text-[10px] font-mono font-black px-1.5 py-0.5 rounded bg-rose-200/80 text-rose-900">
+            <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-rose-200/80 text-rose-900">
               112
             </span>
           </button>
 
-          {/* Langue & Challenge Badge */}
-          <div className="flex items-center justify-between gap-2 px-1">
-            {/* Sélecteur de langue */}
+          {/* Langue & Challenge */}
+          <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/60">
             <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200 shadow-2xs text-xs font-semibold">
               <button
                 onClick={() => onToggleLang('ar')}
