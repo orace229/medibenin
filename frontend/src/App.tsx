@@ -92,7 +92,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F9FA] selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="min-h-screen flex flex-col bg-[#F8F9FA] selection:bg-emerald-100 selection:text-emerald-900 w-full max-w-full overflow-x-hidden">
       {/* Barre de navigation unifiée moderne (Linear / Apple Health style) */}
       <UnifiedTopBar
         activeTab={activeTab}

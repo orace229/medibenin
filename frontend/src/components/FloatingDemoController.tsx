@@ -99,7 +99,7 @@ export const FloatingDemoController: React.FC<FloatingDemoControllerProps> = ({
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-md w-full animate-in slide-in-from-bottom-3 duration-200">
+    <div className="fixed bottom-4 right-4 z-50 max-w-[calc(100vw-2rem)] sm:max-w-md w-full animate-in slide-in-from-bottom-3 duration-200">
       <div className="bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-3.5 shadow-2xl border border-slate-700/80 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

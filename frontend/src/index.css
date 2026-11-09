@@ -3,8 +3,11 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-[#F8F9FA] text-gray-900;
+  html, body, #root {
+    @apply bg-[#F8F9FA] text-slate-900;
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
   }
 }
 
