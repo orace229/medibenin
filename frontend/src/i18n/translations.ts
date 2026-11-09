@@ -11,6 +11,12 @@ export interface TranslationDictionary {
   nav: {
     modules: string;
     menuTitle: string;
+    home: {
+      title: string;
+      sub: string;
+      breadcrumb: string;
+      badge: string;
+    };
     population: {
       title: string;
       sub: string;
@@ -226,6 +232,53 @@ export interface TranslationDictionary {
     switchToHistoric: string;
     backToMediSense: string;
   };
+  homeView: {
+    heroBadge: string;
+    heroTitle: string;
+    heroSubtitle: string;
+    heroProblem: string;
+    heroSolution: string;
+    ctaClinical: string;
+    ctaPopulation: string;
+    ctaBenchmark: string;
+    pillarsTitle: string;
+    kpiYieldTitle: string;
+    kpiYieldSub: string;
+    kpiEthicsTitle: string;
+    kpiEthicsSub: string;
+    kpiLoopTitle: string;
+    kpiLoopSub: string;
+    modulesTitle: string;
+    modulesSub: string;
+    modulePopTitle: string;
+    modulePopDesc: string;
+    modulePopAction: string;
+    moduleClinTitle: string;
+    moduleClinDesc: string;
+    moduleClinAction: string;
+    moduleSafeTitle: string;
+    moduleSafeDesc: string;
+    moduleSafeAction: string;
+    moduleEngTitle: string;
+    moduleEngDesc: string;
+    moduleEngAction: string;
+    moduleBenchTitle: string;
+    moduleBenchDesc: string;
+    moduleBenchAction: string;
+    personasTitle: string;
+    personasSub: string;
+    personaZaydSub: string;
+    personaZaydFact: string;
+    personaZaydAction: string;
+    personaMariamSub: string;
+    personaMariamFact: string;
+    personaMariamAction: string;
+    personaRajeshSub: string;
+    personaRajeshFact: string;
+    personaRajeshAction: string;
+    governanceTitle: string;
+    governanceDesc: string;
+  };
 }
 
 export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
@@ -240,6 +293,12 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     nav: {
       modules: 'Modules',
       menuTitle: 'Modules du Défi 04 (Abu Dhabi)',
+      home: {
+        title: 'Accueil & Vue d’ensemble',
+        sub: 'Défi 04 • Vision & Portes d’accès',
+        breadcrumb: 'Présentation & Vue Exécutive',
+        badge: 'Accueil'
+      },
       population: {
         title: 'Priorisation Population',
         sub: 'Score Sprio & Attribution Créneaux',
@@ -454,6 +513,53 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     historicToggle: {
       switchToHistoric: 'Basculer vers le socle académique initial (Triage Aigu de Symptômes)',
       backToMediSense: '← Revenir à MediSense (Défi 04 Abu Dhabi • Prévention de Précision)'
+    },
+    homeView: {
+      heroBadge: 'Future Health Digital Innovation Challenge 2026 • Abu Dhabi',
+      heroTitle: 'Prévention & Dépistage de Précision',
+      heroSubtitle: 'Enfants, Adultes et Communautés',
+      heroProblem: 'À Abu Dhabi, les convocations préventives dépendent encore de règles générales d’âge et de sexe. Les patients à haut risque silencieux sont manqués ou invités trop tard.',
+      heroSolution: 'MediSense introduit une intelligence de santé des populations multimodale (génomique, antécédents, biomédecine, déterminants sociaux) couplée à des garde-fous stricts d’équité et à un suivi en boucle fermée.',
+      ctaClinical: 'Ouvrir la Fiche Clinique (Médecin)',
+      ctaPopulation: 'Console Population (Coordinateur)',
+      ctaBenchmark: 'Banc d’Essai (50 000 profils)',
+      pillarsTitle: 'Les 3 Piliers d’Impact Sanitaire',
+      kpiYieldTitle: 'Gain d’Efficience x4.02',
+      kpiYieldSub: 'Cas à haut risque détectés vs approche classique âge/sexe, à capacité de consultation constante (65 créneaux/jour).',
+      kpiEthicsTitle: '100% Éthique & Sans Biais',
+      kpiEthicsSub: 'Intervalles Wilson 95%, masquage n < 10 anti-réidentification et exclusion stricte du score logistique Sprio du dossier soignant (CDC §5.2).',
+      kpiLoopTitle: 'Suivi Boucle Fermée à 8 États',
+      kpiLoopSub: 'Code d’orientation sécurisé (QR code) garantissant l’effectivité du parcours sans stockage d’identité civile au guichet.',
+      modulesTitle: 'Les 5 Portes d’Entrée du Prototype',
+      modulesSub: 'Explorez chaque perspective opérationnelle conçue pour le Défi 04 du Future Health Challenge.',
+      modulePopTitle: '1. Priorisation Populationnelle',
+      modulePopDesc: 'Tri logistique transparent par score Sprio pondéré (risque, lacunes, retard, vulnérabilité) calibré sur la capacité réelle des cliniques.',
+      modulePopAction: 'Accéder à la Priorisation →',
+      moduleClinTitle: '2. Fiche Clinique Individuelle',
+      moduleClinDesc: 'Assistance soignante sans biais : arbres décisionnels déterministes, provenance V/M/D/S, filet de sécurité Niveau Gris et CarePlan unifié.',
+      moduleClinAction: 'Consulter un Dossier Patient →',
+      moduleSafeTitle: '3. Garde-fous & Équité',
+      moduleSafeDesc: 'Console de santé publique : surveillance des disparités locales, intervalles de Wilson à 95%, masquage strict n < 10 et alertes C1/C3.',
+      moduleSafeAction: 'Vérifier les Garde-fous →',
+      moduleEngTitle: '4. Choix Éclairé & Consentement',
+      moduleEngDesc: 'Engagement culturellement adapté, aides à la décision multilingues en 3 à 5 phrases, consentement à 5 finalités et droit de refus sans pénalité.',
+      moduleEngAction: 'Tester le Consentement →',
+      moduleBenchTitle: '5. Banc d’Essai Synthétique (50k)',
+      moduleBenchDesc: 'Évaluation expérimentale sur 50 000 profils représentatifs d’Abu Dhabi, démontrant la supériorité algorithmique avec clause de transparence (§8.4).',
+      moduleBenchAction: 'Examiner le Benchmark →',
+      personasTitle: '3 Personas Guidés pour la Démonstration du Jury',
+      personasSub: 'Sélectionnez un profil pour évaluer le parcours personnalisé de bout en bout.',
+      personaZaydSub: 'Pédiatrie • 18 mois • Abu Dhabi Central',
+      personaZaydFact: 'Visite de l’enfant DoH 18m en retard, statut zéro-dose partiel (ROR2 manquant), dépistage neuro-développemental M-CHAT-R.',
+      personaZaydAction: 'Voir le parcours de Zayd →',
+      personaMariamSub: 'Adolescente • 14 ans • Al Ain',
+      personaMariamFact: 'Antécédents familiaux de drépanocytose, rappel vaccin VPH et évaluation de santé adolescente en milieu scolaire.',
+      personaMariamAction: 'Voir le parcours de Mariam →',
+      personaRajeshSub: 'Adulte Actif • 36 ans • Al Dhafra',
+      personaRajeshFact: 'Travailleur industriel, score FINDRISC élevé (risque diabète T2 / HTA précoce), dépistage ciblé IFHAS.',
+      personaRajeshAction: 'Voir le parcours de Rajesh →',
+      governanceTitle: 'Conformité Réglementaire & Partenariats',
+      governanceDesc: 'Aligné sur les standards du Department of Health Abu Dhabi (DoH), du dossier partagé Malaffi (FHIR R4) et de la loi APDP. Développé par l’équipe CareX (Université d’Abomey-Calavi) pour le Future Health Digital Innovation Challenge 2026 (MBZUAI, Microsoft, Inception 42).'
     }
   },
   en: {
@@ -467,6 +573,12 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     nav: {
       modules: 'Modules',
       menuTitle: 'Challenge 04 Modules (Abu Dhabi)',
+      home: {
+        title: 'Home & Overview',
+        sub: 'Challenge 04 • Vision & Portals',
+        breadcrumb: 'Overview & Executive Summary',
+        badge: 'Home'
+      },
       population: {
         title: 'Population Prioritization',
         sub: 'Sprio Score & Slot Allocation',
@@ -681,6 +793,53 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     historicToggle: {
       switchToHistoric: 'Switch to initial academic baseline (Acute Symptom Triage)',
       backToMediSense: '← Return to MediSense (Challenge 04 Abu Dhabi • Precision Prevention)'
+    },
+    homeView: {
+      heroBadge: 'Future Health Digital Innovation Challenge 2026 • Abu Dhabi',
+      heroTitle: 'Precision Prevention & Screening',
+      heroSubtitle: 'Children, Adults, and Communities',
+      heroProblem: 'In Abu Dhabi, preventive invitations still rely heavily on blunt age-and-sex rules. Silent high-risk individuals are missed or invited too late.',
+      heroSolution: 'MediSense introduces multimodal population health intelligence (genomics, clinical history, biomedicine, social determinants) combined with rigorous equity safeguards and closed-loop tracking.',
+      ctaClinical: 'Open Clinical Record (Clinician)',
+      ctaPopulation: 'Population Console (Coordinator)',
+      ctaBenchmark: 'Benchmark (50,000 profiles)',
+      pillarsTitle: 'The 3 Healthcare Impact Pillars',
+      kpiYieldTitle: 'x4.02 Detection Yield Gain',
+      kpiYieldSub: 'High-risk cases detected vs standard age/sex baseline, evaluated at equal clinic capacity (65 slots/day).',
+      kpiEthicsTitle: '100% Ethical & Unbiased',
+      kpiEthicsSub: 'Wilson 95% CIs, strict anti-reidentification masking (n < 10), and strict ban of logistic score Sprio in clinical consultation (CDC §5.2).',
+      kpiLoopTitle: '8-State Closed-Loop Follow-up',
+      kpiLoopSub: 'Secure orientation QR code verifying attendance without storing civil identity at the clinic reception desk.',
+      modulesTitle: 'The 5 Interactive Platform Portals',
+      modulesSub: 'Explore each operational perspective engineered for Future Health Challenge 04.',
+      modulePopTitle: '1. Population Prioritization',
+      modulePopDesc: 'Transparent logistic triage via weighted Sprio score (risk, gaps, delay, vulnerability) calibrated to actual clinic capacity.',
+      modulePopAction: 'Access Prioritization →',
+      moduleClinTitle: '2. Individual Clinical Record',
+      moduleClinDesc: 'Unbiased bedside decision support: deterministic trees, V/M/D/S provenance, Level Grey fallback, and unified CarePlan.',
+      moduleClinAction: 'View Patient File →',
+      moduleSafeTitle: '3. Safeguards & Equity',
+      moduleSafeDesc: 'Public health equity console: monitoring local disparities, Wilson 95% CIs, strict n < 10 cell suppression, and C1/C3 alerts.',
+      moduleSafeAction: 'Audit Safeguards →',
+      moduleEngTitle: '4. Informed Consent & Choice',
+      moduleEngDesc: 'Culturally adapted engagement, multilingual 3-to-5 sentence decision aids, 5 distinct consent purposes, and refusal without penalty.',
+      moduleEngAction: 'Test Consent System →',
+      moduleBenchTitle: '5. Synthetic Benchmark (50k)',
+      moduleBenchDesc: 'Experimental pipeline evaluation on 50,000 representative Abu Dhabi profiles proving algorithmic superiority with integrity clause (§8.4).',
+      moduleBenchAction: 'Inspect Benchmark →',
+      personasTitle: '3 Guided Personas for Jury Walkthrough',
+      personasSub: 'Select a profile to examine the personalized pathway from end to end.',
+      personaZaydSub: 'Pediatrics • 18 months • Central Abu Dhabi',
+      personaZaydFact: 'Overdue DoH 18m Well-Child visit, partial zero-dose status (missing MMR2), M-CHAT-R neurodevelopmental screening.',
+      personaZaydAction: 'View Zayd’s CarePlan →',
+      personaMariamSub: 'Adolescent • 14 years old • Al Ain',
+      personaMariamFact: 'Family history of sickle cell trait, HPV vaccine booster due, school-based adolescent health checkup.',
+      personaMariamAction: 'View Mariam’s CarePlan →',
+      personaRajeshSub: 'Active Adult • 36 years old • Al Dhafra',
+      personaRajeshFact: 'Industrial worker, high FINDRISC score (early T2D / hypertension risk), targeted IFHAS adult screening.',
+      personaRajeshAction: 'View Rajesh’s CarePlan →',
+      governanceTitle: 'Regulatory Compliance & Institutional Governance',
+      governanceDesc: 'Aligned with Department of Health Abu Dhabi (DoH), Malaffi Health Information Exchange (FHIR R4), and APDP data protection law. Developed by CareX (Université d’Abomey-Calavi) for the Future Health Digital Innovation Challenge 2026 (MBZUAI, Microsoft, Inception 42).'
     }
   }
 };

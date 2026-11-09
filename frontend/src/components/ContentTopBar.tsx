@@ -1,6 +1,7 @@
 import React from 'react';
 import { MediSenseTab } from './NavigationTabs';
 import { 
+  Home,
   PanelLeft, 
   Stethoscope, 
   Users, 
@@ -37,6 +38,12 @@ export const ContentTopBar: React.FC<ContentTopBarProps> = ({
 
   const getTabInfo = () => {
     switch (activeTab) {
+      case 'home':
+        return {
+          title: t.nav.home.title,
+          sub: t.nav.home.sub,
+          icon: Home
+        };
       case 'population':
         return {
           title: t.nav.population.title,

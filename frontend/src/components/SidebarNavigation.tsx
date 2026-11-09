@@ -1,6 +1,7 @@
 import React from 'react';
 import { MediSenseTab } from './NavigationTabs';
 import { 
+  Home,
   Users, 
   Stethoscope, 
   ShieldCheck, 
@@ -33,6 +34,13 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   const t = TRANSLATIONS[currentLang];
 
   const navItems = [
+    {
+      id: 'home' as MediSenseTab,
+      label: t.nav.home.title,
+      sub: t.nav.home.sub,
+      icon: Home,
+      badge: t.nav.home.badge
+    },
     {
       id: 'population' as MediSenseTab,
       label: t.nav.population.title,

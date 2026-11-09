@@ -1,7 +1,7 @@
 import React from 'react';
-import { Users, Stethoscope, ShieldAlert, HeartHandshake, BarChart3 } from 'lucide-react';
+import { Home, Users, Stethoscope, ShieldAlert, HeartHandshake, BarChart3 } from 'lucide-react';
 
-export type MediSenseTab = 'population' | 'clinical' | 'safeguards' | 'engagement' | 'benchmark';
+export type MediSenseTab = 'home' | 'population' | 'clinical' | 'safeguards' | 'engagement' | 'benchmark';
 
 interface NavigationTabsProps {
   activeTab: MediSenseTab;
@@ -15,6 +15,13 @@ export const NavigationTabs: React.FC<NavigationTabsProps> = ({
   selectedPersonaName
 }) => {
   const tabs = [
+    {
+      id: 'home' as MediSenseTab,
+      label: '0. Accueil & Vue d’ensemble',
+      sublabel: 'Défi 04 • Vision & Portails',
+      icon: Home,
+      badge: 'Accueil'
+    },
     {
       id: 'population' as MediSenseTab,
       label: '1. Priorisation Population',

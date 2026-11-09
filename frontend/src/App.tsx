@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SidebarNavigation } from './components/SidebarNavigation';
 import { ContentTopBar } from './components/ContentTopBar';
 import { MediSenseTab } from './components/NavigationTabs';
+import { HomeOverviewView } from './components/HomeOverviewView';
 import { PopulationPrioritizationView } from './components/PopulationPrioritizationView';
 import { ClinicalIndividualView } from './components/ClinicalIndividualView';
 import { PopulationSafeguardsView } from './components/PopulationSafeguardsView';
@@ -26,7 +27,7 @@ import { INITIAL_PATIENT } from './data/mockData';
 
 export const App: React.FC = () => {
   // Navigation principale MediSense (Future Health Challenge)
-  const [activeTab, setActiveTab] = useState<MediSenseTab>('population');
+  const [activeTab, setActiveTab] = useState<MediSenseTab>('home');
   const [personas, setPersonas] = useState<PersonaProfile[]>(SYNTHETIC_PERSONAS);
   const [selectedPersona, setSelectedPersona] = useState<PersonaProfile>(SYNTHETIC_PERSONAS[0]);
   const [appLang, setAppLang] = useState<Language>('fr');
@@ -118,6 +119,17 @@ export const App: React.FC = () => {
 
             {/* Contenu de l'onglet actif */}
             <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+              {activeTab === 'home' && (
+                <HomeOverviewView
+                  currentLang={appLang}
+                  onNavigate={(tab) => setActiveTab(tab)}
+                  onSelectPersona={(persona) => {
+                    setSelectedPersona(persona);
+                    setActiveTab('clinical');
+                  }}
+                />
+              )}
+
               {activeTab === 'population' && (
                 <PopulationPrioritizationView
                   personas={personas}
