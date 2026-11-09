@@ -42,17 +42,16 @@ export const FooterLegal: React.FC = () => {
             </ul>
           </div>
 
-          {/* Colonne 3 : Équipe & Contact */}
+          {/* Colonne 3 : Challenge 04 Future Health */}
           <div>
             <h4 className="font-bold text-white uppercase tracking-wider mb-3">
-              Équipe Fondatrice CareX
+              Future Health Challenge 2026
             </h4>
             <p className="text-gray-400 leading-relaxed mb-2">
-              Initié par <span className="text-white font-semibold">Orace ATTINMAWASSONOU</span> &{' '}
-              <span className="text-white font-semibold">Bienderan EGBO</span>.
+              Défi 04 : Prévention & Dépistage de Précision.
             </p>
             <p className="text-gray-500 text-[11px]">
-              En partenariat avec le collège des pédiatres (SoBePed) et les acteurs de santé locaux.
+              Mohamed bin Zayed University of Artificial Intelligence (MBZUAI) • Abu Dhabi, EAU.
             </p>
           </div>
         </div>
