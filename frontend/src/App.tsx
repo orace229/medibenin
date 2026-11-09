@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Header } from './components/Header';
-import { NavigationTabs, MediSenseTab } from './components/NavigationTabs';
+import { UnifiedTopBar } from './components/UnifiedTopBar';
+import { FloatingDemoController } from './components/FloatingDemoController';
+import { MediSenseTab } from './components/NavigationTabs';
 import { PopulationPrioritizationView } from './components/PopulationPrioritizationView';
 import { ClinicalIndividualView } from './components/ClinicalIndividualView';
 import { PopulationSafeguardsView } from './components/PopulationSafeguardsView';
 import { EngagementChoiceView } from './components/EngagementChoiceView';
 import { BenchmarkEvaluationView } from './components/BenchmarkEvaluationView';
-import { JuryWalkthroughBanner } from './components/JuryWalkthroughBanner';
 
 // Modules du socle de triage de symptômes (historique académique)
 import { HeroTriage } from './components/HeroTriage';
@@ -29,13 +29,14 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<MediSenseTab>('population');
   const [personas, setPersonas] = useState<PersonaProfile[]>(SYNTHETIC_PERSONAS);
   const [selectedPersona, setSelectedPersona] = useState<PersonaProfile>(SYNTHETIC_PERSONAS[0]);
+  const [appLang, setAppLang] = useState<'ar' | 'en'>('en');
   
   // Mode d'affichage : Défi 04 Abu Dhabi (par défaut) vs Mode Triage Aigu
   const [showHistoricTriageMode, setShowHistoricTriageMode] = useState(false);
 
   // États pour le mode Triage Historique
   const [patient, setPatient] = useState<PatientProfile>(INITIAL_PATIENT);
-  const [currentLang, setCurrentLang] = useState<LocalLanguage>('fon');
+  const [currentLang] = useState<LocalLanguage>('fon');
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [activeTriageResult, setActiveTriageResult] = useState<TriageResult | null>(null);
   const [consultationsHistory] = useState<TriageResult[]>([]);
@@ -91,82 +92,47 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F9FA] selection:bg-medigreen-100 selection:text-medigreen-800">
-      {/* Header Institutionnel */}
-      <Header
-        currentLang={currentLang}
-        onSelectLang={setCurrentLang}
+    <div className="min-h-screen flex flex-col bg-[#F8F9FA] selection:bg-emerald-100 selection:text-emerald-900">
+      {/* Barre de navigation unifiée moderne (Linear / Apple Health style) */}
+      <UnifiedTopBar
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        selectedPersonaName={selectedPersona.fullName}
+        currentLang={appLang}
+        onToggleLang={setAppLang}
         onSosClick={handleSosClick}
-        onAuditClick={() => {
-          setActiveTab('safeguards');
-        }}
       />
 
-      {/* Barre de Bascule Mode Défi 04 Abu Dhabi vs Triage Aigu */}
-      <div className="bg-slate-900 text-white text-xs py-2 px-4 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="font-semibold text-slate-200">
-              Future Health Digital Innovation Challenge 2026 • Challenge 04 : Precision Prevention and Screening
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowHistoricTriageMode(false)}
-              className={`px-3 py-1 rounded-lg font-bold transition ${
-                !showHistoricTriageMode ? 'bg-medigreen-700 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              MediSense (Prévention & Dépistage de Précision)
-            </button>
-            <button
-              onClick={() => setShowHistoricTriageMode(true)}
-              className={`px-3 py-1 rounded-lg font-bold transition ${
-                showHistoricTriageMode ? 'bg-medigreen-700 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Triage Aigu de Symptômes (Socle initial)
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Contrôleur flottant de démonstration (Chronométré 8 min, minimisable) */}
+      {!showHistoricTriageMode && (
+        <FloatingDemoController onNavigateStep={handleWalkthroughStep} />
+      )}
 
       {!showHistoricTriageMode ? (
         <>
-          {/* Guide de Démonstration Chronométré Jury (CDC §11.2 • 8 min) */}
-          <JuryWalkthroughBanner
-            onNavigateStep={handleWalkthroughStep}
-          />
-
-          {/* Navigation par Onglets (Les 5 écrans du Cahier des Charges) */}
-          <NavigationTabs
-            activeTab={activeTab}
-            onSelectTab={setActiveTab}
-            selectedPersonaName={selectedPersona.fullName}
-          />
-
           {/* Sélecteur rapide de Personas en mode Clinique */}
           {activeTab === 'clinical' && (
-            <div className="bg-indigo-50/60 border-b border-indigo-100 py-2.5 px-4">
+            <div className="bg-white border-b border-slate-200 py-2.5 px-4 shadow-2xs">
               <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs flex-wrap">
-                <span className="font-bold text-indigo-900 flex items-center gap-1.5">
-                  <Stethoscope className="w-4 h-4 text-indigo-700" />
-                  <span>Dossier actif face au praticien (CDC §11.2) :</span>
-                </span>
-                <div className="flex gap-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                    <Stethoscope className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-bold text-slate-800">Dossier actif face au soignant :</span>
+                  <span className="text-slate-400 text-[11px] hidden sm:inline">(Sélectionner un profil de démonstration)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
                   {personas.map((p) => (
                     <button
                       key={p.id}
                       onClick={() => setSelectedPersona(p)}
-                      className={`px-3 py-1 rounded-lg font-semibold text-xs transition border ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition border ${
                         selectedPersona.id === p.id
-                          ? 'bg-indigo-900 text-white border-indigo-900 shadow-xs'
-                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
-                      {p.fullName} ({p.ageYears}a, {p.nationalityGroup})
+                      {p.fullName} • {p.ageYears >= 1 ? `${p.ageYears} ans` : `${Math.round(p.ageYears * 12)} mois`} ({p.nationalityGroup})
                     </button>
                   ))}
                 </div>
@@ -240,6 +206,18 @@ export const App: React.FC = () => {
           onViewFacilities={() => {}}
         />
       )}
+
+      {/* Bascule discrète pour le mode Triage Historique PCIME */}
+      <div className="py-2.5 px-4 text-center text-xs text-slate-500 bg-slate-100/80 border-t border-slate-200">
+        <button
+          onClick={() => setShowHistoricTriageMode(!showHistoricTriageMode)}
+          className="hover:text-slate-900 font-medium underline underline-offset-2 transition"
+        >
+          {showHistoricTriageMode
+            ? '← Revenir à MediSense (Défi 04 Abu Dhabi • Prévention de Précision)'
+            : 'Basculer vers le socle académique initial (Triage Aigu de Symptômes)'}
+        </button>
+      </div>
 
       {/* Footer Institutionnel */}
       <FooterLegal />
