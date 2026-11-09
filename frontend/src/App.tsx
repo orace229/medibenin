@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { SidebarNavigation } from './components/SidebarNavigation';
 import { ContentTopBar } from './components/ContentTopBar';
-import { FloatingDemoController } from './components/FloatingDemoController';
 import { MediSenseTab } from './components/NavigationTabs';
 import { PopulationPrioritizationView } from './components/PopulationPrioritizationView';
 import { ClinicalIndividualView } from './components/ClinicalIndividualView';
@@ -56,13 +55,6 @@ export const App: React.FC = () => {
   const handleSelectPersonaForClinical = (p: PersonaProfile) => {
     setSelectedPersona(p);
     setActiveTab('clinical');
-  };
-
-  const handleWalkthroughStep = (tab: MediSenseTab, personaIndex?: number) => {
-    setActiveTab(tab);
-    if (personaIndex !== undefined && personas[personaIndex]) {
-      setSelectedPersona(personas[personaIndex]);
-    }
   };
 
   const handleBatchApprove = (ids: string[]) => {
@@ -122,9 +114,6 @@ export const App: React.FC = () => {
               onToggleLang={setAppLang}
               onSosClick={handleSosClick}
             />
-
-            {/* Contrôleur flottant de démonstration (Chronométré 8 min, minimisable) */}
-            <FloatingDemoController onNavigateStep={handleWalkthroughStep} />
 
             {/* Contenu de l'onglet actif */}
             <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
