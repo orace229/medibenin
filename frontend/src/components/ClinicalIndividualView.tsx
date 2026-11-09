@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { PersonaProfile, FollowupState } from '../types/medisense';
+import { InteractiveRiskSimulator } from './InteractiveRiskSimulator';
+import { InteractiveGrowthChart } from './InteractiveGrowthChart';
 import { 
   ShieldCheck, AlertCircle, QrCode, CheckCircle2, User,
-  FileText, Calendar, Building2, Activity, ArrowLeft
+  FileText, Calendar, Building2, Activity, ArrowLeft, Scan
 } from 'lucide-react';
 
 interface ClinicalIndividualViewProps {
@@ -248,6 +250,24 @@ export const ClinicalIndividualView: React.FC<ClinicalIndividualViewProps> = ({
         </div>
       </div>
 
+      {/* Composant Interactif Dédié selon l'Âge (Pédiatrique ou Adulte) */}
+      {persona.ageYears < 6 ? (
+        <InteractiveGrowthChart
+          childName={persona.fullName}
+          initialAgeMonths={persona.ageMonths}
+          initialHeightCm={persona.clinicalData.heightCm || 82.5}
+          initialWeightKg={persona.clinicalData.weightKg || 11.2}
+        />
+      ) : (
+        <InteractiveRiskSimulator
+          patientName={persona.fullName}
+          initialSystolic={persona.clinicalData.bloodPressureSystolic || 136}
+          initialBmi={persona.clinicalData.bmi || 24.1}
+          initialSmoking={persona.clinicalData.smokingStatus === 'Fumeur cigarette'}
+          initialFamilyHistory={true}
+        />
+      )}
+
       {/* Parcours Personnalisé Unifié (CarePlan) & Boucle Fermée à 8 États */}
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
@@ -394,13 +414,27 @@ export const ClinicalIndividualView: React.FC<ClinicalIndividualViewProps> = ({
               {showQrModal}
             </div>
 
-            <p className="text-[11px] text-gray-400">
+            <p className="text-[11px] text-gray-500">
               Scanné ou saisi par l'agent d'accueil du centre de santé pour valider la visite « Réalisée ».
             </p>
 
             <button
+              onClick={() => {
+                const targetAction = persona.carePlan.find(a => a.orientationCode === showQrModal);
+                if (targetAction) {
+                  handleStateChange(targetAction.id, 'Realisee');
+                }
+                setShowQrModal(null);
+              }}
+              className="w-full py-2.5 px-3 rounded-xl bg-medigreen-700 hover:bg-medigreen-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-95"
+            >
+              <Scan className="w-4 h-4" />
+              <span>Simuler Scan au Guichet du Centre (Valider Réalisée)</span>
+            </button>
+
+            <button
               onClick={() => setShowQrModal(null)}
-              className="w-full py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs transition"
+              className="w-full py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs transition"
             >
               Fermer
             </button>

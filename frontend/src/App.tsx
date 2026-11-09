@@ -6,6 +6,7 @@ import { ClinicalIndividualView } from './components/ClinicalIndividualView';
 import { PopulationSafeguardsView } from './components/PopulationSafeguardsView';
 import { EngagementChoiceView } from './components/EngagementChoiceView';
 import { BenchmarkEvaluationView } from './components/BenchmarkEvaluationView';
+import { JuryWalkthroughBanner } from './components/JuryWalkthroughBanner';
 
 // Modules du socle de triage de symptômes (historique académique)
 import { HeroTriage } from './components/HeroTriage';
@@ -53,6 +54,13 @@ export const App: React.FC = () => {
   const handleSelectPersonaForClinical = (p: PersonaProfile) => {
     setSelectedPersona(p);
     setActiveTab('clinical');
+  };
+
+  const handleWalkthroughStep = (tab: MediSenseTab, personaIndex?: number) => {
+    setActiveTab(tab);
+    if (personaIndex !== undefined && personas[personaIndex]) {
+      setSelectedPersona(personas[personaIndex]);
+    }
   };
 
   const handleBatchApprove = (ids: string[]) => {
@@ -127,6 +135,11 @@ export const App: React.FC = () => {
 
       {!showHistoricTriageMode ? (
         <>
+          {/* Guide de Démonstration Chronométré Jury (CDC §11.2 • 8 min) */}
+          <JuryWalkthroughBanner
+            onNavigateStep={handleWalkthroughStep}
+          />
+
           {/* Navigation par Onglets (Les 5 écrans du Cahier des Charges) */}
           <NavigationTabs
             activeTab={activeTab}
