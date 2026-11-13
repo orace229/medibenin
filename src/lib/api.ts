@@ -5,10 +5,25 @@ import {
   Locale,
 } from './types.ts';
 
-let currentAuthToken = 'demo-token-clinician';
+const AUTH_TOKEN_STORAGE_KEY = 'medisense.authToken';
+
+function restoreStoredAuthToken(): string {
+  try {
+    return sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || 'demo-token-clinician';
+  } catch {
+    return 'demo-token-clinician';
+  }
+}
+
+let currentAuthToken = restoreStoredAuthToken();
 
 export function setApiAuthToken(token: string) {
   currentAuthToken = token;
+  try {
+    sessionStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+  } catch {
+    /* storage unavailable — token kept in memory only */
+  }
 }
 
 export function getApiAuthToken() {

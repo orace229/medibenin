@@ -19,15 +19,36 @@ const ROLE_TO_DEMO_TOKEN: Record<UserRole, string> = {
   public_health: 'demo-token-public-health',
 };
 
+const SESSION_STORAGE_KEY = 'medisense.session';
+
+function readStoredSessionRole(): UserRole | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    if (!raw) return null;
+    const role = JSON.parse(raw) as UserRole;
+    return role in ROLE_TO_DEMO_TOKEN ? role : null;
+  } catch {
+    return null;
+  }
+}
+
+// Restored synchronously at module scope so the portal survives a page refresh.
+const storedSessionRole = readStoredSessionRole();
+
 function MediSenseApplication() {
-  const [view, setView] = useState<AppView>('landing');
-  const [currentRole, setCurrentRole] = useState<UserRole>('patient');
+  const [view, setView] = useState<AppView>(storedSessionRole ? 'portal' : 'landing');
+  const [currentRole, setCurrentRole] = useState<UserRole>(storedSessionRole ?? 'patient');
   const [preselectedLoginRole, setPreselectedLoginRole] = useState<UserRole>('patient');
 
   const handleEnterRolePortal = (role: UserRole, customToken?: string) => {
     const normalizedRole: UserRole = role === 'parent' ? 'patient' : role;
     const token = customToken || ROLE_TO_DEMO_TOKEN[normalizedRole];
     setApiAuthToken(token);
+    try {
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(normalizedRole));
+    } catch {
+      /* storage unavailable — session kept in memory only */
+    }
     setCurrentRole(normalizedRole);
     setView('portal');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -41,8 +62,14 @@ function MediSenseApplication() {
   };
 
   const handleLogout = () => {
+    try {
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      sessionStorage.removeItem('medisense.authToken');
+    } catch {
+      /* ignore */
+    }
     setPreselectedLoginRole('patient');
-    setView('login');
+    setView('landing');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
