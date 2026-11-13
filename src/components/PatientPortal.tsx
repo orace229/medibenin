@@ -23,6 +23,7 @@ import {
   XAxis,
   YAxis,
   Tooltip,
+  ReferenceArea,
   ResponsiveContainer,
 } from 'recharts';
 import { useI18n } from '../lib/i18n.tsx';
@@ -38,6 +39,87 @@ import {
   GlassCard,
 } from './MediSenseUI.tsx';
 import { ConsentState } from '../lib/types.ts';
+
+/* ------------------------------------------------------------------
+ * Blood pressure visual zones — patient-friendly reading.
+ * Zones are qualitative bands (target / follow-up / confirm); the
+ * numeric boundaries below are never displayed to the patient.
+ * ------------------------------------------------------------------ */
+type BpZoneKey = 'target' | 'borderline' | 'above' | 'none';
+
+function deriveBpZoneKey(label?: string | null): BpZoneKey {
+  if (!label) return 'none';
+  if (/above/i.test(label)) return 'above';
+  if (/borderline/i.test(label)) return 'borderline';
+  if (/target zone/i.test(label)) return 'target';
+  return 'none';
+}
+
+const BP_ZONE_CHIP: Record<BpZoneKey, string> = {
+  target: 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]',
+  borderline: 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]',
+  above: 'bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]',
+  none: 'bg-[#F8FAFC] text-[#64748B] border-[#E2E8F0]',
+};
+
+const BpPointTooltip: React.FC<any> = ({ active, payload, label }) => {
+  if (!active || !payload || payload.length === 0) return null;
+  return (
+    <div className="rounded-xl bg-white border border-[#E2E8F0] px-2.5 py-1.5 text-xs shadow-md">
+      <span className="font-semibold text-[#334155]">{label}</span>
+      {' · '}
+      <strong className="text-[#0B3B3C]">{payload[0].value} mmHg</strong>
+    </div>
+  );
+};
+
+const BpSeriesStrip: React.FC<{
+  title: string;
+  data: Array<{ dateLabel: string; systolic?: number; diastolic?: number }>;
+  dataKey: 'systolic' | 'diastolic';
+  yDomain: [number, number];
+  target: number;
+  limit: number;
+  stroke: string;
+  fill: string;
+}> = ({ title, data, dataKey, yDomain, target, limit, stroke, fill }) => (
+  <div className="space-y-1.5">
+    <span className="text-xs font-bold text-[#334155]">{title}</span>
+    <div className="h-24 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 8 }}>
+          <ReferenceArea y1={yDomain[0]} y2={target} fill="#D1FAE5" fillOpacity={0.55} stroke="none" />
+          <ReferenceArea y1={target} y2={limit} fill="#FDE68A" fillOpacity={0.55} stroke="none" />
+          <ReferenceArea y1={limit} y2={yDomain[1]} fill="#FECACA" fillOpacity={0.5} stroke="none" />
+          <XAxis
+            dataKey="dateLabel"
+            tick={{ fontSize: 10, fill: '#94A3B8' }}
+            tickLine={false}
+            axisLine={false}
+            interval="preserveStartEnd"
+            minTickGap={28}
+          />
+          <YAxis domain={yDomain} hide />
+          <Tooltip
+            content={<BpPointTooltip />}
+            cursor={{ stroke: '#94A3B8', strokeDasharray: '3 3' }}
+          />
+          <Area
+            type="monotone"
+            dataKey={dataKey}
+            stroke={stroke}
+            fill={fill}
+            fillOpacity={0.35}
+            strokeWidth={2.5}
+            dot={{ r: 2.5, strokeWidth: 0, fill: stroke }}
+            activeDot={{ r: 5 }}
+            connectNulls
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+);
 
 interface PatientPortalProps {
   role: 'patient' | 'parent';
@@ -932,45 +1014,128 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   {/* Visual Indicators */}
                   {profile.pathwayType === 'adult' ? (
                     <GlassCard interactive={false} className="space-y-4">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                          <h3 className="text-base font-bold text-[#0B3B3C] font-heading">
-                            {isFr ? 'Tension au repos' : 'Resting Blood Pressure'}
-                          </h3>
-                          <p className="text-xs text-[#64748B]">
-                            {isFr ? 'Évolution de vos mesures' : 'Your readings over time'}
-                          </p>
-                        </div>
-                        <span className="px-3 py-1 rounded-xl bg-[#0B3B3C] text-white text-xs font-semibold">
-                          {profile.bpZoneLabel}
-                        </span>
-                      </div>
+                      {(() => {
+                        const zoneKey = deriveBpZoneKey(profile.bpZoneLabel);
+                        const series: Array<{
+                          dateLabel: string;
+                          systolic?: number;
+                          diastolic?: number;
+                        }> = profile.bpSeries || [];
+                        const lastBp = series.length > 0 ? series[series.length - 1] : null;
+                        return (
+                          <>
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div>
+                                <h3 className="text-base font-bold text-[#0B3B3C] font-heading">
+                                  {isFr ? 'Tension au repos' : 'Resting Blood Pressure'}
+                                </h3>
+                                <p className="text-xs text-[#64748B]">
+                                  {isFr ? 'Évolution de vos mesures' : 'Your readings over time'}
+                                </p>
+                              </div>
+                              <span
+                                className={`px-3 py-1 rounded-xl border text-xs font-semibold ${BP_ZONE_CHIP[zoneKey]}`}
+                              >
+                                {isFr
+                                  ? zoneKey === 'above'
+                                    ? 'Au-dessus de la zone cible — confirmation prioritaire'
+                                    : zoneKey === 'borderline'
+                                    ? 'Zone limite — conservez votre suivi programmé'
+                                    : zoneKey === 'target'
+                                    ? 'Dans la zone cible'
+                                    : 'Tension non mesurée pour le moment'
+                                  : isAr
+                                  ? zoneKey === 'above'
+                                    ? 'فوق النطاق المستهدف — تأكيد عاجل'
+                                    : zoneKey === 'borderline'
+                                    ? 'نطاق حدّي — احتفظ بموعد المتابعة'
+                                    : zoneKey === 'target'
+                                    ? 'ضمن النطاق المستهدف'
+                                    : 'لم يتم قياس الضغط بعد'
+                                  : zoneKey === 'above'
+                                  ? 'Above target zone — priority confirmation'
+                                  : zoneKey === 'borderline'
+                                  ? 'Borderline zone — keep your scheduled follow-up'
+                                  : zoneKey === 'target'
+                                  ? 'Within your target zone'
+                                  : 'Blood pressure not recorded yet'}
+                              </span>
+                            </div>
 
-                      <div className="h-52 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={profile.bpSeries}>
-                            <XAxis dataKey="dateLabel" tick={{ fontSize: 12 }} />
-                            <YAxis domain={[60, 160]} tick={{ fontSize: 12 }} />
-                            <Tooltip />
-                            <Area
-                              type="monotone"
-                              dataKey="systolic"
-                              name="Systolic"
-                              stroke="#0F6B6B"
-                              fill="#D5F2EE"
-                              strokeWidth={2.5}
-                            />
-                            <Area
-                              type="monotone"
-                              dataKey="diastolic"
-                              name="Diastolic"
-                              stroke="#2F6FDE"
-                              fill="#EFF6FF"
-                              strokeWidth={2}
-                            />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </div>
+                            {/* Latest readings */}
+                            {lastBp && (
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                  <p className="text-[11px] font-semibold text-[#64748B]">
+                                    {isFr ? 'Dernière — Systolique' : isAr ? 'الأحدث — الانقباضي' : 'Latest — Systolic'}
+                                  </p>
+                                  <p className="text-lg font-extrabold text-[#0B3B3C] font-heading">
+                                    {lastBp.systolic ?? '—'}{' '}
+                                    <span className="text-[11px] font-semibold text-[#64748B]">mmHg</span>
+                                  </p>
+                                </div>
+                                <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                  <p className="text-[11px] font-semibold text-[#64748B]">
+                                    {isFr ? 'Dernière — Diastolique' : isAr ? 'الأحدث — الانبساطي' : 'Latest — Diastolic'}
+                                  </p>
+                                  <p className="text-lg font-extrabold text-[#0B3B3C] font-heading">
+                                    {lastBp.diastolic ?? '—'}{' '}
+                                    <span className="text-[11px] font-semibold text-[#64748B]">mmHg</span>
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {series.length > 0 ? (
+                              <>
+                                <BpSeriesStrip
+                                  title={isFr ? 'Systolique' : isAr ? 'الانقباضي' : 'Systolic'}
+                                  data={series}
+                                  dataKey="systolic"
+                                  yDomain={[90, 170]}
+                                  target={130}
+                                  limit={140}
+                                  stroke="#0F6B6B"
+                                  fill="#D5F2EE"
+                                />
+                                <BpSeriesStrip
+                                  title={isFr ? 'Diastolique' : isAr ? 'الانبساطي' : 'Diastolic'}
+                                  data={series}
+                                  dataKey="diastolic"
+                                  yDomain={[50, 110]}
+                                  target={85}
+                                  limit={90}
+                                  stroke="#2F6FDE"
+                                  fill="#EFF6FF"
+                                />
+                                {/* Shared zone legend */}
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] font-semibold text-[#64748B] pt-1 border-t border-[#E2E8F0]">
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="w-2.5 h-2.5 rounded-sm bg-[#D1FAE5] border border-[#A7F3D0]" />
+                                    {isFr ? 'Zone cible' : isAr ? 'النطاق المستهدف' : 'Target zone'}
+                                  </span>
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="w-2.5 h-2.5 rounded-sm bg-[#FDE68A] border border-[#FCD34D]" />
+                                    {isFr ? 'À suivre' : isAr ? 'للمتابعة' : 'Follow-up'}
+                                  </span>
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="w-2.5 h-2.5 rounded-sm bg-[#FECACA] border border-[#FCA5A5]" />
+                                    {isFr ? 'À confirmer' : isAr ? 'للتأكيد' : 'Needs confirmation'}
+                                  </span>
+                                </div>
+                              </>
+                            ) : (
+                              <p className="text-xs text-[#64748B] py-4 text-center">
+                                {isFr
+                                  ? 'Aucune mesure enregistrée pour le moment.'
+                                  : isAr
+                                  ? 'لا توجد قياسات مسجلة بعد.'
+                                  : 'No readings recorded yet.'}
+                              </p>
+                            )}
+                          </>
+                        );
+                      })()}
                     </GlassCard>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
