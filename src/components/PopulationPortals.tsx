@@ -101,11 +101,11 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
 
   const handleCoordinatorApproveDetachment = async (childId: string, childName: string) => {
     try {
-      const res = await apiClient.approveMajorityDetachment(childId);
+      await apiClient.approveMajorityDetachment(childId);
       setFeedback(
         isFr
-          ? `Service Compétent (Coordinateur) : Détachement à la majorité validé définitivement pour ${childName} (${childId}). Compte adulte autonome IFHAS activé (${res.autonomousEmail}).`
-          : `Competent Service (Coordinator): Majority detachment definitively validated for ${childName} (${childId}). Autonomous Adult IFHAS account active (${res.autonomousEmail}).`
+          ? `Détachement à la majorité validé pour ${childName} — compte adulte activé.`
+          : `Majority detachment confirmed for ${childName} — autonomous adult account active.`
       );
       await loadData();
     } catch (err: any) {
@@ -130,8 +130,8 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
       setShowAddMinorPanel(false);
       setFeedback(
         isFr
-          ? `Service Compétent : L’enfant ${res.patient.displayName} (${res.patient.id}) a été inscrit et affilié au parent ${minorForm.parentPatientId}.`
-          : `Competent Service: Minor ${res.patient.displayName} (${res.patient.id}) registered and affiliated to parent ${minorForm.parentPatientId}.`
+          ? `${res.patient.displayName} inscrit et affilié au parent ${minorForm.parentPatientId}.`
+          : `${res.patient.displayName} registered and affiliated to parent ${minorForm.parentPatientId}.`
       );
       await loadData();
     } catch (err: any) {
@@ -296,8 +296,8 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
                       {isFr
-                        ? 'Service Compétent · Gouvernance des Affiliations Familiales (< 18 ans) & Majorité (18 ans+)'
-                        : 'Competent Service · Family Affiliation (< 18y) & Majority Detachment Governance (18y+)'}
+                        ? 'Affiliations familiales & majorité'
+                        : 'Family Affiliation & Majority Governance'}
                     </span>
                     <h2 className="text-base font-extrabold text-[#0B3B3C] font-heading">
                       {isFr
@@ -747,37 +747,33 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
             >
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                 <StatCard
-                  title="Synthetic Cohort"
+                  title={isFr ? 'Cohorte synthétique' : 'Synthetic Cohort'}
                   value={obsData.cohortTotal}
-                  subtitle={
-                    isFr
-                      ? 'Données synthétiques reproductibles'
-                      : 'Synthetic, reproducible data'
-                  }
+                  subtitle={isFr ? 'Données reproductibles' : 'Reproducible data'}
                   icon={<BarChart3 className="w-4 h-4" />}
                 />
                 <StatCard
-                  title="Reach"
+                  title={isFr ? 'Portée' : 'Reach'}
                   value={pooledReach !== null ? `${pooledReach}%` : '—'}
-                  subtitle="Complete evaluations among eligible (pooled)"
+                  subtitle={isFr ? 'Évaluations complètes (cumul)' : 'Complete evaluations (pooled)'}
                   icon={<Users className="w-4 h-4" />}
                 />
                 <StatCard
-                  title="Adoption"
+                  title={isFr ? 'Adoption' : 'Adoption'}
                   value={pooledAdoption !== null ? `${pooledAdoption}%` : '—'}
-                  subtitle="Confirmed visits among invitations (pooled)"
+                  subtitle={isFr ? 'Visites confirmées (cumul)' : 'Confirmed visits (pooled)'}
                   icon={<Send className="w-4 h-4" />}
                 />
                 <StatCard
-                  title="Closed-loop completion"
+                  title={isFr ? 'Boucle complète' : 'Closed-loop completion'}
                   value={pooledClosedLoop !== null ? `${pooledClosedLoop}%` : '—'}
-                  subtitle="Confirmed visits among eligible (pooled)"
+                  subtitle={isFr ? 'Confirmés parmi éligibles' : 'Confirmed among eligible'}
                   icon={<ShieldCheck className="w-4 h-4" />}
                 />
                 <StatCard
                   title={isFr ? 'Faux négatifs estimés' : 'False-negative estimate'}
                   value={falseNegativeRange}
-                  subtitle="Range across visible segments (small counts suppressed)"
+                  subtitle={isFr ? 'Plage des segments visibles' : 'Range across visible segments'}
                   icon={<AlertTriangle className="w-4 h-4 text-[#C2410C]" />}
                 />
               </div>

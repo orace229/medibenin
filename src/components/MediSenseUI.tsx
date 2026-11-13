@@ -57,13 +57,13 @@ export const DemoBanner: React.FC = () => {
     locale === 'ar'
       ? 'بيئة تجريبية · بيانات اصطناعية 100%'
       : locale === 'fr'
-      ? 'Prototype indépendant de CareX · données 100 % synthétiques · sans affiliation ni approbation d’une autorité sanitaire'
-      : 'Independent prototype built by team CareX. Not affiliated with, or endorsed by, any health authority. 100 % synthetic data.';
+      ? 'Environnement de démonstration · données 100 % synthétiques'
+      : 'Demonstration environment · 100% synthetic data';
 
   return (
     <div className="bg-[#041D1E] text-white text-xs py-2 px-3 sm:px-6 flex items-center justify-between gap-2 border-b border-white/15">
       <span className="font-medium leading-relaxed">{text}</span>
-      <span className="hidden sm:inline text-white/85 font-mono shrink-0">Challenge 04</span>
+      <span className="hidden sm:inline text-white/85 font-mono shrink-0">Challenge 2026</span>
     </div>
   );
 };

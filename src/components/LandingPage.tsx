@@ -228,10 +228,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       num: 'STEP 05',
       verb: isAr ? 'القياس' : isFr ? 'Mesurer' : 'Measure',
       desc: isAr
-        ? 'فترات ثقة ويلسون وإخفاء الخلايا الصغيرة (< ١٠).'
+        ? 'فترات ثقة ويلسون وإخفاء تلقائي للمجموعات الصغيرة.'
         : isFr
-        ? 'Intervalles de Wilson et masquage automatique (n < 10).'
-        : 'Wilson confidence intervals and n < 10 suppression.',
+        ? 'Intervalles de Wilson et masquage automatique des petits groupes.'
+        : 'Wilson confidence intervals and automatic small-group masking.',
     },
   ];
 
@@ -257,7 +257,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     },
     {
       role: 'clinician',
-      kicker: 'SCREEN 2 · CLINICAL',
+      kicker: 'CLINICAL WORKBENCH',
       title: isAr ? 'الأطباء والعيادات' : isFr ? 'Médecins & Cliniciens' : 'Clinicians',
       benefit: isAr
         ? 'شاشة سريرية صافية بدون درجات أولوية مع مصادقة بنقرة واحدة.'
@@ -269,7 +269,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     },
     {
       role: 'coordinator',
-      kicker: 'SCREEN 1 · OPERATIONS',
+      kicker: 'CARE OPERATIONS',
       title: isAr ? 'منسقو الرعاية' : isFr ? 'Coordinateurs de Soins' : 'Care Coordinators',
       benefit: isAr
         ? 'قوائم يومية ذكية لتعزيز المرافقة دون خفض أولوية أي مريض.'
@@ -299,23 +299,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       a: isAr
         ? 'لا. إنه نظام لتنسيق الوقاية مبني على الإرشادات المعتمدة؛ الطبيب يراجع ويقرر دائماً.'
         : isFr
-        ? 'Non. MediSense orchestre le dépistage préventif à partir des directives publiées. Chaque recommandation requiert la validation explicite d’un clinicien.'
-        : 'No. MediSense orchestrates preventive screening from published guidelines. Every recommendation requires explicit clinician validation.',
+        ? 'Non. Chaque recommandation requiert la validation explicite d’un clinicien.'
+        : 'No. Every recommendation requires explicit clinician validation.',
     },
     {
       q: isAr ? 'لماذا تفصلون بين شاشة المنسق وشاشة الطبيب؟' : isFr ? 'Pourquoi séparer l’espace Coordinateur de l’espace Médecin ?' : 'Why separate Coordinator and Clinician views?',
       a: isAr
         ? 'لمنع أي تحيز لوجستي من التأثير على الحكم السريري للطبيب أثناء الاستشارة.'
         : isFr
-        ? 'Pour garantir une neutralité clinique absolue : les repères logistiques aident le coordinateur à organiser les relances, mais n’apparaissent jamais devant le médecin.'
-        : 'To protect clinical neutrality: operational outreach indicators help coordinators plan support, but never appear on the physician’s clinical screen.',
+        ? 'Les repères logistiques n’apparaissent jamais devant le médecin.'
+        : 'Operational indicators never appear on the physician’s clinical screen.',
     },
     {
       q: isAr ? 'من يتحكم في البيانات والموافقات؟' : isFr ? 'Comment le patient garde-t-il le contrôle de ses données ?' : 'How do patients control their personal health data?',
       a: isAr
         ? 'يتحكم المريض في ٥ موافقات مستقلة قابلة للإلغاء الفوري مع سجل شفاف لكل وصول.'
         : isFr
-        ? 'Chaque patient dispose de 5 interrupteurs de consentement indépendants (C1 à C4) révocables instantanément et d’un journal d’accès horodaté.'
+        ? 'Chaque patient dispose de 5 interrupteurs de consentement indépendants, révocables instantanément, et d’un journal d’accès horodaté.'
         : 'Patients control 5 independent consent toggles with instant revocation and a real-time, timestamped Data Usage Log.',
     },
     {
@@ -323,8 +323,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       a: isAr
         ? 'نعم. البوابات الأربع (بوابة المريض الموحدة مع أطفاله المرتبطين + ٣ بوابات للكوادر الصحية) جاهزة ببيانات اصطناعية كاملة.'
         : isFr
-        ? 'Oui. Les 4 espaces (1 Portail Patient Unifié avec affiliation familiale SMS + 3 Portails Agents de Santé : Médecin, Coordinateur, Santé Publique) sont préconfigurés avec un panel de 52 dossiers tiré d’une cohorte synthétique de 5 240 profils.'
-        : 'Yes. All 4 workspaces (1 Unified Patient Portal with SMS family affiliation + 3 Healthcare Agent Portals: Clinician, Coordinator, Public Health) are pre-loaded with a 52-record demo panel drawn from a 5,240-profile synthetic cohort.',
+        ? 'Oui. Les 4 espaces sont préconfigurés avec un panel de 52 dossiers issu d’une cohorte synthétique de 5 240 profils.'
+        : 'Yes. All 4 workspaces are pre-loaded with a 52-record demo panel from a 5,240-profile synthetic cohort.',
     },
   ];
 
@@ -1105,34 +1105,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               {previewTab === 'equity' && (
                 <div className="space-y-4">
-                  <div className="overflow-x-auto rounded-2xl border border-[#E2E8F0] bg-white">
-                    <table className="w-full text-xs sm:text-sm text-start">
-                      <thead className="bg-[#F8FAFC] text-[#64748B] border-b border-[#E2E8F0]">
-                        <tr>
-                          <th className="py-2.5 sm:py-3 px-3 sm:px-4 text-start font-semibold">Region</th>
-                          <th className="py-2.5 sm:py-3 px-3 sm:px-4 text-end font-semibold">Reach (95% CI)</th>
-                          <th className="py-2.5 sm:py-3 px-3 sm:px-4 text-end font-semibold">Completed</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#E2E8F0] tabular-nums">
-                        <tr>
-                          <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-semibold text-[#0B3B3C]">Abu Dhabi Central</td>
-                          <td className="py-2.5 sm:py-3 px-3 sm:px-4 text-end">89.4% [88–91%]</td>
-                          <td className="py-2.5 sm:py-3 px-3 sm:px-4 text-end font-semibold text-[#0F6B6B]">75.2%</td>
-                        </tr>
-                        <tr>
-                          <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-semibold text-[#C2410C]">Al Dhafra (C1)</td>
-                          <td className="py-2.5 sm:py-3 px-3 sm:px-4 text-end">68.4% [65–72%]</td>
-                          <td className="py-2.5 sm:py-3 px-3 sm:px-4 text-end font-semibold text-[#C2410C]">56.4%</td>
-                        </tr>
-                        <tr className="bg-[#F8FAFC]">
-                          <td className="py-2.5 sm:py-3 px-3 sm:px-4 text-[#64748B]">Small Sub-Segment</td>
-                          <td className="py-2.5 sm:py-3 px-3 sm:px-4 text-end text-[#64748B] font-mono" colSpan={2}>
-                            Suppressed (n &lt; 10)
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <div className="rounded-2xl border border-[#E2E8F0] bg-white p-4 sm:p-5 space-y-3">
+                    <p className="text-xs sm:text-sm font-bold text-[#0B3B3C] font-heading">
+                      {isFr ? 'Ce que l’observatoire montre' : 'What the observatory shows'}
+                    </p>
+                    <ul className="text-xs sm:text-sm text-[#334155] space-y-2 list-disc ps-5">
+                      <li>{isFr ? 'Couverture et adoption par zone et par segment, avec intervalles de confiance.' : 'Coverage and adoption by region and segment, with confidence intervals.'}</li>
+                      <li>{isFr ? 'Les petits groupes sont automatiquement masqués pour protéger la vie privée.' : 'Small groups are automatically masked to protect privacy.'}</li>
+                      <li>{isFr ? 'Les zones en retard déclenchent une action concrète (unité mobile, horaires étendus).' : 'Lagging zones trigger concrete action (mobile unit, extended hours).'}</li>
+                    </ul>
+                    <div className="flex items-center justify-between gap-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-2.5 text-xs">
+                      <span className="text-[#64748B]">
+                        {isFr ? 'Petit sous-segment' : 'Small sub-segment'}
+                      </span>
+                      <span className="font-mono font-semibold text-[#475569]">
+                        {isFr ? 'Masqué — groupe trop petit' : 'Masked — group too small'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#64748B]">
+                      {isFr ? 'Valeurs réelles affichées dans l’observatoire Santé Publique.' : 'Live values are shown inside the Public Health observatory.'}
+                    </p>
                   </div>
                 </div>
               )}

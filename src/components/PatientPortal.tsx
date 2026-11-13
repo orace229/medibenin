@@ -473,13 +473,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               </p>
               <p>
                 {isFr
-                  ? 'À 18 ans, le jeune peut demander un dossier indépendant. Cette demande est validée par son équipe de soin, qui reste joignable depuis le nouveau dossier.'
-                  : 'At 18, the young person can request an independent record. The request is confirmed by their care team, who remain reachable from the new record.'}
-              </p>
-              <p className="text-[#64748B]">
-                {isFr
-                  ? 'L’ajout d’un enfant et la validation du passage à la majorité se font avec l’aide de votre équipe de soin.'
-                  : 'Adding a child and confirming the handover at 18 are done with help from your care team.'}
+                  ? 'À 18 ans, le jeune peut demander un dossier indépendant, validé par son équipe de soin.'
+                  : 'At 18, the young person can request an independent record, confirmed by their care team.'}
               </p>
             </div>
             <div className="flex justify-end pt-1">
@@ -743,8 +738,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <div className="space-y-1">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
                       {isFr
-                        ? 'Majorité Atteinte (18 ans+) · Transition WCV vers Portail Adulte IFHAS'
-                        : 'Majority Reached (18y+) · WCV Transition to Autonomous Adult IFHAS'}
+                        ? 'Passage à la majorité (18 ans)'
+                        : 'Majority Reached (18y+)'}
                     </span>
                     <h3 className="text-sm font-extrabold text-[#0B3B3C] font-heading">
                       {isFr
@@ -753,8 +748,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     </h3>
                     <p className="text-xs text-[#334155]">
                       {isFr
-                        ? 'La demande de détachement est transmise au service compétent (Médecin / Coordinateur) qui valide définitivement l’autonomie du dossier.'
-                        : 'The detachment request is sent to the competent service (Clinician / Coordinator) for definitive validation.'}
+                        ? 'La demande est validée par l’équipe de soin avant l’activation du dossier indépendant.'
+                        : 'The request is confirmed by the care team before the independent record is activated.'}
                     </p>
                   </div>
                   <button
@@ -763,8 +758,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     className="px-4 py-2.5 rounded-xl btn-liquid-primary text-xs font-bold shrink-0 cursor-pointer"
                   >
                     {isFr
-                      ? 'Demander le détachement à la majorité (Service Compétent)'
-                      : 'Request Majority Detachment (Competent Service)'}
+                      ? 'Demander un dossier indépendant'
+                      : 'Request independent record'}
                   </button>
                 </GlassCard>
               )}

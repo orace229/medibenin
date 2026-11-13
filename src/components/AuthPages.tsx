@@ -311,10 +311,10 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
             <span className="w-2 h-2 rounded-full bg-[#2DD4BF]" />
             <span>
               {isAr
-                ? 'بوابة أبوظبي الوقائية'
+                ? 'الوقاية والفحص الدقيق · 2026'
                 : isFr
-                ? 'WCV & IFHAS · Défi 04'
-                : 'WCV & IFHAS · Challenge 04'}
+                ? 'Démo MediSense · Challenge 2026'
+                : 'MediSense demo · Challenge 2026'}
             </span>
           </span>
         </div>
@@ -620,7 +620,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                     <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
                       <p className="text-[11px] text-[#475569]">
                         {isAr
-                          ? 'هل أنت طبيب أو ممارس صحي في أبوظبي؟'
+                          ? 'هل أنت طبيب أو منسق رعاية أو عامل صحي؟'
                           : isFr
                           ? 'Vous êtes médecin, coordinateur ou agent de santé ?'
                           : 'Are you a physician, care coordinator, or health agent?'}

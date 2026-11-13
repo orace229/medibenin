@@ -860,8 +860,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
                   {isFr
-                    ? 'Service Compétent · Affiliation Parentale Obligatoire (< 18 ans)'
-                    : 'Competent Service · Mandatory Parental Affiliation (< 18y)'}
+                    ? 'Affiliation parentale obligatoire (< 18 ans)'
+                    : 'Mandatory Parental Affiliation (< 18y)'}
                 </span>
                 <p className="font-bold text-[#0B3B3C]">
                   {isFr
@@ -1513,8 +1513,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 </h2>
                 <p className="text-xs text-[#334155] max-w-3xl leading-relaxed">
                   {isFr
-                    ? 'Saisissez les paramètres cliniques d’un patient (protocole de tension 2 ou 3 mesures, poids et taille, items FINDRISC, facteurs de risque cardiovasculaire, courbes OMS enfant, prématurité) pour actualiser son parcours préventif.'
-                    : 'Enter a patient’s clinical parameters (2/3-reading BP protocol, BMI, FINDRISC items, cardiovascular risk factors, child WHO growth charts, prematurity) to update their preventive plan.'}
+                    ? 'Saisissez les paramètres cliniques du patient pour actualiser son parcours préventif.'
+                    : 'Enter the patient’s clinical parameters to update their preventive plan.'}
                 </p>
               </div>
               <button
@@ -1555,13 +1555,13 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
                       {isFr
-                        ? 'Service Compétent (Médecin) · Validation Définitive de Majorité (18 ans+)'
-                        : 'Competent Service (Clinician) · Definitive Majority Detachment Validation (18y+)'}
+                        ? 'Validation de majorité (18 ans et +)'
+                        : 'Majority Detachment Validation (18y+)'}
                     </span>
                     <p className="text-xs text-[#334155]">
                       {isFr
-                        ? 'Validez définitivement le détachement parental des jeunes ayant atteint 18 ans pour activer leur dossier autonome Adulte IFHAS.'
-                        : 'Definitively validate parental detachment for 18y+ youth to activate their autonomous Adult IFHAS record.'}
+                        ? 'Validez le passage au dossier adulte autonome du jeune.'
+                        : 'Confirm the transition to an autonomous adult record.'}
                     </p>
                   </div>
                 </div>
@@ -1600,29 +1600,25 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               <StatCard
                 title={isFr ? 'Patients suivis' : 'Active Panel'}
                 value={patients.length}
-                subtitle={
-                  isFr
-                    ? `${patients.length} dossiers du panel démo`
-                    : `${patients.length} records in the demo panel`
-                }
+                subtitle={isFr ? 'Panel démo' : 'Demo panel'}
                 icon={<Users className="w-4 h-4" />}
               />
               <StatCard
                 title={isFr ? 'Urgences Rouges' : 'Urgent Red'}
                 value={redCount}
-                subtitle="Same-day clinical review"
+                subtitle={isFr ? 'Revue le jour même' : 'Same-day review'}
                 icon={<AlertTriangle className="w-4 h-4 text-[#B91C1C]" />}
               />
               <StatCard
                 title={isFr ? 'Dossiers Gris' : 'Level Grey'}
                 value={greyCount}
-                subtitle="Measures to complete"
+                subtitle={isFr ? 'Mesures à compléter' : 'Measures to complete'}
                 icon={<HelpCircle className="w-4 h-4 text-[#475569]" />}
               />
               <StatCard
                 title={isFr ? 'Suivis Orange' : 'Priority Orange'}
                 value={overdueCount}
-                subtitle="14-day clinical window"
+                subtitle={isFr ? 'Fenêtre de 14 jours' : '14-day window'}
                 icon={<Clock className="w-4 h-4 text-[#C2410C]" />}
               />
             </div>
