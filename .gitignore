@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Local agent tooling (skills, agent config)
+.agents/

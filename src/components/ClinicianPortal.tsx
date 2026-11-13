@@ -192,7 +192,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
 
   const [detailTab, setDetailTab] = useState<
     'calculations' | 'flags' | 'pathway' | 'measures' | 'summary' | 'consents'
-  >('calculations');
+  >('summary');
   const [activeActionPanel, setActiveActionPanel] = useState<
     | null
     | 'guided-workbench'
@@ -425,7 +425,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       setAnalysisForm({
         ...DEFAULT_ANALYSIS_FORM,
         patientId: undefined,
-        displayName: 'Ananya Nair (Adulte 38 ans · Règle A4 Asie du Sud & TEST-S4 <40 ans)',
+        displayName: 'Ananya Nair (Adult · 38y · South Asia)',
         pathwayType: 'adult',
         ageYears: '38',
         ageMonths: '456',
@@ -486,7 +486,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       setAnalysisForm({
         ...DEFAULT_ANALYSIS_FORM,
         patientId: undefined,
-        displayName: 'Fatima Al-Mazrouei (Urgence E0 / Poussée Hypertensive)',
+        displayName: 'Fatima Al-Mazrouei (Hypertensive Urgency)',
         pathwayType: 'adult',
         ageYears: '61',
         ageMonths: '732',
@@ -499,7 +499,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
         systolicBp3: '',
         diastolicBp3: '',
         redFlagWarningSymptom: true,
-        redFlagSymptomLabel: 'Douleur thoracique aiguë & céphalées intenses (Règle E0)',
+        redFlagSymptomLabel: 'Acute chest pain & severe headaches',
       });
     }
   };
@@ -532,11 +532,11 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       setSelectedPatientId(res.patient.id);
       setPatientDetail(res.patient);
       populateFormFromPatient(res.patient);
-      setDetailTab('calculations');
+      setDetailTab('summary');
       setActionFeedback(
         isFr
-          ? 'Analyse clinique backend exécutée avec succès (Modèles OMS 2019, FINDRISC, Protocole TA et Règles WCV/IFHAS mis à jour).'
-          : 'Backend clinical analysis completed (WHO 2019, FINDRISC, BP Protocol, and WCV/IFHAS rules updated).'
+          ? 'Analyse clinique terminée. Le parcours préventif a été mis à jour.'
+          : 'Clinical analysis completed. The preventive plan has been updated.'
       );
     } catch (err: any) {
       setActionError(err.message);
@@ -551,8 +551,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
     await apiClient.runEvaluation(selectedPatientId);
     setActionFeedback(
       isFr
-        ? 'Calculs préventifs recalculés en backend selon la table signée v8.'
-        : 'Evaluation refreshed against signed rules v8.'
+        ? 'Évaluation recalculée selon les règles signées.'
+        : 'Evaluation refreshed against the signed rules.'
     );
     await loadPatientDetail(selectedPatientId);
     await loadList();
@@ -572,8 +572,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       setActiveActionPanel(null);
       setActionFeedback(
         isFr
-          ? 'Mesures enregistrées en backend. Niveau Gris résolu et risque recalculé.'
-          : 'Measurements saved. Level Grey resolved.'
+          ? 'Mesures enregistrées. Le parcours du patient a été mis à jour.'
+          : 'Measurements saved. The patient’s plan has been updated.'
       );
       await loadPatientDetail(selectedPatientId);
       await loadList();
@@ -685,8 +685,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
         <div>
           <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
             {isFr
-              ? 'Module U2 · Saisie Guidée & Calculateur Clinique Backend (Défi 04)'
-              : 'Module U2 · Guided Clinical Input & Backend Calculation Engine'}
+              ? 'Saisie Guidée & Calculateur Clinique'
+              : 'Guided Clinical Input & Clinical Calculator'}
           </span>
           <h3 className="text-base sm:text-lg font-extrabold text-[#0B3B3C] font-heading">
             {analysisForm.patientId
@@ -694,8 +694,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 ? `Modifier les paramètres & recalculer : ${analysisForm.displayName}`
                 : `Update Clinical Parameters & Recalculate: ${analysisForm.displayName}`
               : isFr
-              ? 'Nouvelle Analyse Préventive Personnalisée (Calcul Temps Réel)'
-              : 'New Custom Preventive Clinical Analysis (Live Backend Calculation)'}
+              ? 'Nouvelle Analyse Préventive Guidée'
+              : 'New Guided Preventive Clinical Analysis'}
           </h3>
         </div>
 
@@ -716,7 +716,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               onClick={() => applyPresetScenario('south_asia_findrisc')}
               className="px-2.5 py-1 rounded-lg bg-[#F0FDFA] border border-[#99F6E4] text-[#0B3B3C] font-semibold hover:bg-[#CCFBF1]"
             >
-              {isFr ? 'Asie du Sud <40a (A4/S4)' : 'South Asia <40y (A4/S4)'}
+              {isFr ? 'Asie du Sud (Âge <40 ans)' : 'South Asia (Age <40y)'}
             </button>
             <button
               type="button"
@@ -730,7 +730,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               onClick={() => applyPresetScenario('red_escape')}
               className="px-2.5 py-1 rounded-lg bg-[#FEF2F2] border border-red-200 text-[#991B1B] font-semibold hover:bg-red-100"
             >
-              {isFr ? 'Urgence Rouge (E0)' : 'Red Escape (E0)'}
+              {isFr ? 'Urgence Rouge' : 'Red Flag'}
             </button>
           </div>
         )}
@@ -748,8 +748,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           <Users className="w-3.5 h-3.5 text-[#0F6B6B]" />
           <span>
             {isFr
-              ? '1. Identité, Parcours d’Âge & Modificateur Démographique (A4)'
-              : '1. Identity, Age Pathway & Demographic Modifier (A4)'}
+              ? '1. Identité, Parcours d’Âge & Modificateur Démographique'
+              : '1. Identity, Age Pathway & Demographic Modifier'}
           </span>
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
@@ -828,7 +828,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           </div>
           <div>
             <label className="block font-semibold text-[#334155] mb-1">
-              {isFr ? 'Sexe & Groupe (Règle A4)' : 'Sex & Group (Rule A4)'}
+              {isFr ? 'Sexe & Groupe' : 'Sex & Group'}
             </label>
             <div className="flex gap-1.5">
               <select
@@ -845,7 +845,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 className="w-1/2 px-2 py-2 rounded-xl border border-[#CBD5E1] bg-white text-[#0B3B3C]"
               >
                 <option value="Emirati">Emirati</option>
-                <option value="South Asia">South Asia (A4)</option>
+                <option value="South Asia">South Asia</option>
                 <option value="Arab Non-UAE">Arab Non-UAE</option>
                 <option value="Other">Other</option>
               </select>
@@ -865,8 +865,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 </span>
                 <p className="font-bold text-[#0B3B3C]">
                   {isFr
-                    ? 'Rechercher le parent dans la base de données (par ID ou Nom) pour rattacher l’enfant :'
-                    : 'Search parent in database (by ID or Name) to affiliate this minor:'}
+                    ? 'Rechercher le parent dans le registre (par ID ou Nom) pour rattacher l’enfant :'
+                    : 'Search for the parent in the registry (by ID or name) to affiliate this minor:'}
                 </p>
               </div>
               <span className="px-2.5 py-1 rounded-lg bg-white border border-[#99F6E4] font-mono font-bold text-[#0F6B6B]">
@@ -931,8 +931,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             {formRequiresBp3 && (
               <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 text-[10px] font-bold">
                 {isFr
-                  ? `Écart ${bpSpreadSys}/${bpSpreadDia} mmHg (>10/6) → 3e mesure requise`
-                  : `Spread ${bpSpreadSys}/${bpSpreadDia} mmHg (>10/6) → 3rd reading required`}
+                  ? `Écart ${bpSpreadSys}/${bpSpreadDia} mmHg entre les 2 mesures → 3e mesure requise`
+                  : `Spread ${bpSpreadSys}/${bpSpreadDia} mmHg between readings → 3rd reading required`}
               </span>
             )}
           </div>
@@ -940,7 +940,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           <div className="grid grid-cols-3 gap-2.5 text-xs">
             <div className="p-2.5 rounded-xl bg-white border border-[#E2E8F0]">
               <span className="text-[11px] font-bold text-[#0B3B3C] block mb-1.5">
-                {isFr ? 'Mesure 1 (mmHg)' : 'Reading 1 (mmHg)'}
+                {isFr ? '1re mesure (mmHg)' : 'Reading 1 (mmHg)'}
               </span>
               <div className="flex items-center gap-1">
                 <input
@@ -963,7 +963,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
 
             <div className="p-2.5 rounded-xl bg-white border border-[#E2E8F0]">
               <span className="text-[11px] font-bold text-[#0B3B3C] block mb-1.5">
-                {isFr ? 'Mesure 2 (après 1 min)' : 'Reading 2 (after 1m)'}
+                {isFr ? '2e mesure (après 1 min)' : 'Reading 2 (after 1m)'}
               </span>
               <div className="flex items-center gap-1">
                 <input
@@ -992,7 +992,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               }`}
             >
               <span className="text-[11px] font-bold text-[#0B3B3C] block mb-1.5">
-                {isFr ? 'Mesure 3 (si écart >10/6)' : 'Reading 3 (if spread >10/6)'}
+                {isFr ? '3e mesure (si requise)' : 'Reading 3 (if required)'}
               </span>
               <div className="flex items-center gap-1">
                 <input
@@ -1021,7 +1021,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             <Activity className="w-3.5 h-3.5 text-[#0F6B6B]" />
             <span>
               {isFr
-                ? '3. Anthropométrie (Calcul IMC Automatique) & Provenance'
+                ? '3. Mesures corporelles (calcul automatique de l’indice de masse) & Provenance'
                 : '3. Anthropometry (Auto BMI Calculation) & Provenance'}
             </span>
           </h4>
@@ -1246,7 +1246,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                   onChange={(e) => setAnalysisForm({ ...analysisForm, isPregnant: e.target.checked })}
                 />
                 <span className="font-medium text-[#0B3B3C]">
-                  {isFr ? 'Grossesse en cours (Règle A11)' : 'Currently Pregnant (Rule A11)'}
+                  {isFr ? 'Grossesse en cours' : 'Currently Pregnant'}
                 </span>
               </label>
             )}
@@ -1399,13 +1399,13 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             <div>
               <span className="font-bold text-[#991B1B] block">
                 {isFr
-                  ? 'Symptôme d’alarme aigu — Règle d’Échappement E0'
-                  : 'Acute Red-Flag Symptom — Escape Rule E0'}
+                  ? 'Symptôme d’alarme aigu'
+                  : 'Acute red-flag symptom'}
               </span>
               <span className="text-[11px] text-[#B91C1C]">
                 {isFr
-                  ? 'Court-circuite la file standard → Niveau Rouge immédiat + Éclipse'
-                  : 'Bypasses routine queue → Immediate Level Red + Eclipse'}
+                  ? 'Les relances de routine sont suspendues et une prise en charge urgente est déclenchée immédiatement.'
+                  : 'Routine outreach is paused and immediate urgent review is triggered.'}
               </span>
             </div>
           </label>
@@ -1435,8 +1435,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 ? 'Calcul en cours...'
                 : 'Calculating...'
               : isFr
-              ? 'Exécuter les Calculs Backend (OMS 2019 / FINDRISC / WCV-IFHAS)'
-              : 'Run Backend Clinical Calculations (WHO 2019 / FINDRISC / WCV-IFHAS)'}
+              ? 'Exécuter l’Analyse Clinique'
+              : 'Run Clinical Analysis'}
           </span>
         </button>
       </div>
@@ -1453,7 +1453,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <MediSenseLogo />
             <span className="hidden md:inline text-xs font-semibold text-[#64748B] border-s border-[#E2E8F0] ps-4 truncate">
-              {isFr ? 'Espace Médecin · Écran 2' : 'Clinician Workspace · Screen 2'}
+              {isFr ? 'Espace Médecin' : 'Clinician Workspace'}
             </span>
           </div>
 
@@ -1461,8 +1461,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold bg-white/85 text-[#0B3B3C] border border-[#D5F2EE] rounded-xl px-3 py-1.5">
               <span>
                 {isFr
-                  ? 'Dr. Sydney Kpegbe · Médecin (Écran 2)'
-                  : 'Dr. Sydney Kpegbe · Clinician (Screen 2)'}
+                  ? 'Dr. Sydney Kpegbe · Médecin'
+                  : 'Dr. Sydney Kpegbe · Clinician'}
               </span>
             </span>
             <LanguageSwitch />
@@ -1484,7 +1484,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       <main className="max-w-7xl w-full mx-auto px-3 sm:px-6 py-5 sm:py-8 flex-1 space-y-5 sm:space-y-6">
         {!selectedPatientId ? (
           /* ===============================================================
-           * VIEW 1: CLINICIAN DASHBOARD & PATIENT ROSTER (Zero S_prio column)
+           * VIEW 1: CLINICIAN DASHBOARD & PATIENT ROSTER
            * =============================================================== */
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -1502,19 +1502,19 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                   <Calculator className="w-3.5 h-3.5" />
                   <span>
                     {isFr
-                      ? 'Moteur Clinique Backend Actif · Défi 04 (WCV & IFHAS v8)'
-                      : 'Active Backend Clinical Engine · Challenge 04 (WCV & IFHAS v8)'}
+                      ? 'Calculateur Clinique'
+                      : 'Clinical Workbench'}
                   </span>
                 </div>
                 <h2 className="text-lg sm:text-xl font-extrabold text-[#0B3B3C] font-heading">
                   {isFr
-                    ? 'Lancer une Analyse Préventive sur Mesure ou Évaluer un Dossier'
-                    : 'Launch a Custom Preventive Analysis or Evaluate a Patient Record'}
+                    ? 'Lancer une Nouvelle Analyse Guidée ou Évaluer un Dossier'
+                    : 'Launch a New Guided Analysis or Evaluate a Patient Record'}
                 </h2>
                 <p className="text-xs text-[#334155] max-w-3xl leading-relaxed">
                   {isFr
-                    ? 'Saisissez librement les paramètres cliniques d’un patient (Protocole TA 2/3 mesures, IMC, 8 items FINDRISC, facteurs OMS 2019, courbe OMS enfant, prématurité <37 SA) pour exécuter les calculs mathématiques en backend.'
-                    : 'Input any patient clinical parameters (2/3-reading BP protocol, BMI, 8 FINDRISC items, WHO 2019 CVD factors, child WHO Z-scores, prematurity <37w) to run real-time backend calculations.'}
+                    ? 'Saisissez les paramètres cliniques d’un patient (protocole de tension 2 ou 3 mesures, poids et taille, items FINDRISC, facteurs de risque cardiovasculaire, courbes OMS enfant, prématurité) pour actualiser son parcours préventif.'
+                    : 'Enter a patient’s clinical parameters (2/3-reading BP protocol, BMI, FINDRISC items, cardiovascular risk factors, child WHO growth charts, prematurity) to update their preventive plan.'}
                 </p>
               </div>
               <button
@@ -1533,8 +1533,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                       ? 'Fermer le Calculateur Clinique'
                       : 'Close Clinical Workbench'
                     : isFr
-                    ? '+ Nouvelle Analyse Clinique Guidée (U2)'
-                    : '+ New Guided Clinical Analysis (U2)'}
+                    ? '+ Nouvelle Analyse Clinique Guidée'
+                    : '+ New Guided Clinical Analysis'}
                 </span>
               </button>
             </GlassCard>
@@ -1600,7 +1600,11 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               <StatCard
                 title={isFr ? 'Patients suivis' : 'Active Panel'}
                 value={patients.length}
-                subtitle="7 Personas + Custom Analyses"
+                subtitle={
+                  isFr
+                    ? `${patients.length} dossiers du panel démo`
+                    : `${patients.length} records in the demo panel`
+                }
                 icon={<Users className="w-4 h-4" />}
               />
               <StatCard
@@ -1691,7 +1695,6 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                       </span>
                       <span className="text-[11px] text-[#64748B] capitalize">
                         {p.ageYears >= 2 ? `${p.ageYears} yrs` : `${p.ageMonths} mos`} · {p.pathwayType}
-                        {p.isPersona ? ' · Persona' : ' · Analyse personnalisée'}
                       </span>
                     </div>
                     <LevelBadge level={p.overallLevel} size="sm" />
@@ -1741,7 +1744,6 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                           <span className="font-bold text-[#0B3B3C] block">{p.displayName}</span>
                           <span className="text-[11px] text-[#64748B] tabular-nums">
                             {p.ageYears >= 2 ? `${p.ageYears} yrs` : `${p.ageMonths} mos`}
-                            {p.isPersona ? ' · Persona' : ' · Custom'}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 capitalize font-medium text-[#334155]">
@@ -1771,7 +1773,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           </motion.div>
         ) : (
           /* ===============================================================
-           * VIEW 2: CLINICIAN PATIENT RECORD DETAIL + LIVE BACKEND CALCULATIONS
+           * VIEW 2: CLINICIAN PATIENT RECORD DETAIL
            * =============================================================== */
           patientDetail && (
             <motion.div
@@ -1806,8 +1808,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                   <SlidersHorizontal className="w-3.5 h-3.5" />
                   <span>
                     {isFr
-                      ? 'Modifier Paramètres & Relancer Calcul Backend (U2)'
-                      : 'Edit Clinical Parameters & Recalculate (U2)'}
+                      ? 'Modifier Paramètres & Recalculer'
+                      : 'Edit Clinical Parameters & Recalculate'}
                   </span>
                 </button>
               </div>
@@ -1862,7 +1864,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     className="px-3 sm:px-3.5 py-2 rounded-xl btn-liquid-primary text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     <RefreshCw className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">1. Evaluate Rules</span>
+                    <span className="truncate">Evaluate</span>
                   </button>
 
                   <button
@@ -1872,7 +1874,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                   >
                     <Calculator className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
                     <span className="truncate">
-                      {isFr ? '2. Saisie Guidée Complète (U2)' : '2. Full Guided Input (U2)'}
+                      {isFr ? 'Saisie guidée' : 'Guided input'}
                     </span>
                   </button>
 
@@ -1882,7 +1884,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     <ClipboardPlus className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">Quick Vitals (Grey)</span>
+                    <span className="truncate">{isFr ? 'Compléter les mesures' : 'Enter missing data'}</span>
                   </button>
 
                   <button
@@ -1891,7 +1893,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">3. AI Summary</span>
+                    <span className="truncate">{isFr ? 'Résumé du cas' : 'Case summary'}</span>
                   </button>
 
                   <button
@@ -1900,7 +1902,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     <CheckSquare className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">4. Validate Plan</span>
+                    <span className="truncate">{isFr ? 'Réviser le plan' : 'Review plan'}</span>
                   </button>
 
                   <button
@@ -1909,7 +1911,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     <Send className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">5. Invitation</span>
+                    <span className="truncate">{isFr ? 'Préparer l’invitation' : 'Prepare invitation'}</span>
                   </button>
 
                   <button
@@ -1918,7 +1920,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     <QrCode className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">6. Verify Pass</span>
+                    <span className="truncate">{isFr ? 'Confirmer la visite' : 'Confirm visit'}</span>
                   </button>
 
                   <button
@@ -1927,7 +1929,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     <FileCheck className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">7. Conclusion</span>
+                    <span className="truncate">{isFr ? 'Enregistrer la conclusion' : 'Record outcome'}</span>
                   </button>
 
                   <button
@@ -1936,7 +1938,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">8. FHIR R4</span>
+                    <span className="truncate">{isFr ? 'Exporter le fichier FHIR' : 'Export FHIR file'}</span>
                   </button>
                 </div>
               </div>
@@ -1971,7 +1973,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 <GlassCard interactive={false}>
                   <form onSubmit={handleSubmitMissingData} className="space-y-4">
                     <h3 className="text-sm font-bold text-[#0B3B3C] font-heading">
-                      Complete Missing Measurements (Resolves Level Grey)
+                      Complete Missing Measurements
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                       <div>
@@ -2040,7 +2042,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 <AiSuggestionPanel
                   initialText={aiSummaryText}
                   onDecision={(decision) => {
-                    setActionFeedback(`AI summary ${decision} by clinician.`);
+                    setActionFeedback(`Case summary ${decision} by clinician.`);
                   }}
                 />
               )}
@@ -2245,12 +2247,6 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               <div className="flex flex-wrap gap-1.5 liquid-glass p-1.5 rounded-2xl w-fit">
                 {(
                   [
-                    {
-                      id: 'calculations',
-                      label: isFr
-                        ? 'Calculs Backend (OMS / FINDRISC / TA)'
-                        : 'Backend Calculations (WHO / FINDRISC / BP)',
-                    },
                     { id: 'flags', label: `Flags (${patientDetail.flags.length})` },
                     { id: 'pathway', label: 'Consolidated CarePlan' },
                     { id: 'measures', label: 'Trends' },
@@ -2272,275 +2268,6 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                   </button>
                 ))}
               </div>
-
-              {/* TAB 1: LIVE BACKEND CLINICAL CALCULATIONS (WHO 2019, FINDRISC, BP PROTOCOL, Z-SCORES, CERTAINTY) */}
-              {detailTab === 'calculations' && patientDetail.calculations && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* Card A: Blood Pressure 2/3-Reading Protocol */}
-                    <GlassCard interactive={false} className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B]">
-                          {isFr
-                            ? 'Protocole TA Guidé (2 ou 3 mesures · Section 4.7)'
-                            : 'Guided BP Protocol (2 or 3 readings · Section 4.7)'}
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#F0FDFA] text-[#0B3B3C] border border-[#99F6E4]">
-                          {patientDetail.calculations.bpProtocol.bpZoneLabel}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-2.5 text-xs">
-                        <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                          <span className="text-[11px] text-[#64748B] block">Mesure 1</span>
-                          <span className="font-mono font-bold text-sm text-[#0B3B3C]">
-                            {patientDetail.calculations.bpProtocol.reading1 || '—'}
-                          </span>
-                        </div>
-                        <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                          <span className="text-[11px] text-[#64748B] block">Mesure 2</span>
-                          <span className="font-mono font-bold text-sm text-[#0B3B3C]">
-                            {patientDetail.calculations.bpProtocol.reading2 || '—'}
-                          </span>
-                        </div>
-                        <div className="p-3 rounded-xl bg-[#F0FDFA] border border-[#14A39A]/40">
-                          <span className="text-[11px] text-[#0F6B6B] font-semibold block">
-                            {isFr ? 'Moyenne retenue' : 'Retained Mean'}
-                          </span>
-                          <span className="font-mono font-extrabold text-sm text-[#0B3B3C]">
-                            {patientDetail.calculations.bpProtocol.retainedSys !== null
-                              ? `${patientDetail.calculations.bpProtocol.retainedSys}/${patientDetail.calculations.bpProtocol.retainedDia} mmHg`
-                              : isFr
-                              ? 'Non mesurée'
-                              : 'Not measured'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-[#334155]">
-                        {patientDetail.calculations.bpProtocol.requiresThirdReading
-                          ? isFr
-                            ? `Écart entre Mesure 1 et Mesure 2 : Δ ${patientDetail.calculations.bpProtocol.spreadSys ?? 0}/${patientDetail.calculations.bpProtocol.spreadDia ?? 0} mmHg (> 10/6 mmHg). La moyenne porte sur les mesures 2 et 3.`
-                            : `Spread between Reading 1 & 2: Δ ${patientDetail.calculations.bpProtocol.spreadSys ?? 0}/${patientDetail.calculations.bpProtocol.spreadDia ?? 0} mmHg (> 10/6 mmHg). Retained mean uses readings 2 & 3.`
-                          : isFr
-                          ? 'Écart ≤ 10/6 mmHg entre les mesures : protocole de mesure validé.'
-                          : 'Spread ≤ 10/6 mmHg between readings: standard protocol verified.'}
-                      </p>
-                    </GlassCard>
-
-                    {/* Card B: WHO 2019 Non-Lab 10-Year CVD Risk + Uncertainty + Counterfactual Attribution */}
-                    <GlassCard interactive={false} className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B]">
-                          {isFr
-                            ? 'Modèle OMS 2019 sans labo (Risque CV à 10 ans)'
-                            : 'WHO 2019 Non-Lab Model (10-Year CVD Risk)'}
-                        </span>
-                        <span className="text-[11px] font-mono font-bold text-[#0B3B3C]">
-                          {patientDetail.calculations.whoCvdModel.inDomain
-                            ? '40–74 yrs'
-                            : 'TEST-S4 (< 40 yrs)'}
-                        </span>
-                      </div>
-
-                      {patientDetail.calculations.whoCvdModel.riskPercent !== null ? (
-                        <div className="space-y-3">
-                          <div className="flex flex-wrap items-baseline justify-between gap-2 p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <div>
-                              <span className="text-xs text-[#64748B] block">
-                                {isFr ? 'Risque CV à 10 ans estimé' : 'Estimated 10-Year CVD Risk'}
-                              </span>
-                              <span className="text-2xl font-extrabold font-mono text-[#0B3B3C]">
-                                {patientDetail.calculations.whoCvdModel.riskPercent}%
-                              </span>
-                            </div>
-                            <div className="text-end">
-                              <span className="text-[11px] text-[#64748B] block">
-                                {isFr ? 'Intervalle d’incertitude (±1,96σ)' : 'Uncertainty Interval (±1.96σ)'}
-                              </span>
-                              <span className="font-mono font-bold text-xs text-[#0F6B6B]">
-                                [{patientDetail.calculations.whoCvdModel.intervalLowPercent}% –{' '}
-                                {patientDetail.calculations.whoCvdModel.intervalHighPercent}%]
-                              </span>
-                              {patientDetail.calculations.whoCvdModel.crossesThreshold && (
-                                <span className="block text-[10px] text-amber-800 font-semibold">
-                                  {isFr
-                                    ? 'Chevauche le seuil de 10 % → Certitude Moyenne'
-                                    : 'Crosses 10% threshold → Medium Certainty'}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {patientDetail.calculations.whoCvdModel.counterfactuals.length > 0 && (
-                            <div className="space-y-1.5">
-                              <span className="text-[11px] font-bold text-[#0B3B3C] block">
-                                {isFr
-                                  ? 'Attribution Contrefactuelle des Facteurs Modifiables (Annexe B) :'
-                                  : 'Counterfactual Modifiable Risk Attribution (Annex B):'}
-                              </span>
-                              {patientDetail.calculations.whoCvdModel.counterfactuals.map((cf, i) => (
-                                <div
-                                  key={i}
-                                  className="flex items-center justify-between text-xs px-3 py-1.5 rounded-xl bg-[#F0FDFA] border border-[#99F6E4]"
-                                >
-                                  <span className="text-[#0B3B3C] font-medium">
-                                    {cf.factor} ({cf.currentValue} → {cf.targetValue})
-                                  </span>
-                                  <span className="font-mono font-bold text-[#0F6B6B]">
-                                    -{cf.riskReductionPct}%
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#334155]">
-                          <strong className="text-[#0B3B3C] block mb-1">
-                            {patientDetail.calculations.whoCvdModel.domainNote}
-                          </strong>
-                          {isFr
-                            ? 'Conformément à la règle de domaine d’applicabilité (TEST-S4), le modèle OMS 2019 (40–74 ans) n’est jamais extrapolé aux patients < 40 ans.'
-                            : 'Per Applicability Domain Safeguard (TEST-S4), the WHO 2019 equation (40–74y) is never extrapolated below age 40.'}
-                        </div>
-                      )}
-                    </GlassCard>
-
-                    {/* Card C: FINDRISC 8-Item Score Breakdown (0-26 pts) OR Pediatric Growth Z-Scores */}
-                    {patientDetail.calculations.findriscModel.score !== null ? (
-                      <GlassCard interactive={false} className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B]">
-                            {isFr
-                              ? 'Score FINDRISC Officiel (8 items · 0–26 pts)'
-                              : 'Official FINDRISC Score (8 items · 0–26 pts)'}
-                          </span>
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold font-mono bg-[#0B3B3C] text-white">
-                            {patientDetail.calculations.findriscModel.score} / 26 pts
-                          </span>
-                        </div>
-
-                        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                          <span className="font-bold text-[#0B3B3C]">
-                            {patientDetail.calculations.findriscModel.levelLabel}
-                          </span>
-                          {patientDetail.calculations.findriscModel.asianBmiRuleA4Triggered && (
-                            <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-semibold text-[11px]">
-                              {isFr
-                                ? 'Règle A4 Asie du Sud : seuil IMC abaissé à ≥ 23'
-                                : 'Rule A4 South Asia: BMI threshold lowered to ≥ 23'}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="divide-y divide-[#E2E8F0] border border-[#E2E8F0] rounded-xl bg-white overflow-hidden text-xs">
-                          {patientDetail.calculations.findriscModel.itemBreakdown.map((row, idx) => (
-                            <div key={idx} className="px-3 py-1.5 flex items-center justify-between">
-                              <span className="text-[#334155] font-medium">{row.item}</span>
-                              <span className="font-mono font-bold text-[#0F6B6B]">+{row.points} pt</span>
-                            </div>
-                          ))}
-                        </div>
-                      </GlassCard>
-                    ) : (
-                      <GlassCard interactive={false} className="space-y-3">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
-                          {isFr
-                            ? 'Croissance Pédiatrique OMS & Âge Corrigé (P1–P11)'
-                            : 'WHO Pediatric Growth & Corrected Age (P1–P11)'}
-                        </span>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-                          <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <span className="text-[11px] text-[#64748B] block">Score Z Poids/Taille</span>
-                            <span className="font-mono font-bold text-sm text-[#0B3B3C]">
-                              {patientDetail.calculations.anthropometry.weightForHeightZ ?? '—'} SD
-                            </span>
-                          </div>
-                          <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <span className="text-[11px] text-[#64748B] block">MUAC (Périmètre)</span>
-                            <span className="font-mono font-bold text-sm text-[#0B3B3C]">
-                              {patientDetail.calculations.anthropometry.muacMm
-                                ? `${patientDetail.calculations.anthropometry.muacMm} mm`
-                                : '—'}
-                            </span>
-                          </div>
-                          <div className="p-3 rounded-xl bg-[#F0FDFA] border border-[#99F6E4]">
-                            <span className="text-[11px] text-[#0F6B6B] font-semibold block">
-                              {isFr ? 'Âge corrigé (<37 SA)' : 'Corrected Age (<37w)'}
-                            </span>
-                            <span className="font-mono font-bold text-sm text-[#0B3B3C]">
-                              {patientDetail.calculations.anthropometry.correctedAgeMonths !== null
-                                ? `${patientDetail.calculations.anthropometry.correctedAgeMonths} mos`
-                                : isFr
-                                ? 'Né à terme'
-                                : 'Full-term'}
-                            </span>
-                          </div>
-                        </div>
-                      </GlassCard>
-                    )}
-
-                    {/* Card D: Anthropometry, Data Certainty Audit & Eclipse Safeguard */}
-                    <GlassCard interactive={false} className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B]">
-                          {isFr
-                            ? 'Anthropométrie, Certitude & Provenance (V/M/D/S)'
-                            : 'Anthropometry, Certainty & Provenance (V/M/D/S)'}
-                        </span>
-                        <CertaintyBadge certainty={patientDetail.calculations.certaintyAudit.finalCertainty} />
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-2.5 text-xs">
-                        <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                          <span className="text-[11px] text-[#64748B] block">IMC / BMI</span>
-                          <span className="font-mono font-bold text-sm text-[#0B3B3C]">
-                            {patientDetail.calculations.anthropometry.bmi
-                              ? `${patientDetail.calculations.anthropometry.bmi} kg/m²`
-                              : '—'}
-                          </span>
-                          <span className="text-[10px] text-[#64748B] block">
-                            {patientDetail.calculations.anthropometry.waistCm
-                              ? `Tour de taille: ${patientDetail.calculations.anthropometry.waistCm} cm`
-                              : 'Anthropométrie'}
-                          </span>
-                        </div>
-                        <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                          <span className="text-[11px] text-[#64748B] block">
-                            {isFr ? 'Complétude' : 'Completeness'}
-                          </span>
-                          <span className="font-mono font-bold text-sm text-[#0B3B3C]">
-                            {patientDetail.calculations.certaintyAudit.completenessPercent}%
-                          </span>
-                          <span className="text-[10px] text-[#64748B] block">
-                            Ancienneté max: {patientDetail.calculations.certaintyAudit.oldestMeasureMonths}m
-                          </span>
-                        </div>
-                        <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                          <span className="text-[11px] text-[#64748B] block">
-                            {isFr ? 'Règle d’Éclipse' : 'Eclipse Rule'}
-                          </span>
-                          <span className="font-bold text-xs text-[#0B3B3C] block mt-0.5">
-                            {patientDetail.calculations.eclipseSafeguard.activeRedFlag
-                              ? isFr
-                                ? 'Active (Relances suspendues)'
-                                : 'Active (Routine paused)'
-                              : isFr
-                              ? 'Aucune suspension'
-                              : 'Inactive'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="text-xs text-[#334155] flex items-center gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                        <span>{patientDetail.calculations.certaintyAudit.certaintyReason}</span>
-                      </div>
-                    </GlassCard>
-                  </div>
-                </div>
-              )}
 
               {/* TAB 2: FLAGS */}
               {detailTab === 'flags' && (
@@ -2564,7 +2291,9 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                         <div className="px-3.5 py-2 rounded-xl bg-amber-50 text-amber-900 text-xs font-medium flex items-center gap-2">
                           <ShieldAlert className="w-4 h-4 shrink-0" />
                           <span>
-                            Eclipse Safeguard (TEST-S2): Routine outreach paused while urgent Red flag or specialist care is active.
+                            {isFr
+                              ? 'Relances de routine suspendues : un drapeau rouge urgent ou une prise en charge spécialisée est active.'
+                              : 'Routine outreach paused while an urgent red flag or specialist care is active.'}
                           </span>
                         </div>
                       )}
@@ -2577,12 +2306,12 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
 
                       <div className="pt-2.5 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748B]">
                         <span>
-                          Source: <strong className="text-[#0B3B3C]">{flg.sourceLabel}</strong>
+                          {isFr ? 'Source :' : 'Source:'} <strong className="text-[#0B3B3C]">{flg.sourceLabel}</strong>
                         </span>
                         <span>
-                          Missing:{' '}
+                          {isFr ? 'Manquant :' : 'Missing:'}{' '}
                           <strong className="text-[#0B3B3C]">
-                            {flg.missingData.length > 0 ? flg.missingData.join(', ') : 'None'}
+                            {flg.missingData.length > 0 ? flg.missingData.join(', ') : isFr ? 'Aucune' : 'None'}
                           </strong>
                         </span>
                       </div>
@@ -2604,6 +2333,43 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     Next window: <strong>{patientDetail.nextDueDate}</strong> ·{' '}
                     <strong>{patientDetail.facilityCenter}</strong>
                   </p>
+                  {typeof patientDetail.calculations?.certaintyAudit
+                    ?.completenessPercent === 'number' &&
+                    (() => {
+                      const completeness =
+                        patientDetail.calculations!.certaintyAudit!.completenessPercent;
+                      const missingCount = patientDetail.flags.reduce(
+                        (n, f) => n + f.missingData.length,
+                        0
+                      );
+                      return (
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-[#E2E8F0]">
+                          <p className="text-xs text-[#334155] font-medium">
+                            {isFr
+                              ? `Dossier complet à ${completeness} %${
+                                  missingCount > 0
+                                    ? ` · ${missingCount} mesure(s) à compléter`
+                                    : ' · aucune mesure manquante'
+                                }.`
+                              : `${completeness}% complete${
+                                  missingCount > 0
+                                    ? ` · ${missingCount} measurements missing`
+                                    : ' · no measurements missing'
+                                }.`}
+                          </p>
+                          {missingCount > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setActiveActionPanel('missing-data')}
+                              className="px-3 py-1.5 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] text-xs font-bold text-[#0B3B3C] hover:bg-[#CCFBF1] inline-flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <ClipboardPlus className="w-3.5 h-3.5 text-[#0F6B6B]" />
+                              <span>{isFr ? 'Compléter les mesures' : 'Enter missing data'}</span>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                 </GlassCard>
               )}
 
@@ -2692,7 +2458,9 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     </div>
                   ) : (
                     <p className="text-xs text-[#64748B]">
-                      No longitudinal chart recorded yet. Use "2. Full Guided Input (U2)" above.
+                      {isFr
+                        ? 'Aucune courbe longitudinale enregistrée pour le moment. Utilisez « Saisie guidée » ci-dessus.'
+                        : 'No longitudinal chart recorded yet. Use “Guided input” above.'}
                     </p>
                   )}
                 </GlassCard>
@@ -2711,7 +2479,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                           <th className="py-2 px-3 text-start">Actor</th>
                           <th className="py-2 px-3 text-start">Category</th>
                           <th className="py-2 px-3 text-start">Purpose</th>
-                          <th className="py-2 px-3 text-start">Rule</th>
+                          <th className="py-2 px-3 text-start">Signed rules</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#E2E8F0]">
@@ -2720,7 +2488,9 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                             <td className="py-2.5 px-3 font-semibold text-[#0B3B3C]">{l.actorName}</td>
                             <td className="py-2.5 px-3">{l.dataCategory}</td>
                             <td className="py-2.5 px-3 text-[#64748B]">{l.purposeDescription}</td>
-                            <td className="py-2.5 px-3 font-mono text-[11px]">{l.ruleVersionRef}</td>
+                            <td className="py-2.5 px-3 font-mono text-[11px]">
+                              {isFr ? 'Règles signées · v8' : 'Signed rules · v8'}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

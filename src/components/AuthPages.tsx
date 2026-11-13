@@ -16,6 +16,7 @@ import { useI18n } from '../lib/i18n.tsx';
 import { MediSenseLogo, LanguageSwitch } from './MediSenseUI.tsx';
 import { UserRole } from '../lib/types.ts';
 import { apiClient } from '../lib/api.ts';
+// TODO: confirm licence or AI-generation disclosure for portal image
 import portalPathwayImg from '../assets/images/portal_preventive_pathway_3d_1794350857982.jpg';
 
 interface AuthPagesProps {
@@ -46,9 +47,9 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     labelEn: 'Patient Portal',
     labelFr: 'Portail Patient Unifié',
     labelAr: 'بوابة المريض الموحدة',
-    email: 'tariq.nadim@demo.medisense.ae',
-    subtitleEn: 'Tariq Al-Nadim (36y · Personal IFHAS + Affiliated Children)',
-    subtitleFr: 'Tariq Al-Nadim (36 ans · Dossier IFHAS + Enfants affiliés)',
+    email: 'tariq.nadim@demo.medisense.example',
+    subtitleEn: 'Tariq Al-Nadim (36y · Personal Record + Affiliated Children)',
+    subtitleFr: 'Tariq Al-Nadim (36 ans · Dossier personnel + Enfants affiliés)',
   },
   {
     role: 'clinician',
@@ -57,9 +58,9 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     labelEn: 'Physician / Clinician',
     labelFr: 'Médecin / Clinicien',
     labelAr: 'طبيب سريري',
-    email: 'dr.kpegbe@abudhabi-health.demo.ae',
-    subtitleEn: 'Dr. Sydney Kpegbe (Screen 2 · Clinical)',
-    subtitleFr: 'Dr. Sydney Kpegbe (Écran 2 · Consultation)',
+    email: 'dr.kpegbe@demo.medisense.example',
+    subtitleEn: 'Dr. Sydney Kpegbe (Clinical consultation)',
+    subtitleFr: 'Dr. Sydney Kpegbe (Consultation clinique)',
   },
   {
     role: 'coordinator',
@@ -68,9 +69,9 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     labelEn: 'Care Coordinator',
     labelFr: 'Coordinateur de Soins',
     labelAr: 'منسق الرعاية',
-    email: 'orace.coord@abudhabi-health.demo.ae',
-    subtitleEn: 'Orace A. (Screen 1 · Outreach Queue)',
-    subtitleFr: 'Orace A. (Écran 1 · File Active)',
+    email: 'orace.coord@demo.medisense.example',
+    subtitleEn: 'Orace A. (Outreach queues)',
+    subtitleFr: 'Orace A. (Files de relance)',
   },
   {
     role: 'public_health',
@@ -79,9 +80,9 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     labelEn: 'Public Health Agent',
     labelFr: 'Santé Publique',
     labelAr: 'الصحة العامة',
-    email: 'bienderan.epi@doh-observatory.demo.ae',
-    subtitleEn: 'Bienderan E. (DoH Observatory & Equity)',
-    subtitleFr: 'Bienderan E. (Observatoire DoH & Équité)',
+    email: 'bienderan.epi@demo.medisense.example',
+    subtitleEn: 'Bienderan E. (Population Observatory & Equity)',
+    subtitleFr: 'Bienderan E. (Observatoire Population & Équité)',
   },
 ];
 
@@ -241,7 +242,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
         >
           <img
             src={portalPathwayImg}
-            alt="Physician welcoming patient at Abu Dhabi health centre with confirmed preventive visit pass"
+            alt="Physician welcoming a patient with a confirmed preventive visit pass"
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover object-center"
           />
@@ -282,7 +283,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
         >
           <img
             src={portalPathwayImg}
-            alt="Physician welcoming patient at Abu Dhabi health centre with confirmed preventive visit pass"
+            alt="Physician welcoming a patient with a confirmed preventive visit pass"
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover object-center"
           />
@@ -338,8 +339,8 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
             {isAr
               ? '٤ بوابات معزولة بالكامل (بوابة المريض الموحدة مع أطفاله عبر SMS + ٣ بوابات للكوادر الصحية).'
               : isFr
-              ? 'Isolation stricte des 4 portails (Portail Patient Unifié avec affiliation familiale SMS + 3 espaces Agents de Santé : Médecin, Coordinateur, Santé Publique).'
-              : 'Strict 4-portal isolation (Unified Patient Portal with SMS family affiliation + 3 Health Agent roles: Clinician, Coordinator, Public Health).'}
+              ? 'Du repérage préventif à une visite réalisée, avec un accompagnement humain.'
+              : 'From a flagged risk to a completed preventive visit.'}
           </p>
         </div>
       </div>
@@ -395,8 +396,8 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                           {isAr
                             ? 'بوابة الكوادر الصحية المعتمدة'
                             : isFr
-                            ? 'Portail Professionnel · Agents de Santé (DoH)'
-                            : 'Professional Portal · Healthcare Agents (DoH)'}
+                            ? 'Portail Professionnel · Agents de Santé'
+                            : 'Professional Portal · Healthcare Agents'}
                         </span>
                       </>
                     )}
@@ -539,10 +540,10 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                             ? 'Identifiant / Email Patient'
                             : 'Patient / Family Email'
                           : isAr
-                          ? 'البريد المهني المعتمد (DoH)'
+                          ? 'البريد المهني'
                           : isFr
-                          ? 'Identifiant Professionnel (DoH)'
-                          : 'Professional Email (DoH)'}
+                          ? 'Email professionnel'
+                          : 'Work email'}
                       </label>
                       <span className="text-[10px] font-mono font-semibold text-[#0F6B6B]">
                         {isFr ? currentPresetObj.labelFr : currentPresetObj.labelEn}
@@ -665,8 +666,8 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                           {isAr
                             ? 'طلب صلاحية ممارس صحي'
                             : isFr
-                            ? 'Demander une habilitation DoH'
-                            : 'Request DoH authorization'}
+                            ? 'Demander un accès professionnel'
+                            : 'Request access'}
                         </button>
                       </div>
                     </div>
@@ -728,7 +729,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                         type="text"
                         value={reqLicense}
                         onChange={(e) => setReqLicense(e.target.value)}
-                        placeholder="License N° (DoH)"
+                        placeholder="Professional licence number"
                         className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs bg-white font-mono"
                         required
                       />
@@ -772,8 +773,17 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
           </motion.div>
         </main>
 
-        <footer className="text-center text-[11px] text-white/85 lg:text-[#64748B]">
-          MediSense · 100% Synthetic Cohort · Role-based workspace isolation
+        <footer className="text-center text-[11px] text-white/85 lg:text-[#64748B] px-4 space-y-1">
+          <p>
+            {isFr
+              ? 'Prototype indépendant réalisé par l’équipe CareX. Sans affiliation avec, ni approbation d’une autorité de santé. Données 100 % synthétiques.'
+              : 'Independent prototype built by team CareX. Not affiliated with, or endorsed by, any health authority. 100% synthetic data.'}
+          </p>
+          <p className="opacity-80">
+            {isFr
+              ? 'Isolation des espaces par rôle · Données de démonstration'
+              : 'Role-based workspace isolation · Demo data'}
+          </p>
         </footer>
       </div>
     </div>

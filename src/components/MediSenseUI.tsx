@@ -57,12 +57,12 @@ export const DemoBanner: React.FC = () => {
     locale === 'ar'
       ? 'بيئة تجريبية · بيانات اصطناعية 100%'
       : locale === 'fr'
-      ? 'Environnement démo · Données 100 % synthétiques'
-      : 'Demo Environment · 100% Synthetic Data';
+      ? 'Prototype indépendant de CareX · données 100 % synthétiques · sans affiliation ni approbation d’une autorité sanitaire'
+      : 'Independent prototype built by team CareX. Not affiliated with, or endorsed by, any health authority. 100 % synthetic data.';
 
   return (
-    <div className="bg-[#041D1E] text-white text-[10px] sm:text-[11px] py-1.5 px-3 sm:px-6 flex items-center justify-between gap-2 border-b border-white/15">
-      <span className="font-medium tracking-wide truncate">{text}</span>
+    <div className="bg-[#041D1E] text-white text-xs py-2 px-3 sm:px-6 flex items-center justify-between gap-2 border-b border-white/15">
+      <span className="font-medium leading-relaxed">{text}</span>
       <span className="hidden sm:inline text-white/85 font-mono shrink-0">Challenge 04</span>
     </div>
   );
@@ -132,8 +132,8 @@ export const LevelBadge: React.FC<{ level: Level; size?: 'sm' | 'md' }> = ({
       Icon: Clock,
     },
     green: {
-      bg: 'bg-[#0B3B3C] border border-[#0B3B3C]',
-      text: 'text-white',
+      bg: 'bg-[#F0FDF4] border border-green-200/80',
+      text: 'text-[#15803D]',
       labelKey: 'levelGreen',
       Icon: CheckCircle2,
     },
@@ -209,7 +209,7 @@ export const StatusChip: React.FC<{ state: PathwayState }> = ({ state }) => {
     scheduled: { key: 'stateScheduled', tone: 'text-[#4338CA] bg-[#EEF2FF] border border-indigo-200' },
     postponed: { key: 'statePostponed', tone: 'text-[#9A3412] bg-[#FFF7ED] border border-orange-200' },
     overdue: { key: 'stateOverdue', tone: 'text-[#B91C1C] bg-[#FEF2F2] border border-red-200' },
-    done: { key: 'stateDone', tone: 'text-white bg-[#0B3B3C] border border-[#0B3B3C]' },
+    done: { key: 'stateDone', tone: 'text-[#15803D] bg-[#F0FDF4] border border-green-200' },
     refused: { key: 'stateRefused', tone: 'text-[#475569] bg-[#F8FAFC] border border-[#E2E8F0]' },
   };
 
@@ -246,10 +246,10 @@ export const Ring: React.FC<{ done: number; total: number; label: string }> = ({
   total,
   label,
 }) => {
-  const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
+  const percentDone = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
   const radius = 30;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (pct / 100) * circumference;
+  const offset = circumference - (percentDone / 100) * circumference;
 
   return (
     <div className="card-3d p-5 rounded-2xl flex items-center gap-4">
@@ -275,7 +275,7 @@ export const Ring: React.FC<{ done: number; total: number; label: string }> = ({
       <div>
         <p className="text-sm font-bold text-[#0B3B3C] font-heading">{label}</p>
         <p className="text-xs text-[#64748B] mt-0.5">
-          {pct}% completed
+          {percentDone}% completed
         </p>
       </div>
     </div>

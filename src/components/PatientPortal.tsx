@@ -16,8 +16,6 @@ import {
   Lock,
   Smartphone,
   UserCheck,
-  Activity,
-  RefreshCw,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -26,18 +24,14 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  ReferenceLine,
 } from 'recharts';
 import { useI18n } from '../lib/i18n.tsx';
 import { apiClient } from '../lib/api.ts';
-import { useRiskAnalysis } from '../hooks/useRiskAnalysis.ts';
 import {
   MediSenseLogo,
   DemoBanner,
   LanguageSwitch,
   StatusChip,
-  LevelBadge,
-  CertaintyBadge,
   Ring,
   PassQrCard,
   ConsentToggle,
@@ -70,16 +64,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [rescheduleDate, setRescheduleDate] = useState('2026-12-04');
   const [feedbackBanner, setFeedbackBanner] = useState<string | null>(null);
   const [notifFilter, setNotifFilter] = useState<'all' | 'unread' | 'action'>('all');
-
-  // Custom React hook managing backend analytical risk assessment & loading state
-  const {
-    assessment: riskAssessment,
-    loading: isAnalyzingRisk,
-    error: riskAnalysisError,
-    triggerRiskAnalysis,
-    syncAssessmentFromProfile,
-    clearError: clearRiskError,
-  } = useRiskAnalysis();
+  const [isAnalyzingRisk, setIsAnalyzingRisk] = useState(false);
+  const [riskAnalysisError, setRiskAnalysisError] = useState<string | null>(null);
+  const [showFamilyInfo, setShowFamilyInfo] = useState(false);
 
   // SMS OTP Gate for accessing affiliated children (<18y or attached 18y)
   const [verifiedChildIds, setVerifiedChildIds] = useState<string[]>([]);
@@ -94,7 +81,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [otpError, setOtpError] = useState<string | null>(null);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
 
-  // Guided Self-Assessment & Home Vitals Form (Provenance D)
+  // Guided Self-Assessment & Home Vitals Form
   const [selfForm, setSelfForm] = useState({
     systolicBp1: '128',
     diastolicBp1: '82',
@@ -118,10 +105,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const loadProfile = async (pid: string) => {
     try {
       setLoading(true);
-      clearRiskError();
       const res = await apiClient.getPatientPortalProfile(pid);
       setData(res);
-      syncAssessmentFromProfile(res?.profile);
       const cp = res?.profile?.clinicalProfile || {};
       const isChildProfile = res?.profile?.pathwayType !== 'adult';
       setSelfForm({
@@ -239,19 +224,28 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
   const handleSelfAssessmentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsAnalyzingRisk(true);
+    setRiskAnalysisError(null);
     try {
-      await triggerRiskAnalysis(activePatientId, selfForm);
+      await apiClient.submitSelfAssessment(activePatientId, selfForm);
       await loadProfile(activePatientId);
       setActiveTab('home');
       setFeedbackBanner(
         isAr
-          ? 'تم تحديث قياساتك وإعادة حساب مسار المتابعة الوقائية بنجاح.'
+          ? 'تم استلام قياساتك. سيراجعها فريق الرعاية الخاص بك.'
           : isFr
-          ? 'Vos mesures et votre questionnaire ont été analysés en backend. Votre parcours préventif a été mis à jour.'
-          : 'Your measurements and health check were analyzed by the backend engine. Your preventive plan is now updated.'
+          ? 'Merci. Vos mesures ont bien été envoyées — votre équipe de soin va les examiner.'
+          : 'Thank you. Your care team will review it.'
       );
-    } catch {
-      // Error state is managed by useRiskAnalysis
+    } catch (err: any) {
+      setRiskAnalysisError(
+        err?.message ||
+          (isFr
+            ? 'Une erreur est survenue. Merci de réessayer.'
+            : 'Something went wrong. Please try again.')
+      );
+    } finally {
+      setIsAnalyzingRisk(false);
     }
   };
 
@@ -450,6 +444,57 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
         </div>
       )}
 
+      {/* Family accounts info modal */}
+      {showFamilyInfo && (
+        <div className="fixed inset-0 z-50 bg-[#072627]/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-md rounded-3xl bg-white border border-[#D5F2EE] shadow-2xl p-5 sm:p-6 space-y-4"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-2xl bg-[#F0FDFA] border border-[#99F6E4] flex items-center justify-center text-[#0F6B6B] shrink-0">
+                <Baby className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-extrabold text-[#0B3B3C] font-heading">
+                {isFr ? 'Comptes famille' : 'Family accounts'}
+              </h3>
+            </div>
+            <div className="space-y-2.5 text-xs text-[#334155] leading-relaxed">
+              <p>
+                {isFr
+                  ? 'Chaque adulte dispose de son propre dossier. Les enfants de moins de 18 ans apparaissent comme dossiers affiliés au compte du parent.'
+                  : 'Each adult has their own record. Children under 18 appear as affiliated records on the parent’s account.'}
+              </p>
+              <p>
+                {isFr
+                  ? 'Pour consulter le dossier d’un enfant affilié, une validation par code SMS envoyé au parent est demandée à chaque session.'
+                  : 'To open an affiliated child’s record, a one-time SMS code sent to the parent is required each session.'}
+              </p>
+              <p>
+                {isFr
+                  ? 'À 18 ans, le jeune peut demander un dossier indépendant. Cette demande est validée par son équipe de soin, qui reste joignable depuis le nouveau dossier.'
+                  : 'At 18, the young person can request an independent record. The request is confirmed by their care team, who remain reachable from the new record.'}
+              </p>
+              <p className="text-[#64748B]">
+                {isFr
+                  ? 'L’ajout d’un enfant et la validation du passage à la majorité se font avec l’aide de votre équipe de soin.'
+                  : 'Adding a child and confirming the handover at 18 are done with help from your care team.'}
+              </p>
+            </div>
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                onClick={() => setShowFamilyInfo(false)}
+                className="px-4 py-2 rounded-xl bg-[#0B3B3C] text-white text-xs font-semibold cursor-pointer"
+              >
+                {isFr ? 'Compris' : 'Got it'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {/* Main Layout */}
       <div className="max-w-6xl w-full mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 px-3 sm:px-6 py-4 sm:py-6">
         {/* Desktop Sidebar */}
@@ -565,11 +610,18 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               })}
             </div>
 
-            <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[10px] text-[#475569] leading-relaxed">
-              {isFr
-                ? 'Gouvernance : L’ajout d’un enfant (< 18 ans) et la validation définitive du détachement à la majorité (18 ans+) sont effectués exclusivement par le service compétent (Médecin / Coordinateur).'
-                : 'Governance: Adding a minor (< 18y) and final validation of majority detachment (18y+) are performed exclusively by the competent health service.'}
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowFamilyInfo(true)}
+              className="w-full flex items-center gap-2 p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[10px] font-semibold text-[#0F6B6B] hover:bg-[#F0FDFA] cursor-pointer text-start leading-relaxed"
+            >
+              <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>
+                {isFr
+                  ? 'Comment fonctionnent les comptes famille ?'
+                  : 'How family accounts work'}
+              </span>
+            </button>
           </GlassCard>
 
           <nav className="liquid-glass rounded-3xl p-2.5 space-y-1">
@@ -882,184 +934,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     />
                   </div>
 
-                  {/* Live Analytical Risk Assessment Card powered by useRiskAnalysis */}
-                  {riskAssessment && (
-                    <GlassCard interactive={false} className="space-y-4 border border-[#0F6B6B]/30">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div className="space-y-0.5">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] inline-flex items-center gap-1.5">
-                            <Activity className="w-3.5 h-3.5" />
-                            <span>
-                              {isFr
-                                ? 'Synthèse Analytique des Risques Préventifs (Hook useRiskAnalysis)'
-                                : 'Preventive Risk Assessment Summary (useRiskAnalysis Hook)'}
-                            </span>
-                          </span>
-                          <h3 className="text-base font-extrabold text-[#0B3B3C] font-heading">
-                            {riskAssessment.calculations.consolidatedCarePlan.pathwayTitle}
-                          </h3>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-2">
-                          <LevelBadge level={riskAssessment.overallLevel} size="sm" />
-                          <CertaintyBadge certainty={riskAssessment.overallCertainty} />
-                          <button
-                            type="button"
-                            disabled={isAnalyzingRisk}
-                            onClick={async () => {
-                              try {
-                                await triggerRiskAnalysis(activePatientId, selfForm);
-                                await loadProfile(activePatientId);
-                                setFeedbackBanner(
-                                  isFr
-                                    ? 'Évaluation analytique des risques recalculée en direct.'
-                                    : 'Analytical risk assessment recalculated live.'
-                                );
-                              } catch {
-                                // Handled by hook
-                              }
-                            }}
-                            className="px-3 py-1.5 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] text-xs font-bold text-[#0B3B3C] hover:bg-[#CCFBF1] inline-flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <RefreshCw className={`w-3.5 h-3.5 ${isAnalyzingRisk ? 'animate-spin' : ''}`} />
-                            <span>
-                              {isAnalyzingRisk
-                                ? isFr
-                                  ? 'Calcul...'
-                                  : 'Analyzing...'
-                                : isFr
-                                ? 'Recalculer en direct'
-                                : 'Recalculate Live'}
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {profile.pathwayType === 'adult' ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                          <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <span className="text-[11px] text-[#64748B] block">
-                              {isFr ? 'Protocole TA retenu' : 'Retained BP'}
-                            </span>
-                            <span className="text-sm font-extrabold font-mono text-[#0B3B3C]">
-                              {riskAssessment.calculations.bpProtocol.retainedSys ?? '—'}/
-                              {riskAssessment.calculations.bpProtocol.retainedDia ?? '—'} mmHg
-                            </span>
-                            <span className="text-[10px] text-[#0F6B6B] block">
-                              {riskAssessment.calculations.bpProtocol.bpZoneLabel}
-                            </span>
-                          </div>
-
-                          <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <span className="text-[11px] text-[#64748B] block">
-                              {isFr ? 'IMC & Seuil A4' : 'BMI & A4 Threshold'}
-                            </span>
-                            <span className="text-sm font-extrabold font-mono text-[#0B3B3C]">
-                              {riskAssessment.calculations.anthropometry.bmi ?? '—'} kg/m²
-                            </span>
-                            <span className="text-[10px] text-[#64748B] block">
-                              {riskAssessment.calculations.findriscModel.asianBmiRuleA4Triggered
-                                ? isFr
-                                  ? 'Seuil A4 Asie du Sud (23 kg/m²)'
-                                  : 'South Asian A4 threshold (23 kg/m²)'
-                                : isFr
-                                ? 'Seuil standard (25 kg/m²)'
-                                : 'Standard threshold (25 kg/m²)'}
-                            </span>
-                          </div>
-
-                          <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <span className="text-[11px] text-[#64748B] block">
-                              {isFr ? 'Score FINDRISC (8 items)' : 'FINDRISC (8 items)'}
-                            </span>
-                            <span className="text-sm font-extrabold font-mono text-[#0B3B3C]">
-                              {riskAssessment.calculations.findriscModel.score ?? 0} / 26 pts
-                            </span>
-                            <span className="text-[10px] text-[#0F6B6B] block">
-                              {riskAssessment.calculations.findriscModel.levelLabel}
-                            </span>
-                          </div>
-
-                          <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <span className="text-[11px] text-[#64748B] block">
-                              {isFr ? 'Risque CV OMS 2019' : 'WHO 2019 CVD Risk'}
-                            </span>
-                            <span className="text-sm font-extrabold font-mono text-[#0B3B3C]">
-                              {riskAssessment.calculations.whoCvdModel.inDomain
-                                ? `${riskAssessment.calculations.whoCvdModel.riskPercent}%`
-                                : isFr
-                                ? 'Qualitatif (<40a)'
-                                : 'Qualitative (<40y)'}
-                            </span>
-                            <span className="text-[10px] text-[#64748B] block truncate">
-                              {riskAssessment.calculations.whoCvdModel.domainNote}
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                          <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <span className="text-[11px] text-[#64748B] block">
-                              {isFr ? 'Âge & Correction (<37 SA)' : 'Age & Preterm Correction'}
-                            </span>
-                            <span className="text-sm font-extrabold font-mono text-[#0B3B3C]">
-                              {riskAssessment.calculations.anthropometry.correctedAgeMonths ??
-                                profile.ageMonths}{' '}
-                              {isFr ? 'mois' : 'mos'}
-                            </span>
-                            <span className="text-[10px] text-[#0F6B6B] block">
-                              {riskAssessment.calculations.anthropometry.correctedAgeMonths
-                                ? isFr
-                                  ? 'Âge corrigé appliqué'
-                                  : 'Corrected age applied'
-                                : isFr
-                                ? 'Terme standard'
-                                : 'Full-term'}
-                            </span>
-                          </div>
-
-                          <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <span className="text-[11px] text-[#64748B] block">
-                              {isFr ? 'Z-Score Poids / IMC OMS' : 'WHO Weight / BMI Z-Score'}
-                            </span>
-                            <span className="text-sm font-extrabold font-mono text-[#0B3B3C]">
-                              {riskAssessment.calculations.anthropometry.weightForHeightZ ?? 0} /{' '}
-                              {riskAssessment.calculations.anthropometry.bmiForAgeZ ?? 0} SD
-                            </span>
-                            <span className="text-[10px] text-[#64748B] block truncate">
-                              {isFr ? 'Courbes OMS 2006/2007' : 'WHO 2006/2007 Charts'}
-                            </span>
-                          </div>
-
-                          <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <span className="text-[11px] text-[#64748B] block">
-                              {isFr ? 'Périmètre brachial (MUAC)' : 'MUAC Measurement'}
-                            </span>
-                            <span className="text-sm font-extrabold font-mono text-[#0B3B3C]">
-                              {riskAssessment.calculations.anthropometry.muacMm ?? 142} mm
-                            </span>
-                            <span className="text-[10px] text-[#0F6B6B] block truncate">
-                              {isFr ? 'Seuil nutritionnel ≥ 125 mm' : 'Nutritional cutoff ≥ 125 mm'}
-                            </span>
-                          </div>
-
-                          <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <span className="text-[11px] text-[#64748B] block">
-                              {isFr ? 'Actions regroupées' : 'Grouped Checks'}
-                            </span>
-                            <span className="text-sm font-extrabold font-mono text-[#0B3B3C]">
-                              {riskAssessment.calculations.consolidatedCarePlan.groupedActions.length}{' '}
-                              {isFr ? 'action(s)' : 'item(s)'}
-                            </span>
-                            <span className="text-[10px] text-[#64748B] block">
-                              {isFr ? 'Calendrier DoH WCV' : 'DoH WCV Schedule'}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </GlassCard>
-                  )}
-
                   {/* Visual Indicators */}
                   {profile.pathwayType === 'adult' ? (
                     <GlassCard interactive={false} className="space-y-4">
@@ -1069,7 +943,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             {isFr ? 'Tension au repos' : 'Resting Blood Pressure'}
                           </h3>
                           <p className="text-xs text-[#64748B]">
-                            {isFr ? 'Zone repère de votre centre' : 'Reference zone from your clinic'}
+                            {isFr ? 'Évolution de vos mesures' : 'Your readings over time'}
                           </p>
                         </div>
                         <span className="px-3 py-1 rounded-xl bg-[#0B3B3C] text-white text-xs font-semibold">
@@ -1083,7 +957,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             <XAxis dataKey="dateLabel" tick={{ fontSize: 12 }} />
                             <YAxis domain={[60, 160]} tick={{ fontSize: 12 }} />
                             <Tooltip />
-                            <ReferenceLine y={130} stroke="#14A39A" strokeDasharray="4 4" />
                             <Area
                               type="monotone"
                               dataKey="systolic"
@@ -1154,14 +1027,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 </div>
               )}
 
-              {/* TAB 1B: INTERACTIVE SELF-ASSESSMENT & HOME VITALS (Recalculates Backend CarePlan) */}
+              {/* TAB 1B: INTERACTIVE SELF-ASSESSMENT & HOME VITALS */}
               {activeTab === 'checkup' && (
                 <GlassCard interactive={false} className="space-y-5">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
                       {isFr
-                        ? 'Auto-Évaluation Guidée & Mesures à Domicile (Provenance D)'
-                        : 'Guided Self-Assessment & Home Vitals (Provenance D)'}
+                        ? 'Auto-Évaluation Guidée & Mesures à Domicile'
+                        : 'Guided Self-Assessment & Home Vitals'}
                     </span>
                     <h2 className="text-lg font-extrabold text-[#0B3B3C] font-heading">
                       {isViewingChild
@@ -1174,8 +1047,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     </h2>
                     <p className="text-xs text-[#64748B] mt-1">
                       {isFr
-                        ? 'Ces informations sont analysées par le moteur préventif MediSense pour actualiser vos vérifications recommandées en un seul rendez-vous (sans poser de diagnostic médical).'
-                        : 'Your entries are processed by the MediSense preventive engine to update your recommended checks in a single visit (non-diagnostic guidance).'}
+                        ? 'Vos informations mettent à jour vos vérifications recommandées en un seul rendez-vous (sans poser de diagnostic médical).'
+                        : 'Your entries update your recommended checks in a single visit (non-diagnostic guidance).'}
                     </p>
                   </div>
 
@@ -1197,7 +1070,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="p-3 rounded-xl bg-white border border-[#E2E8F0]">
                               <span className="font-semibold text-[#334155] block mb-1.5">
-                                {isFr ? 'Mesure 1 (Systolique / Diastolique mmHg)' : 'Reading 1 (Sys / Dia mmHg)'}
+                                {isFr ? '1re mesure (Systolique / Diastolique mmHg)' : 'Reading 1 (Sys / Dia mmHg)'}
                               </span>
                               <div className="flex items-center gap-2">
                                 <input
@@ -1224,7 +1097,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
                             <div className="p-3 rounded-xl bg-white border border-[#E2E8F0]">
                               <span className="font-semibold text-[#334155] block mb-1.5">
-                                {isFr ? 'Mesure 2 (Systolique / Diastolique mmHg)' : 'Reading 2 (Sys / Dia mmHg)'}
+                                {isFr ? '2e mesure (Systolique / Diastolique mmHg)' : 'Reading 2 (Sys / Dia mmHg)'}
                               </span>
                               <div className="flex items-center gap-2">
                                 <input
@@ -1657,7 +1530,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       />
                       <ConsentToggle
                         title="4. Anonymous Public Health Metrics"
-                        description="Include de-identified status in aggregate stats (n < 10 masked)."
+                        description="Include de-identified status in aggregate statistics (small groups are always masked)."
                         checked={consents.anonymousStatistics}
                         onChange={(v) => handleConsentChange('anonymousStatistics', v)}
                       />
@@ -1677,7 +1550,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           {isFr ? 'Journal d’accès transparent' : 'Data Usage Log'}
                         </h3>
                         <p className="text-xs text-[#64748B]">
-                          {isFr ? 'Traçabilité complète par règle signée.' : 'Every access logged with rule version.'}
+                          {isFr
+                            ? 'Chaque accès à votre dossier est tracé et expliqué.'
+                            : 'Every access to your record is logged and explained.'}
                         </p>
                       </div>
                       <button
@@ -1699,11 +1574,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           <div className="flex items-center justify-between gap-2">
                             <span className="font-bold text-[#0B3B3C]">{log.actorName}</span>
                             <span className="font-mono text-[10px] text-[#0B3B3C] bg-[#F1F5F9] border border-[#CBD5E1] px-2 py-0.5 rounded-lg">
-                              {log.ruleVersionRef}
+                              {log.dataCategory}
                             </span>
                           </div>
-                          <p className="text-[11px] font-medium text-[#334155]">{log.dataCategory}</p>
-                          <p className="text-[11px] text-[#64748B]">{log.purposeDescription}</p>
+                          <p className="text-[11px] font-medium text-[#334155]">
+                            {isFr ? 'Pourquoi ? ' : 'Why: '}
+                            {log.purposeDescription}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -1715,8 +1592,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           <tr>
                             <th className="py-2 px-3 text-start">Actor</th>
                             <th className="py-2 px-3 text-start">Category</th>
-                            <th className="py-2 px-3 text-start">Purpose</th>
-                            <th className="py-2 px-3 text-start">Rule</th>
+                            <th className="py-2 px-3 text-start">Why</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#E2E8F0]">
@@ -1726,9 +1602,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                 {log.actorName}
                               </td>
                               <td className="py-2.5 px-3 text-[#334155]">{log.dataCategory}</td>
-                              <td className="py-2.5 px-3 text-[#64748B]">{log.purposeDescription}</td>
-                              <td className="py-2.5 px-3 font-mono text-[11px] text-[#0F6B6B]">
-                                {log.ruleVersionRef}
+                              <td className="py-2.5 px-3 text-[#64748B]">
+                                {log.purposeDescription}
                               </td>
                             </tr>
                           ))}

@@ -7,8 +7,9 @@ import { AuthPages } from './components/AuthPages.tsx';
 import { PatientPortal } from './components/PatientPortal.tsx';
 import { ClinicianPortal } from './components/ClinicianPortal.tsx';
 import { PopulationPortals } from './components/PopulationPortals.tsx';
+import { EvidenceGovernance } from './components/EvidenceGovernance.tsx';
 
-type AppView = 'landing' | 'login' | 'request-access' | 'portal';
+type AppView = 'landing' | 'login' | 'request-access' | 'portal' | 'proof';
 
 const ROLE_TO_DEMO_TOKEN: Record<UserRole, string> = {
   patient: 'demo-token-patient',
@@ -44,6 +45,10 @@ function MediSenseApplication() {
     setView('login');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (window.location.pathname === '/proof' || view === 'proof') {
+    return <EvidenceGovernance />;
+  }
 
   if (view === 'landing') {
     return (

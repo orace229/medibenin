@@ -20,25 +20,25 @@ export interface SignedRulesTable {
 
 const RULES_LIST: SignedRulesTable['rules'] = [
   { id: 'P1', domain: 'pediatric', title: 'Severe acute malnutrition screening', sourceLabel: 'WHO Child Growth Standards 2006', verificationStatus: 'published' },
-  { id: 'P3', domain: 'pediatric', title: 'Well-Child Visit schedule adherence', sourceLabel: 'DoH Well-Child Visit Standard [To verify V3]', verificationStatus: 'to_verify_doh' },
-  { id: 'P4', domain: 'pediatric', title: 'Childhood immunization schedule & zero-dose catch-up', sourceLabel: 'National Immunization Schedule [To verify V3]', verificationStatus: 'to_verify_doh' },
-  { id: 'P5', domain: 'pediatric', title: 'Early childhood anemia screening', sourceLabel: 'WHO & DoH Pediatric Standard [To verify V3]', verificationStatus: 'to_verify_doh' },
+  { id: 'P3', domain: 'pediatric', title: 'Well-Child Visit schedule adherence', sourceLabel: 'Well-Child Visit Standard (national reference)', verificationStatus: 'to_verify_doh' },
+  { id: 'P4', domain: 'pediatric', title: 'Childhood immunization schedule & zero-dose catch-up', sourceLabel: 'National Immunization Schedule', verificationStatus: 'to_verify_doh' },
+  { id: 'P5', domain: 'pediatric', title: 'Early childhood anemia screening', sourceLabel: 'WHO & UAE Pediatric Standard', verificationStatus: 'to_verify_doh' },
   { id: 'P6', domain: 'pediatric', title: 'Early developmental & autism follow-up interview', sourceLabel: 'M-CHAT-R/F Published Logic', verificationStatus: 'published' },
   { id: 'P8', domain: 'pediatric', title: 'Child & adolescent growth and weight monitoring', sourceLabel: 'WHO Growth Reference 2007', verificationStatus: 'published' },
   { id: 'P10', domain: 'pediatric', title: 'Family history early cardiovascular & lipid screening (Equity pathway)', sourceLabel: 'International Pediatric FH Guidelines', verificationStatus: 'published' },
-  { id: 'P11', domain: 'pediatric', title: 'Adolescent immunization schedule', sourceLabel: 'National Adolescent Immunization Schedule [To verify V3]', verificationStatus: 'to_verify_doh' },
+  { id: 'P11', domain: 'pediatric', title: 'Adolescent immunization schedule', sourceLabel: 'National Adolescent Immunization Schedule', verificationStatus: 'to_verify_doh' },
   { id: 'A1', domain: 'adult', title: 'Blood pressure elevation follow-up', sourceLabel: 'WHO HEARTS Technical Package', verificationStatus: 'published' },
   { id: 'A2', domain: 'adult', title: '10-year cardiovascular risk evaluation', sourceLabel: 'WHO 2019 Non-Laboratory CVD Chart (MENA)', verificationStatus: 'published' },
   { id: 'A3', domain: 'adult', title: 'Type 2 diabetes & glycemic screening', sourceLabel: 'FINDRISC & ADA Glycemic Guidelines', verificationStatus: 'published' },
   { id: 'A4', domain: 'adult', title: 'Adapted metabolic screening for South/East Asian origin', sourceLabel: 'WHO Asian BMI Adaptation & ADA', verificationStatus: 'published' },
-  { id: 'A5', domain: 'adult', title: 'Cervical cancer screening interval', sourceLabel: 'National Cancer Screening Guideline [To verify V4]', verificationStatus: 'to_verify_doh' },
-  { id: 'A6', domain: 'adult', title: 'Breast cancer mammography interval', sourceLabel: 'National Breast Screening Guideline [To verify V4]', verificationStatus: 'to_verify_doh' },
-  { id: 'A7', domain: 'adult', title: 'Colorectal cancer screening (FIT / colonoscopy)', sourceLabel: 'National Colorectal Screening Guideline [To verify V4]', verificationStatus: 'to_verify_doh' },
-  { id: 'A8', domain: 'adult', title: 'Comprehensive periodic adult health check', sourceLabel: 'IFHAS Comprehensive Screening [To verify V4]', verificationStatus: 'to_verify_doh' },
+  { id: 'A5', domain: 'adult', title: 'Cervical cancer screening interval', sourceLabel: 'National Cancer Screening Guideline', verificationStatus: 'to_verify_doh' },
+  { id: 'A6', domain: 'adult', title: 'Breast cancer mammography interval', sourceLabel: 'National Breast Screening Guideline', verificationStatus: 'to_verify_doh' },
+  { id: 'A7', domain: 'adult', title: 'Colorectal cancer screening (FIT / colonoscopy)', sourceLabel: 'National Colorectal Screening Guideline', verificationStatus: 'to_verify_doh' },
+  { id: 'A8', domain: 'adult', title: 'Comprehensive periodic adult health check', sourceLabel: 'IFHAS Comprehensive Screening', verificationStatus: 'to_verify_doh' },
   { id: 'A9', domain: 'adult', title: 'Chronic condition continuity of care & closed-loop follow-up', sourceLabel: 'WHO PEN Continuity Protocol', verificationStatus: 'published' },
   { id: 'A11', domain: 'adult', title: 'Maternal blood pressure safety alert during pregnancy', sourceLabel: 'International Obstetric Hypertension Guidelines', verificationStatus: 'published' },
-  { id: 'G1', domain: 'genomic', title: 'Accelerated cardiometabolic check via polygenic signal [SIMULATED]', sourceLabel: 'Emirati Genome Program Policy Rule [Simulated V5]', verificationStatus: 'to_verify_doh' },
-  { id: 'G2', domain: 'genomic', title: 'Specialist genetic counseling referral [SIMULATED]', sourceLabel: 'Actionable Variant Policy Rule [Simulated V5]', verificationStatus: 'to_verify_doh' },
+  { id: 'G1', domain: 'genomic', title: 'Accelerated cardiometabolic check via existing genomic result (simulated)', sourceLabel: 'Emirati Genome Program Policy (simulated)', verificationStatus: 'to_verify_doh' },
+  { id: 'G2', domain: 'genomic', title: 'Specialist genetic counseling referral (simulated)', sourceLabel: 'Actionable Variant Policy (simulated)', verificationStatus: 'to_verify_doh' },
   { id: 'G3', domain: 'genomic', title: 'Safeguard: negative genomic result never delays standard screening', sourceLabel: 'MediSense Genomic Equity Safeguard', verificationStatus: 'published' },
   { id: 'C1', domain: 'community', title: 'Under-covered geographic zone alert', sourceLabel: 'Public Health Coverage Safeguard', verificationStatus: 'published' },
   { id: 'C3', domain: 'community', title: 'Segment adoption equity gap alert', sourceLabel: 'Public Health Equity Safeguard', verificationStatus: 'published' },
@@ -450,10 +450,10 @@ export function evaluatePatientRules(
 
   let baseCertaintyReason =
     baseCertainty === 'high'
-      ? '100% completeness with verified/measured values (< 12 months)'
+      ? 'All key values are measured or verified and recently recorded'
       : baseCertainty === 'medium'
-      ? 'One key variable is self-reported (D) or older than 12 months'
-      : 'To be confirmed: multiple self-reported/stale values or out-of-domain model';
+      ? 'One key variable is self-reported or not recent'
+      : 'To be confirmed: several self-reported or outdated values, or an out-of-domain model';
 
   // 0b. Emergency Escape Rule E0 (Section 4.5)
   const emergencyTriggered = Boolean(
@@ -462,8 +462,8 @@ export function evaluatePatientRules(
   );
   const emergencyReason = emergencyTriggered
     ? cp.hasEmergencySymptoms
-      ? 'Acute clinical danger signs reported (Rule E0) — immediate emergency referral required'
-      : `Hypertensive crisis (${retainedSys}/${retainedDia} mmHg) with acute symptoms (Rule E0)`
+      ? 'Acute clinical danger signs reported — immediate emergency referral required'
+      : `Hypertensive crisis (${retainedSys}/${retainedDia} mmHg) with acute symptoms`
     : null;
 
   if (emergencyTriggered) {
@@ -471,12 +471,12 @@ export function evaluatePatientRules(
       ruleId: 'E0',
       flagType: 'elevated_risk',
       level: 'red',
-      title: 'IMMEDIATE EMERGENCY ESCAPE (Rule E0) — Suspend Routine Prevention',
+      title: 'IMMEDIATE EMERGENCY ESCAPE — Suspend Routine Prevention',
       factors: [
         emergencyReason!,
         'Routine preventive schedule is immediately paused; direct patient to emergency care',
       ],
-      sourceLabel: 'MediSense Safety Escape Protocol (Section 4.5 — E0)',
+      sourceLabel: 'MediSense Safety Escape Protocol',
       missingData: [],
       dueDate: 'IMMEDIATE (Emergency Department)',
       certainty: 'high',
@@ -501,7 +501,7 @@ export function evaluatePatientRules(
       title: 'Insufficient clinical data to complete adult prevention evaluation',
       factors: [
         'Essential baseline measurements are missing from the record',
-        'A safe preventive status cannot be confirmed until measurements are recorded (Never counted as Green)',
+        'A safe preventive status cannot be confirmed until the measurements are recorded',
       ],
       sourceLabel: 'MediSense Clinical Safety Protocol (Level Grey)',
       missingData: missing,
@@ -541,12 +541,12 @@ export function evaluatePatientRules(
         level: 'red',
         title: 'Urgent nutritional assessment required (SAM)',
         factors: [
-          'Growth measurements indicate severe acute faltering (Z < -3 or MUAC < 115 mm) requiring immediate clinical attention',
+          'Growth measurements indicate severe acute malnutrition requiring immediate clinical attention',
           correctedAgeMonths !== null
             ? `Evaluated using prematurity-corrected age (${correctedAgeMonths} mos from ${patient.gestationalAgeWeeks} wks GA)`
             : 'Evaluated on WHO Child Growth Standards curve',
         ],
-        sourceLabel: 'WHO Child Growth Standards 2006 (Rule P1)',
+        sourceLabel: 'WHO Child Growth Standards 2006',
         missingData: [],
         dueDate: 'Immediate (Same day)',
         certainty: baseCertainty,
@@ -561,12 +561,12 @@ export function evaluatePatientRules(
         level: 'orange',
         title: 'Priority pediatric growth & nutritional follow-up',
         factors: [
-          'Weight-for-height Z-score is between -3 and -2 SD on the WHO reference curve',
+          'Weight-for-height measurement is moderately below the WHO reference curve',
           correctedAgeMonths !== null
             ? `Calculated on corrected age (${correctedAgeMonths} mos)`
             : 'Calculated on chronological age',
         ],
-        sourceLabel: 'WHO Child Growth Standards 2006 (Rule P2)',
+        sourceLabel: 'WHO Child Growth Standards 2006',
         missingData: [],
         dueDate: 'Within 14 days',
         certainty: baseCertainty,
@@ -589,7 +589,7 @@ export function evaluatePatientRules(
             : 'The scheduled well-child check-up window has passed without a confirmed visit',
           'Consolidating growth, developmental, and immunization checks in a single visit is recommended',
         ],
-        sourceLabel: 'DoH Well-Child Visit Standard DOH/WCV/SD [To verify V3]',
+        sourceLabel: 'Well-Child Visit Standard (national reference)',
         missingData: [],
         dueDate: isTwo ? 'Within 14 days' : 'Within 30 days',
         certainty: baseCertainty,
@@ -611,7 +611,7 @@ export function evaluatePatientRules(
             ? 'No DTP-containing foundational dose recorded after 14 weeks of age (WHO/Gavi Zero-Dose definition)'
             : `Scheduled childhood immunization dose is delayed by ${cp.vaccineDelayDays} days`,
         ],
-        sourceLabel: 'UAE National Immunization Schedule [To verify V3]',
+        sourceLabel: 'UAE National Immunization Schedule',
         missingData: [],
         dueDate: isPriority ? 'Within 14 days' : 'Within 30 days',
         certainty: baseCertainty,
@@ -631,15 +631,15 @@ export function evaluatePatientRules(
         flagType: lowHb ? 'elevated_risk' : 'missed_care',
         level: lowHb ? 'orange' : 'yellow',
         title: lowHb
-          ? `Pediatric hemoglobin below threshold (${cp.hemoglobinGdl} g/dL)`
+          ? `Pediatric hemoglobin below the WHO reference level (${cp.hemoglobinGdl} g/dL)`
           : 'Routine early-childhood anemia screening not yet completed',
         factors: [
           lowHb
-            ? `Measured hemoglobin (${cp.hemoglobinGdl} g/dL) is below the WHO 11.0 g/dL reference threshold`
+            ? `Measured hemoglobin (${cp.hemoglobinGdl} g/dL) is below the WHO reference level for early childhood`
             : 'Hemoglobin screening recommended during the 12–24 month window has not been recorded',
           'Combined with the upcoming consolidated Well-Child Visit',
         ],
-        sourceLabel: 'WHO & DoH Pediatric Standard [To verify V3]',
+        sourceLabel: 'WHO & UAE Pediatric Standard',
         missingData: lowHb ? [] : ['Capillary or venous hemoglobin check'],
         dueDate: lowHb ? 'Within 14 days' : 'Within 30 days',
         certainty: baseCertainty,
@@ -657,19 +657,19 @@ export function evaluatePatientRules(
         flagType: 'elevated_risk',
         level: isHigh ? 'orange' : 'yellow',
         title: isHigh
-          ? `Priority developmental evaluation recommended (M-CHAT-R score: ${score})`
-          : `Structured developmental follow-up interview recommended (M-CHAT-R score: ${score})`,
+          ? 'Priority developmental evaluation recommended (M-CHAT-R)'
+          : 'Structured developmental follow-up interview recommended (M-CHAT-R)',
         factors: [
           isHigh
-            ? 'M-CHAT-R score ≥ 8 warrants direct developmental specialist referral and support'
-            : 'M-CHAT-R score between 3 and 7 indicates a structured Follow-Up conversation with the pediatrician',
+            ? 'The M-CHAT-R screening result suggests direct referral to a developmental specialist'
+            : 'The M-CHAT-R screening result suggests a structured follow-up conversation with the pediatrician',
           'Screening prompt to guide dialogue — never presented as a diagnosis',
         ],
-        sourceLabel: 'M-CHAT-R/F Published Logic (Rule P6)',
+        sourceLabel: 'M-CHAT-R/F Published Screening Logic',
         missingData: [],
         dueDate: isHigh ? 'Within 14 days' : 'Within 30 days',
         certainty: 'medium',
-        certaintyReason: 'Based on parent-reported developmental screening responses (D)',
+        certaintyReason: 'Based on parent-reported developmental screening responses',
         isEclipseSuspended: false,
       });
     }
@@ -682,12 +682,12 @@ export function evaluatePatientRules(
         ruleId: 'P8',
         flagType: 'elevated_risk',
         level: isOrange ? 'orange' : 'yellow',
-        title: `Growth & BMI-for-age follow-up recommended (Z = ${z > 0 ? `+${z}` : z})`,
+        title: 'Growth & BMI-for-age follow-up recommended',
         factors: [
-          `BMI-for-age Z-score (${z > 0 ? `+${z}` : z} SD) is outside the standard reference band on the WHO 2007 curve`,
+          'Body mass index for age is outside the standard reference band on the WHO 2007 curve',
           'Supportive family-centered nutrition and physical activity guidance is recommended',
         ],
-        sourceLabel: 'WHO Growth Reference 2007 (Rule P8)',
+        sourceLabel: 'WHO Growth Reference 2007',
         missingData: [],
         dueDate: isOrange ? 'Within 14 days' : 'Within 45 days',
         certainty: baseCertainty,
@@ -704,10 +704,10 @@ export function evaluatePatientRules(
         level: 'orange',
         title: `Adolescent blood pressure elevation (${retainedSys}/${retainedDia} mmHg)`,
         factors: [
-          'Adolescent blood pressure reading meets or exceeds the AAP 2017 130/80 mmHg threshold',
+          'Adolescent blood pressure reading meets the AAP 2017 guideline level for confirmatory follow-up',
           'Repeat auscultatory confirmation with appropriate cuff size and height percentile check is advised',
         ],
-        sourceLabel: 'AAP 2017 Pediatric Hypertension Guideline (Rule P9)',
+        sourceLabel: 'AAP 2017 Pediatric Hypertension Guideline',
         missingData: heightCm ? [] : ['Standing height measurement required for pediatric BP percentile'],
         dueDate: 'Within 14 days',
         certainty: baseCertainty,
@@ -725,9 +725,9 @@ export function evaluatePatientRules(
         title: 'Preventive lipid profile recommended (Family History Equity Pathway)',
         factors: [
           'First-degree family history of familial hypercholesterolemia or premature cardiovascular event',
-          'Provides non-genomic acceleration so non-sequenced families receive equal early protection (Section 7.5)',
+          'Provides non-genomic acceleration so non-sequenced families receive equal early protection',
         ],
-        sourceLabel: 'International Pediatric FH Guidelines (Rule P10)',
+        sourceLabel: 'International Pediatric FH Guidelines',
         missingData: ['Fasting or non-fasting lipid profile'],
         dueDate: 'Within 14 days',
         certainty: baseCertainty,
@@ -746,7 +746,7 @@ export function evaluatePatientRules(
         factors: [
           'Scheduled adolescent preventive vaccine doses have not yet been recorded in the registry',
         ],
-        sourceLabel: 'UAE National Adolescent Immunization Schedule [To verify V3]',
+        sourceLabel: 'UAE National Adolescent Immunization Schedule',
         missingData: [],
         dueDate: 'Within 45 days',
         certainty: baseCertainty,
@@ -804,12 +804,12 @@ export function evaluatePatientRules(
     findriscCalc = {
       score: isPregnant ? null : fin.score,
       levelLabel: isPregnant
-        ? 'Suspended during pregnancy (Rule A11)'
+        ? 'Suspended during pregnancy'
         : fin.score >= 15
-        ? 'High Risk (≥ 15 pts → Orange)'
+        ? 'High risk'
         : fin.score >= 12
-        ? 'Moderate Risk (12–14 pts → Yellow)'
-        : 'Low-to-Moderate (< 12 pts → Green)',
+        ? 'Moderate risk'
+        : 'Low-to-moderate risk',
       suspendedByPregnancy: isPregnant,
       asianBmiRuleA4Triggered: asianBmiTriggered,
       itemBreakdown: fin.breakdown,
@@ -828,9 +828,9 @@ export function evaluatePatientRules(
         factors: [
           `Elevated blood pressure (${retainedSys}/${retainedDia} mmHg) recorded during ongoing pregnancy after 20 weeks`,
           'Requires immediate obstetric evaluation to rule out preeclampsia',
-          'Non-pregnant WHO CVD (A2), FINDRISC (A3), and mammography (A6) rules are automatically suspended',
+          'Other routine screening rules are automatically paused during this emergency',
         ],
-        sourceLabel: 'International Obstetric Hypertension Guidelines (Rule A11)',
+        sourceLabel: 'International Obstetric Hypertension Guidelines',
         missingData: ['Urine protein assessment & obstetric clinical review'],
         dueDate: 'Immediate (Same day)',
         certainty: 'high',
@@ -848,12 +848,12 @@ export function evaluatePatientRules(
           level: 'orange',
           title: `Priority blood pressure confirmation (${retainedSys}/${retainedDia} mmHg retained mean)`,
           factors: [
-            `Retained resting blood pressure mean (${retainedSys}/${retainedDia} mmHg) is ≥ 140/90 mmHg`,
+            `Retained resting blood pressure mean (${retainedSys}/${retainedDia} mmHg) is above the WHO guideline level for confirmation`,
             requiresThirdReading
-              ? 'Spread > 10/6 mmHg detected between first two readings — 3-reading protocol applied'
+              ? 'The first two readings differ noticeably — the 3-reading protocol was applied'
               : 'Consistent across repeated resting measurements (5 min rest, ≥ 1 min apart)',
           ],
-          sourceLabel: 'WHO HEARTS Technical Package (Rule A1)',
+          sourceLabel: 'WHO HEARTS Technical Package',
           missingData: [],
           dueDate: 'Within 14 days',
           certainty: baseCertainty,
@@ -867,10 +867,10 @@ export function evaluatePatientRules(
           level: 'yellow',
           title: `Borderline blood pressure (${retainedSys}/${retainedDia} mmHg) — follow-up check advised`,
           factors: [
-            `Retained resting blood pressure (${retainedSys}/${retainedDia} mmHg) is in the 130–139 / 85–89 mmHg vigilance zone (H2)`,
+            `Retained resting blood pressure (${retainedSys}/${retainedDia} mmHg) is in the vigilance range that calls for a scheduled follow-up check`,
             'Lifestyle guidance and a scheduled follow-up blood pressure check are recommended',
           ],
-          sourceLabel: 'WHO HEARTS Preventive Vigilance Guideline (Rule A1)',
+          sourceLabel: 'WHO HEARTS Preventive Vigilance Guideline',
           missingData: [],
           dueDate: 'Within 30 days',
           certainty: baseCertainty,
@@ -885,7 +885,7 @@ export function evaluatePatientRules(
       whoCvdCalc = {
         ...whoCvdCalc,
         inDomain: false,
-        domainNote: 'Suspended during pregnancy per Rule A11',
+        domainNote: 'Suspended during pregnancy',
       };
     } else if (retainedSys && computedBmi) {
       if (patient.ageYears < 40 || patient.ageYears > 80) {
@@ -901,9 +901,9 @@ export function evaluatePatientRules(
           title: `WHO 10-year CVD chart out of domain (${patient.ageYears} yrs < 40 yrs)`,
           factors: [
             'The WHO 2019 10-year cardiovascular prediction model is statistically validated only for ages 40–80',
-            'Prevention for this person relies directly on blood pressure (A1), FINDRISC (A3), Asian BMI (A4), family history, and genomic eligibility (G1)',
+            'Prevention for this person relies directly on blood pressure follow-up, glycemic screening, adapted BMI guidance, family history, and genomic eligibility',
           ],
-          sourceLabel: 'WHO 2019 Non-Laboratory CVD Chart (Annexe A)',
+          sourceLabel: 'WHO 2019 Non-Laboratory CVD Chart',
           missingData: [],
           dueDate: 'Routine schedule',
           certainty: 'medium',
@@ -923,7 +923,7 @@ export function evaluatePatientRules(
 
         whoCvdCalc = {
           inDomain: true,
-          domainNote: `Evaluated on ${cvd.regionUsed} (±1.96σ BP/BMI uncertainty band)`,
+          domainNote: `Evaluated on ${cvd.regionUsed} (with an uncertainty band on BP and BMI)`,
           regionUsed: cvd.regionUsed,
           riskPercent: cvd.riskPercent,
           intervalLowPercent: cvd.intervalLowPercent,
@@ -934,7 +934,7 @@ export function evaluatePatientRules(
 
         if (cvd.crossesThreshold && baseCertainty === 'high') {
           baseCertainty = 'medium';
-          baseCertaintyReason = `WHO 10-year risk interval [${cvd.intervalLowPercent}–${cvd.intervalHighPercent}%] crosses a decision threshold (Section 4.6)`;
+          baseCertaintyReason = 'The 10-year risk interval spans a decision level — flagged for clinician review';
         }
 
         if (cvd.riskPercent >= 5) {
@@ -952,7 +952,7 @@ export function evaluatePatientRules(
             level: isOrange ? 'orange' : 'yellow',
             title: `WHO 10-Year CVD Risk: ${cvd.riskPercent}% [${cvd.intervalLowPercent}–${cvd.intervalHighPercent}%]`,
             factors: counterfactualStrings.slice(0, 3),
-            sourceLabel: 'WHO 2019 Non-Laboratory CVD Chart (Rule A2)',
+            sourceLabel: 'WHO 2019 Non-Laboratory CVD Chart',
             missingData: ['Fasting lipid profile to refine clinical assessment'],
             dueDate: isOrange ? 'Within 14 days' : 'Within 45 days',
             certainty:
@@ -961,7 +961,7 @@ export function evaluatePatientRules(
                 : baseCertainty,
             certaintyReason:
               patient.nationalityGroup !== 'Emirati'
-                ? 'Regional chart calibrated for MENA; adapted with origin context (H11)'
+                ? 'Regional chart calibrated for the region, adapted with origin context'
                 : baseCertaintyReason,
             isEclipseSuspended: false,
           });
@@ -977,7 +977,7 @@ export function evaluatePatientRules(
         .filter((b) => b.points > 0)
         .sort((a, b) => b.points - a.points)
         .slice(0, 2)
-        .map((b) => `${b.item} (+${b.points} pts)`)
+        .map((b) => b.item)
         .join(', ');
 
       flagsOut.push({
@@ -985,15 +985,15 @@ export function evaluatePatientRules(
         flagType: 'elevated_risk',
         level: isOrange ? 'orange' : 'yellow',
         title: isOrange
-          ? `Priority glycemic & diabetes assessment (FINDRISC ${fin.score}/26${hba1c ? ` · HbA1c ${hba1c}%` : ''})`
-          : `Preventive diabetes screening recommended (FINDRISC ${fin.score}/26)`,
+          ? `Priority glycemic & diabetes assessment${hba1c ? ` (HbA1c ${hba1c}%)` : ''}`
+          : 'Preventive diabetes screening recommended',
         factors: [
-          `FINDRISC score of ${fin.score}/26 driven by: ${topFinItems || 'metabolic profile'}`,
+          `The diabetes-risk questionnaire result is elevated; main contributors: ${topFinItems || 'metabolic profile'}`,
           hba1c
-            ? `Recorded HbA1c is ${hba1c}% (ADA threshold: 5.7–6.4% prediabetes, ≥ 6.5% diabetes confirmation)`
+            ? `Recorded HbA1c is ${hba1c}% (laboratory value)`
             : 'Laboratory HbA1c test is recommended to check blood sugar regulation',
         ],
-        sourceLabel: 'FINDRISC (Lindström & Tuomilehto 2003) & ADA Guidelines (Rule A3)',
+        sourceLabel: 'FINDRISC (Lindström & Tuomilehto 2003) & ADA Guidelines',
         missingData: hba1c === null ? ['Laboratory HbA1c blood test'] : [],
         dueDate: isOrange ? 'Within 14 days' : 'Within 30 days',
         certainty: baseCertainty,
@@ -1008,12 +1008,12 @@ export function evaluatePatientRules(
         ruleId: 'A4',
         flagType: 'missed_care',
         level: 'yellow',
-        title: `Adapted Asian BMI threshold triggered (BMI ${computedBmi} ≥ 23 kg/m²)`,
+        title: 'Adapted Asian BMI guidance triggered (current BMI on the adapted chart)',
         factors: [
-          `Cardiometabolic risk rises at BMI ≥ 23 kg/m² in South/East Asian populations (current BMI: ${computedBmi} kg/m²)`,
-          'Rule A4 is added alongside FINDRISC without altering the validated score (Hypothesis H4)',
+          `In South and East Asian populations, cardiometabolic risk appears at a lower BMI than on the general chart (current BMI: ${computedBmi} kg/m²)`,
+          'This adapted guidance is added alongside the standard questionnaire without altering any validated result',
         ],
-        sourceLabel: 'WHO Asian BMI Adaptation 2004 & ADA Guideline (Rule A4)',
+        sourceLabel: 'WHO Asian BMI Adaptation 2004 & ADA Guideline',
         missingData: ['HbA1c glycemic blood test'],
         dueDate: 'Within 30 days',
         certainty: baseCertainty,
@@ -1038,7 +1038,7 @@ export function evaluatePatientRules(
         factors: [
           'Scheduled cervical screening (Pap / HPV test) is past the national interval for women aged 25–65',
         ],
-        sourceLabel: 'National Cervical Screening Guideline [To verify V4] (Rule A5)',
+        sourceLabel: 'National Cervical Screening Guideline',
         missingData: [],
         dueDate: 'Within 45 days',
         certainty: baseCertainty,
@@ -1063,7 +1063,7 @@ export function evaluatePatientRules(
         factors: [
           'No bilateral screening mammogram recorded within the national 2-year interval (ages 40–69)',
         ],
-        sourceLabel: 'National Breast Screening Guideline [To verify V4] (Rule A6)',
+        sourceLabel: 'National Breast Screening Guideline',
         missingData: [],
         dueDate: 'Within 45 days',
         certainty: baseCertainty,
@@ -1084,7 +1084,7 @@ export function evaluatePatientRules(
             ? 'First-degree family history of colorectal cancer warrants accelerated screening (Equity pathway)'
             : 'Periodic colorectal FIT screening is due according to the adult prevention schedule (ages 40–75)',
         ],
-        sourceLabel: 'National Colorectal Screening Guideline [To verify V4] (Rule A7)',
+        sourceLabel: 'National Colorectal Screening Guideline',
         missingData: [],
         dueDate: cp.familyHistoryColorectal ? 'Within 14 days' : 'Within 45 days',
         certainty: baseCertainty,
@@ -1103,7 +1103,7 @@ export function evaluatePatientRules(
         factors: [
           'No comprehensive periodic health check is recorded within the recommended programme interval',
         ],
-        sourceLabel: 'IFHAS Comprehensive Screening [To verify V4] (Rule A8)',
+        sourceLabel: 'IFHAS Comprehensive Screening',
         missingData: [],
         dueDate: 'Within 60 days',
         certainty: baseCertainty,
@@ -1120,10 +1120,10 @@ export function evaluatePatientRules(
         level: 'orange',
         title: `Continuity of care follow-up overdue (${cp.monthsSinceLastChronicVisit} mos since last visit)`,
         factors: [
-          `No follow-up visit recorded in ${cp.monthsSinceLastChronicVisit} months (> 6 mos threshold H5) for ongoing ${cp.chronicCondition}`,
+          `No follow-up visit recorded in ${cp.monthsSinceLastChronicVisit} months for ongoing ${cp.chronicCondition}`,
           'Re-establishing regular monitoring prevents avoidable complications',
         ],
-        sourceLabel: 'WHO PEN Continuity Protocol (Rule A9)',
+        sourceLabel: 'WHO PEN Continuity Protocol',
         missingData: [],
         dueDate: 'Within 14 days',
         certainty: baseCertainty,
@@ -1143,7 +1143,7 @@ export function evaluatePatientRules(
           'History of fall in the past year, gait unsteadiness, or uncorrected vision/hearing impairment reported',
           'Multifactorial fall risk and sensory evaluation recommended',
         ],
-        sourceLabel: 'CDC STEADI Older Adult Prevention Guideline (Rule A10)',
+        sourceLabel: 'CDC STEADI Older Adult Prevention Guideline',
         missingData: [],
         dueDate: 'Within 14 days',
         certainty: baseCertainty,
@@ -1163,14 +1163,14 @@ export function evaluatePatientRules(
           flagType: 'elevated_risk',
           level: 'orange',
           title: isG2
-            ? 'Specialist genetic counseling & enhanced surveillance eligible (Rule G2) [Simulated]'
-            : `Accelerated cardiometabolic panel via polygenic signal (${cp.genomicSignal.percentile || 94}th pct — Rule G1) [Simulated]`,
+            ? 'Specialist genetic counseling & enhanced surveillance eligible (simulated)'
+            : `Accelerated cardiometabolic panel via existing genomic result (simulated)`,
           factors: [
             cp.genomicSignal.effectSummary ||
               'An authorized existing genomic result indicates eligibility for an earlier preventive panel',
-            'Acts strictly as an eligibility policy rule without modifying WHO or FINDRISC risk scores (Section 4.8)',
+            'Acts strictly as an eligibility signal without modifying WHO or questionnaire results',
           ],
-          sourceLabel: 'Emirati Genome Program Policy Rule [Simulated V5]',
+          sourceLabel: 'Emirati Genome Program Policy (simulated)',
           missingData: ['Comprehensive lipid panel & HbA1c'],
           dueDate: 'Within 14 days',
           certainty: 'medium',
@@ -1222,7 +1222,7 @@ export function evaluatePatientRules(
     groupedActions.push({
       ruleId: patient.pathwayType === 'adult' ? 'IFHAS-ROUTINE' : 'WCV-ROUTINE',
       actionTitle: 'Routine periodic preventive wellness maintenance',
-      directiveSource: 'Published DoH Preventive Schedule',
+      directiveSource: 'Published National Preventive Schedule',
       category: 'routine_prevention',
     });
   }
@@ -1252,12 +1252,12 @@ export function evaluatePatientRules(
 
   const bpZoneLabel =
     !retainedSys
-      ? 'Missing baseline BP (Level Grey)'
+      ? 'Blood pressure not recorded yet'
       : retainedSys >= 140 || (retainedDia && retainedDia >= 90)
-      ? 'Elevated — priority clinical confirmation'
+      ? 'Above your target zone — priority confirmation recommended'
       : retainedSys >= 130 || (retainedDia && retainedDia >= 85)
-      ? 'Borderline vigilance zone (130–139 / 85–89)'
-      : 'In target zone (< 130/85 mmHg)';
+      ? 'Borderline zone — keep your scheduled follow-up'
+      : 'Within your target zone';
 
   const calculations: BackendClinicalCalculations = {
     emergencyEscapeE0: {
@@ -1304,9 +1304,9 @@ export function evaluatePatientRules(
       signalType: cp.genomicSignal?.type || 'NONE',
       effectSummary:
         !consentExistingGenomic
-          ? 'Genomic purpose consent (Purpose 5) not granted — ignored by engine'
+          ? 'Genomic purpose consent not granted — not used in this evaluation'
           : cp.genomicSignal?.type === 'LOW_OR_NEGATIVE'
-          ? 'Rule G3 Safeguard active: low/negative genomic score has ZERO delaying effect on screening'
+          ? 'Low or negative genomic result has no delaying effect on standard screening'
           : cp.genomicSignal?.effectSummary || 'No genomic accelerator signal active',
     },
     consolidatedCarePlan,

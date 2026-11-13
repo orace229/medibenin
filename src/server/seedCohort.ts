@@ -16,6 +16,7 @@ import {
 } from './rulesEngine.ts';
 import { computeLogisticsAndM1, generateCulturallyAdaptedInvitation } from './mlLogistics.ts';
 import { count } from 'drizzle-orm';
+import { DEMO_SEED, seededUnit } from '../lib/demoData.ts';
 
 /**
  * Deterministic Pseudo-Random Generator (Mulberry32) so that the synthetic cohort
@@ -31,7 +32,7 @@ export function createSeededRng(seed: number) {
   };
 }
 
-export async function ensureSeededDatabase(seed = 20261120) {
+export async function ensureSeededDatabase(seed = DEMO_SEED) {
   try {
     const existingCount = await db.select({ value: count() }).from(patients);
     if (existingCount[0] && existingCount[0].value >= 25) {
@@ -109,7 +110,7 @@ export async function ensureSeededDatabase(seed = 20261120) {
       await db.insert(users).values(u).onConflictDoNothing();
     }
 
-    // 3. Define the 6 Detailed Personas (Section 10 of Master Prompt + Section 11.2 of v7/v8)
+    // 3. Define the 7 curated synthetic clinical cases
     const corePersonas = [
       // Persona 1: 18-month child (Zayed)
       {
@@ -624,8 +625,8 @@ export async function ensureSeededDatabase(seed = 20261120) {
             actorName: 'MediSense Prevention Engine',
             actorRole: 'Automated Rule Evaluation',
             dataCategory: 'Clinical measurements & preventive calendar',
-            purposeDescription: 'Preventive care gap & risk evaluation (Purpose 1)',
-            ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
+            purposeDescription: 'Preventive check-up planning',
+            ruleVersionRef: 'Signed rules v8',
           },
           {
             patientId: p.id,
@@ -633,14 +634,15 @@ export async function ensureSeededDatabase(seed = 20261120) {
             actorRole: 'Primary Care Team',
             dataCategory: 'Referral pathway & 8-character referral pass',
             purposeDescription: 'Care orientation to health centre (Purpose 3)',
-            ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
+            ruleVersionRef: 'Signed rules v8',
           },
         ])
         .onConflictDoNothing();
     }
 
-    // 4. Generate 45 additional diverse synthetic patients for clinical lists & segment safeguards
+    // 4. Generate 45 additional diverse synthetic patients for the 52-record panel
     const rng = createSeededRng(seed);
+    const variationRng = (index: number, salt: number) => seededUnit(seed, index, salt);
     const regions = ['Abu Dhabi', 'Al Ain', 'Al Dhafra'];
     const natGroups = ['Emirati', 'South Asia', 'Arab World (Non-UAE)', 'Southeast Asia', 'Other'];
     const languages = ['en', 'ar', 'fr'];
@@ -651,7 +653,7 @@ export async function ensureSeededDatabase(seed = 20261120) {
     ];
     const lastNames = [
       'Al-Dhaheri', 'Al-Nuaimi', 'Al-Shamsi', 'Al-Muhairi', 'Sharma', 'Patel',
-      'Khan', 'Haddad', 'Reyes', 'bek', 'Al-Zaabi', 'Al-Ketbi', 'Nair', 'Abbas',
+      'Khan', 'Haddad', 'Reyes', 'Rahman', 'Al-Zaabi', 'Al-Ketbi', 'Nair', 'Abbas',
     ];
 
     for (let i = 1; i <= 45; i++) {
@@ -661,7 +663,7 @@ export async function ensureSeededDatabase(seed = 20261120) {
       const r4 = rng();
 
       const region = r1 < 0.55 ? regions[0] : r1 < 0.82 ? regions[1] : regions[2];
-      // Intentionally keep 'Other' nationality group small (< 10) to trigger Primary + Secondary Suppression (TEST-E4)
+      // Keep a small synthetic nationality group to demonstrate privacy suppression.
       const natGroup =
         i <= 6
           ? 'Other'
@@ -692,10 +694,10 @@ export async function ensureSeededDatabase(seed = 20261120) {
         ? 'yellow'
         : 'green';
 
-      const sysBp = isGrey ? undefined : isOrange ? 148 : isYellow ? 134 : 118;
-      const diaBp = isGrey ? undefined : isOrange ? 94 : isYellow ? 86 : 76;
-      const bmiVal = isGrey ? undefined : isOrange ? 29.2 : 23.8;
-      const accessMin = region === 'Al Dhafra' ? 44 : 16;
+      const sysBp = isGrey ? undefined : Math.round((isOrange ? 143 : isYellow ? 132 : 114) + variationRng(i, 1) * 15);
+      const diaBp = isGrey ? undefined : Math.round((isOrange ? 90 : isYellow ? 82 : 70) + variationRng(i, 2) * 12);
+      const bmiVal = isGrey ? undefined : Math.round(((isOrange ? 27.5 : isYellow ? 23.2 : 19.8) + variationRng(i, 3) * 5.5) * 10) / 10;
+      const accessMin = (region === 'Al Dhafra' ? 36 : 10) + Math.round(variationRng(i, 4) * 22);
       const missedCount = isOrange ? 2 : isYellow ? 1 : 0;
 
       const reasonSummary =
@@ -827,7 +829,7 @@ export async function ensureSeededDatabase(seed = 20261120) {
           sourceLabel:
             pathwayType === 'adult'
               ? 'WHO HEARTS & IFHAS Preventive Standard'
-              : 'DoH Well-Child Visit Standard [To verify V3]',
+              : 'Well-Child Visit Standard (national reference)',
           missingData: level === 'grey' ? ['Resting blood pressure', 'Weight and height'] : [],
           dueDate: level === 'orange' ? 'Within 14 days' : 'Within 30 days',
           certainty: level === 'grey' ? 'low' : 'high',

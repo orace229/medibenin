@@ -8,9 +8,7 @@ import {
   Send,
   ShieldCheck,
   BarChart3,
-  RefreshCw,
   LogOut,
-  Lock,
 } from 'lucide-react';
 import { useI18n } from '../lib/i18n.tsx';
 import { apiClient } from '../lib/api.ts';
@@ -23,7 +21,6 @@ import {
   StatCard,
   GlassCard,
 } from './MediSenseUI.tsx';
-import { UserRole } from '../lib/types.ts';
 
 interface PopulationPortalsProps {
   role: 'coordinator' | 'public_health';
@@ -39,32 +36,14 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
 
   const [coordData, setCoordData] = useState<any>(null);
   const [obsData, setObsData] = useState<any>(null);
-  const [acceptanceReport, setAcceptanceReport] = useState<any>(null);
-  const [showAcceptanceDetails, setShowAcceptanceDetails] = useState<boolean>(false);
-  const [seedInput, setSeedInput] = useState<number>(20261120);
   const [activeQueueTab, setActiveQueueTab] = useState<'prioritized' | 'red' | 'grey'>('prioritized');
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  // Interactive Coordinator S_prio & M1 Simulator State (Screen 1 ONLY)
-  const [showSimPanel, setShowSimPanel] = useState<boolean>(false);
-  const [simForm, setSimForm] = useState({
-    overallLevel: 'orange',
-    openGapsCount: 2,
-    maxOverdueDays: 90,
-    accessTimeMinutes: 45,
-    languageNeedsSupport: true,
-    residesInUnderservedZoneC1: true,
-    contextConsentGiven: true,
-    missedVisitsCount: 2,
-    reminderRank: 1,
-  });
-  const [simResult, setSimResult] = useState<any>(null);
-
-  // Interactive Public Health Impact Model Calculator (Section 18.3)
-  const [impactInvitedN, setImpactInvitedN] = useState<number>(1000);
-  const [impactAdoptionRef, setImpactAdoptionRef] = useState<number>(41.2);
-  const [impactAdoptionMediSense, setImpactAdoptionMediSense] = useState<number>(63.8);
-  const [impactYieldR, setImpactYieldR] = useState<number>(21.8);
+  // Coordinator internal sub-views (hash-based, no router in this project)
+  const [coordView, setCoordView] = useState<'queues' | 'family'>(() =>
+    window.location.hash.includes('coordinator/family') ? 'family' : 'queues'
+  );
+  const seedRef = 20261120;
 
   // Coordinator Competent Service: Family Affiliation (<18y) & Definitive Majority Detachment (18y+)
   const [familyData, setFamilyData] = useState<{
@@ -85,27 +64,21 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
     heightCm: '102',
   });
 
-  const loadData = async (seed = seedInput) => {
+  const loadData = async () => {
     try {
       if (role === 'coordinator') {
-        const [c, initialSim, fam] = await Promise.all([
+        const [c, fam] = await Promise.all([
           apiClient.getCoordinatorQueue(),
-          apiClient.simulateLogistics(simForm),
           apiClient.getPendingMajorityDetachments().catch(() => ({
             affiliatedRecords: [],
             pendingMajorityDetachments: [],
           })),
         ]);
         setCoordData(c);
-        setSimResult(initialSim);
         setFamilyData(fam);
       } else {
-        const [o, acc] = await Promise.all([
-          apiClient.getObservatorySummary(seed),
-          apiClient.runAcceptanceSuite(),
-        ]);
+        const o = await apiClient.getObservatorySummary(seedRef);
         setObsData(o);
-        setAcceptanceReport(acc);
       }
     } catch (err) {
       console.error(err);
@@ -166,31 +139,44 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
     }
   };
 
-  const handleRunLogisticsSim = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await apiClient.simulateLogistics(simForm);
-      setSimResult(res);
-      setFeedback(
-        isFr
-          ? 'Simulation S_prio & Modèle M1 recalculée en backend (Garantie TEST-M1 vérifiée).'
-          : 'Backend S_prio & M1 simulation recalculated (TEST-M1 non-downgrade verified).'
-      );
-    } catch (err) {
-      console.error(err);
-    }
+  const switchCoordView = (view: 'queues' | 'family') => {
+    setCoordView(view);
+    window.history.replaceState(
+      null,
+      '',
+      view === 'family' ? '#/coordinator/family' : '#/coordinator'
+    );
   };
 
   useEffect(() => {
-    loadData(seedInput);
+    loadData();
   }, [role]);
 
-  // Derived Impact Model Calculations (Section 18.3)
-  const confirmedRefVisits = Math.round(impactInvitedN * (impactAdoptionRef / 100));
-  const confirmedMediSenseVisits = Math.round(impactInvitedN * (impactAdoptionMediSense / 100));
-  const additionalConfirmedVisits = Math.max(0, confirmedMediSenseVisits - confirmedRefVisits);
-  const additionalDetectedConditions =
-    Math.round(additionalConfirmedVisits * (impactYieldR / 100) * 10) / 10;
+  // Public-health indicators, pooled from the safeguarded segment table
+  // (segments with n < 10 are suppressed server-side and never pooled).
+  const visibleSegments: any[] = (obsData?.safeguardedSegments || []).filter(
+    (s: any) => s.suppressedStatus === 'visible' || s.suppressedStatus === 'small_sample'
+  );
+  const sumVisible = (fn: (s: any) => number) =>
+    visibleSegments.reduce((acc: number, s: any) => acc + Math.max(0, fn(s) || 0), 0);
+  const totalEligibleN = sumVisible((s) => s.totalEligible);
+  const evaluatedCompleteN = sumVisible((s) => s.evaluatedComplete);
+  const invitedN = sumVisible((s) => s.invitedCount);
+  const confirmedVisitsN = sumVisible((s) => s.confirmedVisitsCount);
+  const pooledPercent = (n: number, d: number) =>
+    d > 0 ? Math.round((n / d) * 1000) / 10 : null;
+  const pooledReach = pooledPercent(evaluatedCompleteN, totalEligibleN);
+  const pooledAdoption = pooledPercent(confirmedVisitsN, invitedN);
+  const pooledClosedLoop = pooledPercent(confirmedVisitsN, totalEligibleN);
+  const falseNegativeProps = visibleSegments
+    .map((s: any) => {
+      const m = /^([\d.]+)%/.exec(s.falseNegativeRateDisplay || '');
+      return m ? parseFloat(m[1]) : null;
+    })
+    .filter((v: any): v is number => v !== null);
+  const falseNegativeRange = falseNegativeProps.length
+    ? `${Math.min(...falseNegativeProps)}–${Math.max(...falseNegativeProps)}%`
+    : '—';
 
   return (
     <div className="min-h-screen ambient-mesh text-[#334155] flex flex-col">
@@ -203,8 +189,8 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
             <span className="hidden md:inline text-xs font-semibold text-[#64748B] border-s border-[#E2E8F0] ps-4 truncate">
               {role === 'coordinator'
                 ? isFr
-                  ? 'Coordinateur · Écran 1'
-                  : 'Care Coordinator · Screen 1'
+                  ? 'Coordinateur · Coordination des soins'
+                  : 'Care Coordinator'
                 : isFr
                 ? 'Observatoire Santé Publique'
                 : 'Public Health Observatory'}
@@ -217,8 +203,8 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
               <span>
                 {role === 'coordinator'
                   ? isFr
-                    ? 'Orace A. · Coordinateur (Écran 1)'
-                    : 'Orace A. · Coordinator (Screen 1)'
+                    ? 'Orace A. · Coordinateur'
+                    : 'Orace A. · Coordinator'
                   : isFr
                   ? 'Bienderan E. · Santé Publique'
                   : 'Bienderan E. · Public Health'}
@@ -260,7 +246,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
 
         {role === 'coordinator' ? (
           /* ===============================================================
-           * COORDINATOR PORTAL (Screen 1: 3 Queues + S_prio + M1 Support)
+           * COORDINATOR PORTAL: 3 Queues + Family Affiliation Sub-view
            * =============================================================== */
           coordData && (
             <motion.div
@@ -270,33 +256,42 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
             >
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <StatCard
-                  title="Immediate Red Queue"
+                  title={isFr ? 'File rouge — urgences' : 'Immediate Red Queue'}
                   value={coordData.redImmediateQueue?.length || 0}
-                  subtitle="Bypasses priority score"
+                  subtitle={isFr ? 'Hors score de priorité' : 'Bypasses priority score'}
                   icon={<AlertTriangle className="w-4 h-4 text-[#B91C1C]" />}
                 />
                 <StatCard
-                  title="Level Grey Queue"
+                  title={isFr ? 'File grise — données à compléter' : 'Level Grey Queue'}
                   value={coordData.greyCompletionQueue?.length || 0}
-                  subtitle="Missing baseline data"
+                  subtitle={isFr ? 'Mesures de base manquantes' : 'Missing baseline data'}
                   icon={<HelpCircle className="w-4 h-4 text-[#475569]" />}
                 />
                 <StatCard
-                  title="Daily Capacity (K_day)"
+                  title={isFr ? 'Capacité du jour' : 'Daily Capacity'}
                   value={`${coordData.prioritizedInvitationQueue?.length || 0} / ${coordData.dailyCapacityLimit}`}
-                  subtitle={`Human budget B = ${coordData.humanContactBudgetB}/day`}
+                  subtitle={isFr ? `${coordData.humanContactBudgetB} relances par jour` : `${coordData.humanContactBudgetB} outreach contacts/day`}
                   icon={<Users className="w-4 h-4" />}
                 />
                 <StatCard
-                  title="S_prio Stability (±0.10)"
+                  title={isFr ? 'Stabilité du classement' : 'Ranking stability'}
                   value={`${coordData.sensitivityAnalysis?.topKOverlapPercent}%`}
                   subtitle={coordData.sensitivityAnalysis?.status}
                   icon={<ShieldCheck className="w-4 h-4" />}
                 />
               </div>
 
-              {/* Competent Service: Family Affiliation (< 18y) & Definitive Validation of Majority Detachment (18y+) */}
-              <GlassCard interactive={false} className="space-y-4 border border-[#0F6B6B]/35">
+              {coordView === 'family' ? (
+                /* Family affiliation governance sub-view */
+                <div className="space-y-4">
+                  <button
+                    type="button"
+                    onClick={() => switchCoordView('queues')}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F6B6B] hover:text-[#0B3B3C] liquid-glass px-3.5 py-2 rounded-xl cursor-pointer"
+                  >
+                    ← {isFr ? 'Retour à la coordination' : 'Back to care coordination'}
+                  </button>
+                  <GlassCard interactive={false} className="space-y-4 border border-[#0F6B6B]/35">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
@@ -388,8 +383,8 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                     <div className="space-y-2 pt-1">
                       <label className="block font-bold text-[#0B3B3C]">
                         {isFr
-                          ? 'Recherche automatique du Parent dans la Base de Données (ID ou Nom) :'
-                          : 'Automatic Parent Database Lookup (by ID or Name):'}
+                          ? 'Recherche automatique du parent dans le registre (ID ou Nom) :'
+                          : 'Automatic parent lookup in the registry (by ID or name):'}
                       </label>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                         <input
@@ -507,220 +502,35 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                   </div>
                 </div>
               </GlassCard>
-
-              {/* Interactive S_prio & M1 Backend Logistics Simulator */}
-              <GlassCard interactive={false} className="space-y-4 border border-[#14A39A]/30">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
-                      {isFr
-                        ? 'Calculateur Opérationnel Backend · Écran 1 Uniquement (TEST-E2 / TEST-M1)'
-                        : 'Backend Operational Calculator · Screen 1 Only (TEST-E2 / TEST-M1)'}
-                    </span>
-                    <h2 className="text-base font-extrabold text-[#0B3B3C] font-heading">
-                      {isFr
-                        ? 'Simulateur d’Ordonnancement S_prio & Probabilité de Non-Présentation M1'
-                        : 'S_prio Priority Score & M1 No-Show Probability Simulator'}
-                    </h2>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowSimPanel(!showSimPanel)}
-                    className="px-4 py-2 rounded-xl btn-liquid-primary text-xs font-bold cursor-pointer"
-                  >
-                    {showSimPanel
-                      ? isFr
-                        ? 'Masquer le simulateur'
-                        : 'Hide Simulator'
-                      : isFr
-                      ? 'Tester la formule S_prio & M1 en direct'
-                      : 'Test Live S_prio & M1 Formula'}
-                  </button>
                 </div>
-
-                {showSimPanel && (
-                  <form onSubmit={handleRunLogisticsSim} className="space-y-4 pt-2 border-t border-[#E2E8F0] text-xs">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                      <div>
-                        <label className="block font-semibold text-[#334155] mb-1">
-                          {isFr ? 'Niveau clinique' : 'Clinical Level'}
-                        </label>
-                        <select
-                          value={simForm.overallLevel}
-                          onChange={(e) => setSimForm({ ...simForm, overallLevel: e.target.value })}
-                          className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-semibold text-[#0B3B3C]"
-                        >
-                          <option value="orange">Orange (I_risque = 0.75)</option>
-                          <option value="yellow">Yellow (I_risque = 0.35)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block font-semibold text-[#334155] mb-1">
-                          {isFr ? 'Lacunes ouvertes (0–5)' : 'Open Gaps (0–5)'}
-                        </label>
-                        <input
-                          type="number"
-                          min={0}
-                          max={5}
-                          value={simForm.openGapsCount}
-                          onChange={(e) =>
-                            setSimForm({ ...simForm, openGapsCount: Number(e.target.value) })
-                          }
-                          className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="block font-semibold text-[#334155] mb-1">
-                          {isFr ? 'Retard max (jours)' : 'Max Overdue (days)'}
-                        </label>
-                        <input
-                          type="number"
-                          min={0}
-                          max={365}
-                          value={simForm.maxOverdueDays}
-                          onChange={(e) =>
-                            setSimForm({ ...simForm, maxOverdueDays: Number(e.target.value) })
-                          }
-                          className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="block font-semibold text-[#334155] mb-1">
-                          {isFr ? 'Trajet clinique (min)' : 'Travel Time (min)'}
-                        </label>
-                        <input
-                          type="number"
-                          min={5}
-                          max={120}
-                          value={simForm.accessTimeMinutes}
-                          onChange={(e) =>
-                            setSimForm({ ...simForm, accessTimeMinutes: Number(e.target.value) })
-                          }
-                          className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="block font-semibold text-[#334155] mb-1">
-                          {isFr ? 'RDV manqués passés' : 'Prior Missed Visits'}
-                        </label>
-                        <input
-                          type="number"
-                          min={0}
-                          max={6}
-                          value={simForm.missedVisitsCount}
-                          onChange={(e) =>
-                            setSimForm({ ...simForm, missedVisitsCount: Number(e.target.value) })
-                          }
-                          className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="block font-semibold text-[#334155] mb-1">
-                          {isFr ? 'Rang de relance (0–2)' : 'Reminder Rank (0–2)'}
-                        </label>
-                        <input
-                          type="number"
-                          min={0}
-                          max={2}
-                          value={simForm.reminderRank}
-                          onChange={(e) =>
-                            setSimForm({ ...simForm, reminderRank: Number(e.target.value) })
-                          }
-                          className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex flex-wrap items-center gap-4">
-                        <label className="inline-flex items-center gap-1.5 font-semibold text-[#0B3B3C] cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={simForm.languageNeedsSupport}
-                            onChange={(e) =>
-                              setSimForm({ ...simForm, languageNeedsSupport: e.target.checked })
-                            }
-                          />
-                          <span>{isFr ? 'Soutien linguistique requis' : 'Language support needed'}</span>
-                        </label>
-                        <label className="inline-flex items-center gap-1.5 font-semibold text-[#0B3B3C] cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={simForm.residesInUnderservedZoneC1}
-                            onChange={(e) =>
-                              setSimForm({
-                                ...simForm,
-                                residesInUnderservedZoneC1: e.target.checked,
-                              })
-                            }
-                          />
-                          <span>{isFr ? 'Zone sous-couverte C1' : 'Underserved Zone C1'}</span>
-                        </label>
-                      </div>
-
-                      <button
-                        type="submit"
-                        className="px-4 py-2 rounded-xl btn-liquid-primary font-bold inline-flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        <span>
-                          {isFr
-                            ? 'Calculer S_prio & M1 en Backend'
-                            : 'Calculate Backend S_prio & M1'}
-                        </span>
-                      </button>
-                    </div>
-
-                    {simResult && (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3.5 rounded-2xl bg-[#F0FDFA] border border-[#99F6E4]">
-                        <div>
-                          <span className="text-[11px] text-[#0F6B6B] font-bold block">
-                            Formule S_prio (0.40 R + 0.25 L + 0.20 D + 0.15 V)
-                          </span>
-                          <span className="text-xl font-extrabold font-mono text-[#0B3B3C]">
-                            {simResult.simulation.priorityScoreSprio} / 100
-                          </span>
-                          <span className="text-[11px] text-[#334155] block">
-                            {isFr ? 'Sans vulnérabilité :' : 'Baseline without vuln:'}{' '}
-                            <strong>{simResult.baselinePriorityScoreSprio}</strong> (TEST-M1 :{' '}
-                            {simResult.nonDowngradeVerified ? 'Non-déclassement vérifié' : 'Erreur'})
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[11px] text-[#0F6B6B] font-bold block">
-                            Probabilité Calibrée M1 (No-Show)
-                          </span>
-                          <span className="text-xl font-extrabold font-mono text-[#0B3B3C]">
-                            {Math.round(simResult.simulation.noShowProbability * 100)}%
-                          </span>
-                          <span className="text-[11px] text-[#334155] block">
-                            {simResult.simulation.topLogisticsFactors?.[0]}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[11px] text-[#0F6B6B] font-bold block">
-                            {isFr ? 'Accompagnement suggéré' : 'Suggested Support Action'}
-                          </span>
-                          <span className="font-bold text-xs text-[#0B3B3C] block mt-1">
-                            {simResult.simulation.suggestedSupportAction}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </form>
-                )}
-              </GlassCard>
-
-              <GlassCard interactive={false} className="space-y-4 sm:space-y-5">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 border-b border-[#E2E8F0] pb-4">
-                  <div>
-                    <h2 className="text-base font-bold text-[#0B3B3C] font-heading">
-                      Screen 1 — Daily Outreach Queues
-                    </h2>
-                    <p className="text-xs text-[#64748B]">
-                      M1 No-Show risk strengthens accompaniment only — never lowers priority.
-                    </p>
+              ) : (
+                <>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => switchCoordView('family')}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-xs font-semibold text-[#0B3B3C] cursor-pointer"
+                    >
+                      {isFr
+                        ? 'Gouvernance des affiliations familiales'
+                        : 'Family affiliation governance'}
+                    </button>
                   </div>
+
+                  <GlassCard interactive={false} className="space-y-4 sm:space-y-5">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 border-b border-[#E2E8F0] pb-4">
+                      <div>
+                        <h2 className="text-base font-bold text-[#0B3B3C] font-heading">
+                          {isFr
+                            ? 'Coordination des soins — Files de relance du jour'
+                            : 'Care coordination — Daily outreach queues'}
+                        </h2>
+                        <p className="text-xs text-[#64748B]">
+                          {isFr
+                            ? 'Le risque de non-présentation renforce uniquement l’accompagnement — il ne baisse jamais la priorité.'
+                            : 'M1 No-Show risk strengthens accompaniment only — never lowers priority.'}
+                        </p>
+                      </div>
 
                   <div className="flex items-center gap-1 bg-[#F1F5F9]/90 p-1 rounded-xl text-xs overflow-x-auto max-w-full no-scrollbar">
                     <button
@@ -921,11 +731,13 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                   </table>
                 </div>
               </GlassCard>
+                </>
+              )}
             </motion.div>
           )
         ) : (
           /* ===============================================================
-           * PUBLIC HEALTH OBSERVATORY (Anonymized, Wilson 95%, n < 10 Masked)
+           * PUBLIC HEALTH OBSERVATORY (Anonymized, Wilson 95% CI)
            * =============================================================== */
           obsData && (
             <motion.div
@@ -933,34 +745,40 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
               animate={{ opacity: 1, y: 0 }}
               className="space-y-5 sm:space-y-6"
             >
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                 <StatCard
                   title="Synthetic Cohort"
                   value={obsData.cohortTotal}
-                  subtitle={`Seed: ${obsData.seed}`}
+                  subtitle={
+                    isFr
+                      ? 'Données synthétiques reproductibles'
+                      : 'Synthetic, reproducible data'
+                  }
                   icon={<BarChart3 className="w-4 h-4" />}
                 />
                 <StatCard
-                  title="Privacy Guardrail"
-                  value="n < 10 Masked"
-                  subtitle="Primary + Secondary suppression"
-                  icon={<Lock className="w-4 h-4" />}
+                  title="Reach"
+                  value={pooledReach !== null ? `${pooledReach}%` : '—'}
+                  subtitle="Complete evaluations among eligible (pooled)"
+                  icon={<Users className="w-4 h-4" />}
                 />
                 <StatCard
-                  title="M1 Calibration (Brier / ECE)"
-                  value={`${obsData.outcomeBenchmark?.m1CalibrationMetrics?.brierScore} / ${obsData.outcomeBenchmark?.m1CalibrationMetrics?.expectedCalibrationErrorEce}`}
-                  subtitle="Within < 0.05 equity bound"
+                  title="Adoption"
+                  value={pooledAdoption !== null ? `${pooledAdoption}%` : '—'}
+                  subtitle="Confirmed visits among invitations (pooled)"
+                  icon={<Send className="w-4 h-4" />}
+                />
+                <StatCard
+                  title="Closed-loop completion"
+                  value={pooledClosedLoop !== null ? `${pooledClosedLoop}%` : '—'}
+                  subtitle="Confirmed visits among eligible (pooled)"
                   icon={<ShieldCheck className="w-4 h-4" />}
                 />
                 <StatCard
-                  title="Acceptance Suite (S / M / E)"
-                  value={
-                    acceptanceReport
-                      ? `${acceptanceReport.passedCount} / ${acceptanceReport.totalCount} Passed`
-                      : '15 / 15 Passed'
-                  }
-                  subtitle="TEST-S1..S5 · M1..M5 · E1..E5"
-                  icon={<ShieldCheck className="w-4 h-4 text-[#15803D]" />}
+                  title={isFr ? 'Faux négatifs estimés' : 'False-negative estimate'}
+                  value={falseNegativeRange}
+                  subtitle="Range across visible segments (small counts suppressed)"
+                  icon={<AlertTriangle className="w-4 h-4 text-[#C2410C]" />}
                 />
               </div>
 
@@ -969,7 +787,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                 {(obsData.communityAlerts || []).map((al: any) => (
                   <GlassCard
                     key={al.ruleId}
-                    kicker={`${al.ruleId} · ${al.zoneOrSegment}`}
+                    kicker={al.zoneOrSegment}
                     title={al.title}
                     description={al.description}
                     icon={<LevelBadge level={al.level} size="sm" />}
@@ -984,7 +802,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                     Segment Coverage & Safeguards (95% Wilson CI)
                   </h2>
                   <p className="text-xs text-[#64748B]">
-                    Automatic API-level suppression for cells with n &lt; 10 and smallest complementary neighbor.
+                    Small groups are always masked automatically to protect privacy, including the smallest complementary group.
                   </p>
                 </div>
 
@@ -1039,271 +857,6 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                   </table>
                 </div>
               </GlassCard>
-
-              {/* Interactive Public Health Impact Model Calculator (Section 18.3) */}
-              <GlassCard interactive={false} className="space-y-4 border border-[#14A39A]/35">
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
-                    {isFr
-                      ? 'Modèle Mathématique d’Impact · Section 18.3 du Cahier des Charges'
-                      : 'Mathematical Impact Model · Section 18.3 Specification'}
-                  </span>
-                  <h2 className="text-base font-extrabold text-[#0B3B3C] font-heading">
-                    {isFr
-                      ? 'Calculateur d’Impact Préventif à Capacité Égale (N_invités × Δ Adoption × Rendement r)'
-                      : 'Equal-Capacity Preventive Impact Calculator (N_invited × Δ Adoption × Yield r)'}
-                  </h2>
-                  <p className="text-xs text-[#64748B]">
-                    {isFr
-                      ? 'Modifiez les paramètres ci-dessous pour calculer le gain de visites confirmées et de conditions détectées tôt.'
-                      : 'Adjust parameters below to compute additional confirmed visits and early-detected conditions.'}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                  <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                    <label className="block font-semibold text-[#334155] mb-1">
-                      {isFr ? 'N_invités (Capacité K)' : 'N_invited (Capacity K)'}
-                    </label>
-                    <input
-                      type="number"
-                      min={100}
-                      max={50000}
-                      step={100}
-                      value={impactInvitedN}
-                      onChange={(e) => setImpactInvitedN(Number(e.target.value))}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white font-mono font-bold text-[#0B3B3C]"
-                    />
-                  </div>
-                  <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                    <label className="block font-semibold text-[#334155] mb-1">
-                      {isFr ? 'a_réf (% Âge/Sexe seul)' : 'a_ref (% Age/Sex baseline)'}
-                    </label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      min={5}
-                      max={95}
-                      value={impactAdoptionRef}
-                      onChange={(e) => setImpactAdoptionRef(Number(e.target.value))}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white font-mono font-bold text-[#0B3B3C]"
-                    />
-                  </div>
-                  <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                    <label className="block font-semibold text-[#334155] mb-1">
-                      {isFr ? 'a_MediSense (% Règles + M1)' : 'a_MediSense (% Rules + M1)'}
-                    </label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      min={5}
-                      max={99}
-                      value={impactAdoptionMediSense}
-                      onChange={(e) => setImpactAdoptionMediSense(Number(e.target.value))}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white font-mono font-bold text-[#0B3B3C]"
-                    />
-                  </div>
-                  <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                    <label className="block font-semibold text-[#334155] mb-1">
-                      {isFr ? 'Rendement r (% par visite)' : 'Clinical Yield r (% per visit)'}
-                    </label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      min={1}
-                      max={80}
-                      value={impactYieldR}
-                      onChange={(e) => setImpactYieldR(Number(e.target.value))}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white font-mono font-bold text-[#0B3B3C]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 rounded-2xl bg-[#F0FDFA] border border-[#99F6E4]">
-                  <div>
-                    <span className="text-[11px] text-[#0F6B6B] font-bold block">
-                      {isFr ? 'Visites confirmées (Réf vs MediSense)' : 'Confirmed Visits (Ref vs MediSense)'}
-                    </span>
-                    <span className="text-lg font-extrabold font-mono text-[#0B3B3C]">
-                      {confirmedRefVisits} → {confirmedMediSenseVisits} visites
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[11px] text-[#0F6B6B] font-bold block">
-                      {isFr
-                        ? 'Visites supplémentaires confirmées'
-                        : 'Additional Confirmed Visits'}
-                    </span>
-                    <span className="text-xl font-extrabold font-mono text-[#0B3B3C]">
-                      +{additionalConfirmedVisits} visites
-                    </span>
-                    <span className="text-[10px] text-[#334155] block font-mono">
-                      = {impactInvitedN} × ({impactAdoptionMediSense}% - {impactAdoptionRef}%)
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[11px] text-[#0F6B6B] font-bold block">
-                      {isFr
-                        ? 'Conditions supplémentaires détectées tôt'
-                        : 'Additional Conditions Detected Early'}
-                    </span>
-                    <span className="text-xl font-extrabold font-mono text-[#0F6B6B]">
-                      +{additionalDetectedConditions} cas pris en charge
-                    </span>
-                    <span className="text-[10px] text-[#334155] block font-mono">
-                      = {additionalConfirmedVisits} × {impactYieldR}%
-                    </span>
-                  </div>
-                </div>
-              </GlassCard>
-
-              {/* Outcome Benchmark */}
-              <GlassCard interactive={false} className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                  <div>
-                    <h2 className="text-base font-bold text-[#0B3B3C] font-heading">
-                      Equal-Capacity Benchmark (K = 1,000 Invitations)
-                    </h2>
-                    <p className="text-xs text-[#64748B]">
-                      {obsData.outcomeBenchmark?.disclaimer}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <label className="font-semibold text-[#0B3B3C]">Seed:</label>
-                    <input
-                      type="number"
-                      value={seedInput}
-                      onChange={(e) => setSeedInput(Number(e.target.value))}
-                      className="w-28 px-3 py-1.5 rounded-xl border border-[#E2E8F0] font-mono bg-white"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => loadData(seedInput)}
-                      className="px-3.5 py-1.5 rounded-xl btn-liquid-primary font-semibold inline-flex items-center gap-1"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>Reproduce</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-start">
-                    <thead className="border-b border-[#E2E8F0] text-[#64748B]">
-                      <tr>
-                        <th className="py-3 px-3 sm:px-4 text-start">Outcome Indicator</th>
-                        <th className="py-3 px-3 sm:px-4 text-end">Age & Sex Baseline</th>
-                        <th className="py-3 px-3 sm:px-4 text-end">MediSense (Rules + M1)</th>
-                        <th className="py-3 px-3 sm:px-4 text-start">Unit</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E2E8F0]/70 tabular-nums">
-                      {(obsData.outcomeBenchmark?.comparisonRows || []).map((row: any, idx: number) => (
-                        <tr key={idx}>
-                          <td className="py-3 px-3 sm:px-4 font-semibold text-[#0B3B3C]">{row.metric}</td>
-                          <td className="py-3 px-3 sm:px-4 text-end font-mono text-[#64748B]">{row.ageSexBaseline}</td>
-                          <td className="py-3 px-3 sm:px-4 text-end font-mono font-bold text-[#0F6B6B]">
-                            {row.mediSenseRulesPlusM1}
-                          </td>
-                          <td className="py-3 px-3 sm:px-4 text-[#64748B]">{row.unit}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </GlassCard>
-
-              {/* 15 Automated Acceptance Invariants (TEST-S1..S5, TEST-M1..M5, TEST-E1..E5) */}
-              {acceptanceReport && (
-                <GlassCard interactive={false} className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                    <div>
-                      <span className="text-xs font-mono font-bold text-[#0F6B6B] uppercase">
-                        Automated Governance Verification
-                      </span>
-                      <h2 className="text-base font-bold text-[#0B3B3C] font-heading">
-                        15 / 15 Challenge Acceptance Invariants Verified
-                      </h2>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const fresh = await apiClient.runAcceptanceSuite();
-                          setAcceptanceReport(fresh);
-                          setFeedback('All 15 acceptance invariants re-verified on server.');
-                        }}
-                        className="px-3.5 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        <span>Re-run Suite</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowAcceptanceDetails(!showAcceptanceDetails)}
-                        className="px-3.5 py-1.5 rounded-xl btn-liquid-primary text-xs font-semibold"
-                      >
-                        {showAcceptanceDetails ? 'Hide Report' : 'View 15 Proofs'}
-                      </button>
-                    </div>
-                  </div>
-
-                  {showAcceptanceDetails && (
-                    <>
-                      {/* Mobile Stacked Proof Cards */}
-                      <div className="md:hidden space-y-2.5 pt-2">
-                        {acceptanceReport.results.map((r: any) => (
-                          <div key={r.id} className="card-3d p-3.5 rounded-2xl space-y-1 text-xs">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-mono font-bold text-[#0B3B3C]">{r.id}</span>
-                              <span className="font-bold text-[#15803D]">
-                                {r.passed ? 'PASS' : 'FAIL'}
-                              </span>
-                            </div>
-                            <p className="font-semibold text-[#334155]">{r.title}</p>
-                            <p className="font-mono text-[11px] text-[#0F6B6B] break-words">
-                              {r.evidence}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Desktop Table */}
-                      <div className="hidden md:block overflow-x-auto pt-2">
-                        <table className="w-full text-xs text-start">
-                          <thead className="border-b border-[#E2E8F0] text-[#64748B]">
-                            <tr>
-                              <th className="py-2.5 px-3 text-start">ID</th>
-                              <th className="py-2.5 px-3 text-start">Category</th>
-                              <th className="py-2.5 px-3 text-start">Invariant Verified</th>
-                              <th className="py-2.5 px-3 text-start">Runtime Evidence</th>
-                              <th className="py-2.5 px-3 text-end">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-[#E2E8F0]/70">
-                            {acceptanceReport.results.map((r: any) => (
-                              <tr key={r.id}>
-                                <td className="py-2.5 px-3 font-mono font-bold text-[#0B3B3C]">
-                                  {r.id}
-                                </td>
-                                <td className="py-2.5 px-3 text-[#64748B]">{r.category}</td>
-                                <td className="py-2.5 px-3 font-medium text-[#334155]">{r.title}</td>
-                                <td className="py-2.5 px-3 font-mono text-[11px] text-[#0F6B6B]">
-                                  {r.evidence}
-                                </td>
-                                <td className="py-2.5 px-3 text-end font-bold text-[#15803D]">
-                                  {r.passed ? 'PASS' : 'FAIL'}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </>
-                  )}
-                </GlassCard>
-              )}
             </motion.div>
           )
         )}

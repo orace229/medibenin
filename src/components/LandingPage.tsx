@@ -26,7 +26,9 @@ import {
   GlassCard,
 } from './MediSenseUI.tsx';
 import { UserRole } from '../lib/types.ts';
+// TODO: confirm licence or AI-generation disclosure for hero image
 import heroDoctorPatientImg from '../assets/images/hero_doctor_patient_medisense_1794350858815.jpg';
+// TODO: confirm licence or AI-generation disclosure for pathway image
 import closedLoopPathwayImg from '../assets/images/medisense_closed_loop_pathway_1794353128842.jpg';
 
 interface LandingPageProps {
@@ -90,10 +92,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const copy = {
     heroEyebrow: isAr
-      ? 'تحدي صحة المستقبل ٢٠٢٦ · دائرة الصحة أبوظبي'
+      ? 'صُمم لمسابقة الابتكار الصحي الرقمي للمستقبل 2026'
       : isFr
-      ? 'Abu Dhabi DoH · Future Health Innovation 2026'
-      : 'Abu Dhabi DoH · Future Health Innovation 2026',
+      ? 'Conçu pour le Future Health Digital Innovation Challenge 2026'
+      : 'Built for the Future Health Digital Innovation Challenge 2026',
     heroTitleLead: isAr
       ? 'حوّل كل خطر صحي مرصود'
       : isFr
@@ -117,14 +119,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const heroMetrics = [
     {
       kicker: 'COHORT SCALE',
-      val: '400',
-      label: isAr ? 'ملف صحي نموذجي' : isFr ? 'Dossiers cliniques' : 'Synthetic Patients',
+      val: '5,240',
+      label: isAr ? 'ملف صحي اصطناعي' : isFr ? 'Profils synthétiques' : 'Synthetic profiles',
       sub: isAr ? 'بذرة حتمية ٢٠٢٦١١٢٠' : isFr ? 'Reproductibilité totale' : 'Deterministic seed 20261120',
     },
     {
       kicker: 'CLINICAL SAFETY',
-      val: '100%',
-      label: isAr ? 'مصادقة طبية بشرية' : isFr ? 'Validé par un médecin' : 'Clinician Validated',
+      val: isAr ? 'تدقيق بشري' : isFr ? 'Validation humaine' : 'Human check',
+      label: isAr ? 'مصادقة طبية قبل أي رسالة' : isFr ? 'Médecin avant tout envoi' : 'Physician validation before any message',
       sub: isAr ? 'لا قرار آلي منفرد' : isFr ? 'Zéro décision autonome' : 'Zero autonomous AI routing',
     },
     {
@@ -134,10 +136,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       sub: isAr ? 'بدلاً من مواعيد مبعثرة' : isFr ? 'Zéro parcours dispersé' : 'All checks in one booking',
     },
     {
-      kicker: 'EQUITY GUARDRAIL',
-      val: '≤ 5 pp',
-      label: isAr ? 'ضمان العدالة السكانية' : isFr ? 'Écart d’équité maximal' : 'Parity Guarantee',
-      sub: isAr ? 'مراقبة فورية للانحياز' : isFr ? 'Audit démographique actif' : 'Live sensitivity & FPR audit',
+      kicker: 'TRANSPARENCY',
+      val: isAr ? 'دائماً' : isFr ? 'Toujours affichée' : 'Always shown',
+      label: isAr ? 'إظهار عدم اليقين' : isFr ? 'Incertitude affichée' : 'Uncertainty always shown',
+      sub: isAr ? 'فترات ثقة على كل مؤشر' : isFr ? 'Intervalles de confiance sur chaque indicateur' : 'Confidence intervals on every metric',
     },
   ];
 
@@ -151,10 +153,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         ? 'Détection multidimensionnelle au-delà de l’âge'
         : 'Multidimensional detection beyond age & sex',
       desc: isAr
-        ? 'دمج التاريخ العائلي، ومؤشرات النمو، والعتبات الأيضية المكيفة إثنياً في قاعدة سريرية شفافة.'
+        ? 'دمج التاريخ العائلي، ومؤشرات النمو، وعوامل الخطر المكيفة إثنياً في قاعدة سريرية شفافة.'
         : isFr
-        ? 'Croisement des antécédents familiaux, de la pédiatrie et des seuils métaboliques adaptés avec traçabilité complète.'
-        : 'Combines family history, pediatric milestones, and ethnically adapted metabolic thresholds with full rule traceability.',
+        ? 'Croisement des antécédents familiaux, de la pédiatrie et des facteurs de risque adaptés avec traçabilité complète.'
+        : 'Combines family history, pediatric milestones, and ethnically adapted risk factors with full rule traceability.',
     },
     {
       num: '02 · PROACTIVE OUTREACH',
@@ -192,8 +194,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       desc: isAr
         ? 'قواعد سريرية موثقة مع شارة يقين واضحة.'
         : isFr
-        ? 'Règles DoH explicites et badge de certitude visible.'
-        : 'Published DoH rules with visible certainty badges.',
+        ? 'Règles cliniques explicites et badge de certitude visible.'
+        : 'Published clinical rules with visible certainty badges.',
     },
     {
       num: 'STEP 02',
@@ -282,10 +284,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       kicker: 'POPULATION & EQUITY',
       title: isAr ? 'الصحة العامة' : isFr ? 'Observatoire Santé Publique' : 'Public Health',
       benefit: isAr
-        ? 'مراقبة العدالة السكانية واختبارات القبول الـ ١٥ في الوقت الفعلي.'
+        ? 'مراقبة العدالة السكانية مع إخفاء الأعداد الصغيرة في الوقت الفعلي.'
         : isFr
-        ? 'Audit d’équité démographique, masquage n < 10 et 15 tests d’acceptation en direct.'
-        : 'Live demographic equity audit, n < 10 privacy masking, and 15 acceptance tests.',
+        ? 'Audit d’équité démographique avec masquage automatique des petits effectifs.'
+        : 'Live demographic equity audit with automatic small-count masking.',
       cta: isAr ? 'فتح المرصد السكاني' : isFr ? 'Ouvrir l’Observatoire' : 'Open Observatory',
       Icon: BarChart3,
     },
@@ -301,12 +303,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         : 'No. MediSense orchestrates preventive screening from published guidelines. Every recommendation requires explicit clinician validation.',
     },
     {
-      q: isAr ? 'لماذا تفصلون بين شاشة المنسق وشاشة الطبيب؟' : isFr ? 'Pourquoi séparer l’écran Coordinateur (Screen 1) de l’écran Médecin (Screen 2) ?' : 'Why separate Coordinator (Screen 1) and Clinician (Screen 2) views?',
+      q: isAr ? 'لماذا تفصلون بين شاشة المنسق وشاشة الطبيب؟' : isFr ? 'Pourquoi séparer l’espace Coordinateur de l’espace Médecin ?' : 'Why separate Coordinator and Clinician views?',
       a: isAr
         ? 'لمنع أي تحيز لوجستي من التأثير على الحكم السريري للطبيب أثناء الاستشارة.'
         : isFr
-        ? 'Pour garantir une neutralité clinique absolue : les scores logistiques aident le coordinateur à organiser les relances, mais n’apparaissent jamais devant le médecin.'
-        : 'To protect clinical neutrality: operational outreach scores help coordinators plan support, but never appear on the physician’s clinical screen.',
+        ? 'Pour garantir une neutralité clinique absolue : les repères logistiques aident le coordinateur à organiser les relances, mais n’apparaissent jamais devant le médecin.'
+        : 'To protect clinical neutrality: operational outreach indicators help coordinators plan support, but never appear on the physician’s clinical screen.',
     },
     {
       q: isAr ? 'من يتحكم في البيانات والموافقات؟' : isFr ? 'Comment le patient garde-t-il le contrôle de ses données ?' : 'How do patients control their personal health data?',
@@ -321,8 +323,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       a: isAr
         ? 'نعم. البوابات الأربع (بوابة المريض الموحدة مع أطفاله المرتبطين + ٣ بوابات للكوادر الصحية) جاهزة ببيانات اصطناعية كاملة.'
         : isFr
-        ? 'Oui. Les 4 espaces (1 Portail Patient Unifié avec affiliation familiale SMS + 3 Portails Agents de Santé : Médecin, Coordinateur, Santé Publique) sont préconfigurés avec 400 dossiers synthétiques.'
-        : 'Yes. All 4 workspaces (1 Unified Patient Portal with SMS family affiliation + 3 Healthcare Agent Portals: Clinician, Coordinator, Public Health) are pre-loaded with 400 synthetic patients.',
+        ? 'Oui. Les 4 espaces (1 Portail Patient Unifié avec affiliation familiale SMS + 3 Portails Agents de Santé : Médecin, Coordinateur, Santé Publique) sont préconfigurés avec un panel de 52 dossiers tiré d’une cohorte synthétique de 5 240 profils.'
+        : 'Yes. All 4 workspaces (1 Unified Patient Portal with SMS family affiliation + 3 Healthcare Agent Portals: Clinician, Coordinator, Public Health) are pre-loaded with a 52-record demo panel drawn from a 5,240-profile synthetic cohort.',
     },
   ];
 
@@ -361,7 +363,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       message: isFr
         ? 'Voyez comment le coordinateur orchestre les 5 étapes en boucle fermée.'
         : 'See how Care Coordinators orchestrate the 5-step closed loop.',
-      primaryLabel: isFr ? 'Ouvrir File Coordinateur (Screen 1) →' : 'Open Coordinator Queue (Screen 1) →',
+      primaryLabel: isFr ? 'Ouvrir la File Coordinateur →' : 'Open Coordinator Queue →',
       primaryAction: () => onQuickRoleEnter('coordinator'),
       secondaryLabel: copy.ctaPrimary,
       secondaryAction: onNavigateToLogin,
@@ -374,8 +376,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       primaryLabel:
         previewTab === 'clinician'
           ? isFr
-            ? 'Lancer Écran Médecin (Screen 2) →'
-            : 'Launch Clinician (Screen 2) →'
+            ? 'Lancer l’Espace Médecin →'
+            : 'Launch Clinician Workspace →'
           : previewTab === 'patient'
           ? isFr
             ? 'Lancer Portail Famille & Pass QR →'
@@ -390,20 +392,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     'for-whom': {
       badge: '04 · 4 DEDICATED PORTALS',
       message: isFr
-        ? '1 Portail Patient Unifié + 3 Espaces Agents de Santé (400 dossiers).'
-        : '1 Unified Patient Portal + 3 Health Agent Workspaces (400 records).',
+        ? '1 Portail Patient Unifié + 3 Espaces Agents de Santé (panel de 52 dossiers).'
+        : '1 Unified Patient Portal + 3 Health Agent Workspaces (52-record demo panel).',
       primaryLabel: copy.ctaPrimary,
       primaryAction: onNavigateToLogin,
       secondaryLabel: isFr ? 'Vue Médecin directe →' : 'Direct Clinician View →',
       secondaryAction: () => onQuickRoleEnter('clinician'),
     },
     responsibility: {
-      badge: '05 · 15/15 ACCEPTANCE SUITE',
+      badge: '05 · EVIDENCE & GOVERNANCE',
       message: isFr
-        ? 'Vérifiez en direct les 15 invariants réglementaires et d’équité.'
-        : 'Run the live 15/15 regulatory and demographic equity test suite.',
-      primaryLabel: isFr ? 'Exécuter les 15 tests (Observatoire) →' : 'Run 15/15 Acceptance Suite →',
-      primaryAction: () => onQuickRoleEnter('public_health'),
+        ? 'Consultez les preuves : suite d’acceptance, simulateur et benchmark.'
+        : 'Inspect the evidence: acceptance suite, simulator and benchmark.',
+      primaryLabel: isFr ? 'Preuves & gouvernance →' : 'Evidence & governance →',
+      primaryAction: () => {
+        window.location.assign('/proof');
+      },
       secondaryLabel: copy.ctaPrimary,
       secondaryAction: onNavigateToLogin,
     },
@@ -595,9 +599,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             style={{ transformStyle: 'preserve-3d' }}
             className="absolute inset-0 w-full h-full"
           >
+            {/* TODO: confirm licence or AI-generation disclosure for hero image */}
             <img
               src={heroDoctorPatientImg}
-              alt="Physician and patient reviewing a personalized preventive care pathway in Abu Dhabi"
+              alt="Physician and patient reviewing a personalized preventive care pathway"
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover object-[72%_center] sm:object-[68%_center]"
             />
@@ -688,11 +693,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       },
                       {
                         role: 'clinician',
-                        label: isAr ? 'طبيب (الشاشة ٢)' : isFr ? 'Médecin (Écran 2)' : 'Clinician (Screen 2)',
+                        label: isAr ? 'طبيب' : isFr ? 'Médecin' : 'Clinician',
                       },
                       {
                         role: 'coordinator',
-                        label: isAr ? 'منسق (الشاشة ١)' : isFr ? 'Coordinateur (Écran 1)' : 'Coordinator (Screen 1)',
+                        label: isAr ? 'منسق' : isFr ? 'Coordinateur' : 'Coordinator',
                       },
                       {
                         role: 'public_health',
@@ -852,10 +857,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 >
                   <span>
                     {isAr
-                      ? 'افتح قائمة المنسق (Screen 1)'
+                      ? 'افتح قائمة المنسق'
                       : isFr
-                      ? 'Ouvrir la File Coordinateur (Screen 1)'
-                      : 'Launch Coordinator Queue (Screen 1)'}
+                      ? 'Ouvrir la File Coordinateur'
+                      : 'Launch Coordinator Queue'}
                   </span>
                   <ArrowRight className="w-4 h-4 rtl:rotate-180" />
                 </button>
@@ -864,6 +869,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <div className="lg:col-span-7">
               <div className="rounded-2xl sm:rounded-3xl overflow-hidden border border-[#E2E8F0] shadow-xl bg-white p-1.5 sm:p-2">
+                {/* TODO: confirm licence or AI-generation disclosure for pathway image */}
                 <img
                   src={closedLoopPathwayImg}
                   alt="MediSense 3D Closed-Loop Pathway: Clinical Rule Detection, Physician Validation Console, and Confirmed Patient QR Health Pass"
@@ -931,7 +937,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 [
                   {
                     id: 'clinician',
-                    label: isAr ? '١. شاشة الطبيب' : isFr ? '1. Écran Médecin (Screen 2)' : '1. Clinician (Screen 2)',
+                    label: isAr ? '١. شاشة الطبيب' : isFr ? '1. Espace Médecin' : '1. Clinician',
                   },
                   {
                     id: 'patient',
@@ -968,8 +974,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span>
                   {previewTab === 'clinician'
                     ? isFr
-                      ? 'Ouvrir l’Écran Médecin (Screen 2)'
-                      : 'Launch Clinician Workspace (Screen 2)'
+                      ? 'Ouvrir l’Espace Médecin'
+                      : 'Launch Clinician Workspace'
                     : previewTab === 'patient'
                     ? isFr
                       ? 'Ouvrir l’Espace Patient & Famille'
@@ -991,8 +997,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="text-[11px] sm:text-xs font-bold text-[#0B3B3C] font-heading uppercase tracking-wider">
                     {previewTab === 'clinician'
                       ? isFr
-                        ? 'Console Clinique — Screen 2'
-                        : 'Clinical Console — Screen 2'
+                        ? 'Console Clinique'
+                        : 'Clinical Console'
                       : previewTab === 'patient'
                       ? isFr
                         ? 'Pass Préventif Unifié — Famille'
@@ -1002,7 +1008,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       : 'Equity Audit — 95% Wilson CI'}
                   </span>
                 </div>
-                <span className="text-[11px] font-mono text-[#64748B]">DoH-AD-PREV-2026.1</span>
+                <span className="text-[11px] font-mono text-[#64748B]">Rules v8 · Signed</span>
               </div>
 
               {previewTab === 'clinician' && (
@@ -1031,7 +1037,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </div>
                     <ul className="text-xs sm:text-sm text-[#334155] space-y-1.5 list-disc ps-5">
                       <li>Two borderline blood pressure readings (134/86 mmHg)</li>
-                      <li>Adapted South Asian BMI threshold &amp; family history warrant HbA1c</li>
+                      <li>Adapted risk factors for South Asian background &amp; family history warrant HbA1c</li>
                       <li>Clinician action required: Confirm, Modify, or Defer pathway</li>
                     </ul>
                   </div>
@@ -1039,8 +1045,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div className="flex items-center justify-between gap-3 text-xs bg-[#0B3B3C] text-white px-4 py-3 rounded-xl">
                     <span className="font-medium leading-snug">
                       {isFr
-                        ? 'Garantie Screen 2 : Aucun score S_prio ni probabilité ML de non-présentation affiché'
-                        : 'Screen 2 Guarantee: Zero S_prio score or ML no-show probability displayed'}
+                        ? 'Vue clinique uniquement — aucun score logistique ni probabilité de non-présentation affiché'
+                        : 'Clinical view only — no logistics scores or no-show probabilities displayed'}
                     </span>
                     <ShieldCheck className="w-4 h-4 text-white shrink-0" />
                   </div>
@@ -1236,15 +1242,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {/* Contextual Section CTA #5 */}
             <button
               type="button"
-              onClick={() => onQuickRoleEnter('public_health')}
+              onClick={() => window.location.assign('/proof')}
               className="px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl btn-liquid-primary text-xs sm:text-sm font-semibold inline-flex items-center gap-2 self-start lg:self-auto shrink-0 cursor-pointer"
             >
               <span>
                 {isAr
-                  ? 'فحص اختبارات القبول الـ ١٥'
+                  ? 'الأدلة والحوكمة'
                   : isFr
-                  ? 'Vérifier les 15 tests d’acceptation'
-                  : 'Inspect 15/15 Acceptance Suite'}
+                  ? 'Preuves & gouvernance'
+                  : 'Evidence & governance'}
               </span>
               <ArrowRight className="w-4 h-4 rtl:rotate-180" />
             </button>
@@ -1263,18 +1269,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {
                 kicker: 'SAFEGUARD 02',
                 Icon: Lock,
-                title: isFr ? '5 consentements & masquage n < 10' : '5 Granular Consents & n < 10 Masking',
+                title: isFr ? '5 consentements & masquage des petits groupes' : '5 Granular Consents & Small-Group Masking',
                 desc: isFr
-                  ? 'Retrait immédiat par finalité (C1–C4), journal d’accès transparent et masquage automatique des petits effectifs.'
-                  : 'Instant purpose-specific withdrawal (C1–C4), live Data Usage Log, and API-level small-cell suppression.',
+                  ? 'Retrait immédiat par finalité, journal d’accès transparent et masquage automatique des petits effectifs.'
+                  : 'Instant purpose-specific withdrawal, live Data Usage Log, and automatic small-group masking.',
               },
               {
                 kicker: 'SAFEGUARD 03',
                 Icon: Layers,
-                title: isFr ? '15 invariants vérifiés en continu' : '15 Verified Acceptance Invariants',
+                title: isFr ? 'Preuves vérifiables en continu' : 'Verifiable evidence, always open',
                 desc: isFr
-                  ? 'Tests automatisés couvrant la reproductibilité (S1–S5), la neutralité IA (M1–M5) et la parité démographique (E1–E5).'
-                  : 'Automated verification suite covering deterministic rules (S1–S5), AI boundaries (M1–M5), and equity parity (E1–E5).',
+                  ? 'Suite d’acceptance automatisée, simulateur reproductible et benchmark publiés sur la page Preuves & gouvernance.'
+                  : 'Automated acceptance suite, reproducible simulator and benchmark, published on the Evidence & governance page.',
               },
             ].map((card, i) => {
               const IconC = card.Icon;
@@ -1354,10 +1360,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </h2>
               <p className="text-xs sm:text-sm text-[#475569]">
                 {isAr
-                  ? '٤٠٠ ملف صحي اصطناعي، قواعد سريرية موثقة، واختبارات قبول حية.'
+                  ? 'بيانات اصطناعية بالكامل، قواعد سريرية موثقة، وصفحة أدلة مفتوحة.'
                   : isFr
-                  ? '400 dossiers synthétiques, règles DoH-AD-PREV-2026.1 et audit d’équité actif.'
-                  : '400 synthetic cohort records, DoH-AD-PREV-2026.1 rules, and live equity auditing.'}
+                  ? 'Données 100 % synthétiques, règles cliniques publiées et page de preuves ouverte.'
+                  : '100% synthetic data, published clinical rules, and an open evidence page.'}
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-3 shrink-0 w-full sm:w-auto">
@@ -1421,17 +1427,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Clean Institutional Footer */}
       <footer className="bg-white/90 backdrop-blur-md border-t border-[#E2E8F0] py-8 text-xs text-[#64748B]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 text-center sm:text-start">
-            <MediSenseLogo />
-            <span className="text-[11px]">
-              · Future Health Challenge 2026 · 100% synthetic cohort
-            </span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 text-center sm:text-start">
+              <MediSenseLogo />
+              <span className="text-[11px]">
+                ·{' '}
+                {isFr
+                  ? 'Conçu pour le Future Health Digital Innovation Challenge 2026'
+                  : 'Built for the Future Health Digital Innovation Challenge 2026'}
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <a
+                href="/proof"
+                className="font-semibold text-[#0F6B6B] hover:text-[#0B3B3C] underline decoration-[#99F6E4] decoration-2 underline-offset-4"
+              >
+                {isFr ? 'Preuves & gouvernance' : 'Evidence & governance'}
+              </a>
+              <LanguageSwitch />
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-[11px]">DoH-AD-PREV-2026.1</span>
-            <LanguageSwitch />
-          </div>
+          <p className="text-[11px] text-center sm:text-start text-[#64748B] leading-relaxed">
+            {isFr
+              ? 'Prototype indépendant réalisé par l’équipe CareX. Sans affiliation avec, ni approbation d’une autorité de santé. Données 100 % synthétiques.'
+              : 'Independent prototype built by team CareX. Not affiliated with, or endorsed by, any health authority. 100% synthetic data.'}
+          </p>
         </div>
       </footer>
     </div>

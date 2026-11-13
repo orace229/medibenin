@@ -1,9 +1,10 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, count } from 'drizzle-orm';
 import { db } from './src/db/index.ts';
 import {
   accessRequests,
@@ -17,7 +18,7 @@ import {
   users,
 } from './src/db/schema.ts';
 import { requireAuth, AuthRequest } from './src/middleware/auth.ts';
-import { ensureSeededDatabase, createSeededRng } from './src/server/seedCohort.ts';
+import { ensureSeededDatabase } from './src/server/seedCohort.ts';
 import {
   computeReferralHmac,
   evaluatePatientRules,
@@ -135,7 +136,7 @@ async function startServer() {
             groupedActions: [
               {
                 actionTitle: 'Baseline Adult IFHAS Cardiometabolic Check',
-                directiveSource: 'Published DoH Preventive Schedule',
+                directiveSource: 'Published National Preventive Schedule',
                 category: 'routine_prevention',
               },
             ],
@@ -162,6 +163,19 @@ async function startServer() {
   // =========================================================================
   // 1. SYSTEM & GOVERNANCE VERIFICATION ENDPOINTS (Public for Phase 0 checks)
   // =========================================================================
+  app.get('/api/demo/counts', async (_req, res) => {
+    try {
+      await ensureInit();
+      const total = await db.select({ value: count() }).from(patients);
+      const panelSize = total[0]?.value ?? 0;
+      const cohortSize = 5240;
+      res.json({ cohortSize, panelSize, story: `Demo panel of ${panelSize} patients drawn from a ${cohortSize.toLocaleString('en-US')}-person synthetic cohort` });
+    } catch (error: any) {
+      console.error('Failed to load demo counts:', error);
+      res.status(500).json({ error: 'Failed to load demo counts' });
+    }
+  });
+
   app.get('/api/governance/status', async (_req, res) => {
     try {
       await ensureInit();
@@ -1138,7 +1152,7 @@ async function startServer() {
         `Suggested next step: consolidate all pending preventive checks into a single appointment at ${p.facilityCenter}.`;
 
       res.json({
-        label: 'AI-generated suggestion — requires clinician validation',
+        label: 'Automatic summary from rules — requires clinician validation',
         summaryText,
         generatedAt: new Date().toISOString(),
       });
@@ -2171,7 +2185,7 @@ async function startServer() {
         sensitivityAnalysis: {
           weightPerturbationDelta: 0.1,
           topKOverlapPercent: perturbedOverlapPercent,
-          status: 'Stable (> 80% threshold)',
+          status: 'Stable under weight perturbation',
         },
         redImmediateQueue,
         greyCompletionQueue,
@@ -2232,7 +2246,6 @@ async function startServer() {
     try {
       await ensureInit();
       const seedParam = Number(req.query.seed) || 20261120;
-      const rng = createSeededRng(seedParam);
 
       // Build Abu Dhabi local segments with an intentionally small segment (n = 7) to demonstrate TEST-E4
       const rawSegments = [
@@ -2374,10 +2387,8 @@ async function startServer() {
         },
       ];
 
+      // Deterministic demo benchmark figures (fixed; no per-seed variation)
       const safeguardedSegments = buildSafeguardedSegmentTable(rawSegments);
-
-      // Deterministic seed variation for benchmark reproduction (TEST-M5)
-      const jitter = Math.round((rng() - 0.5) * 4 * 10) / 10;
 
       res.json({
         seed: seedParam,
@@ -2388,7 +2399,7 @@ async function startServer() {
             ruleId: 'C1',
             level: 'orange',
             zoneOrSegment: 'Al Dhafra Region',
-            title: 'Under-covered geographic zone (C1)',
+            title: 'Under-covered geographic zone',
             description:
               'Upper bound of the 95% Wilson confidence interval for complete preventive coverage is below program target. Proposed action: mobile screening unit & evening clinic slots.',
           },
@@ -2396,7 +2407,7 @@ async function startServer() {
             ruleId: 'C3',
             level: 'yellow',
             zoneOrSegment: 'Al Dhafra / Shift Workers',
-            title: 'Segment adoption gap alert (C3)',
+            title: 'Segment adoption gap alert',
             description:
               'Confirmed visit adoption is more than 10 percentage points below the network average with non-overlapping confidence intervals despite comparable invitation rates.',
           },
@@ -2404,20 +2415,18 @@ async function startServer() {
         outcomeBenchmark: {
           equalCapacityInvitationsK: 1000,
           disclaimer:
-            'Synthetic benchmark on 5,240 simulated profiles (Seed ' +
-            seedParam +
-            '). Validates pipeline mechanics and equity safeguards; does NOT prove real-world clinical efficacy.',
+            'Synthetic benchmark on 5,240 simulated profiles. Validates pipeline mechanics and equity safeguards; does NOT prove real-world clinical efficacy.',
           comparisonRows: [
             {
               metric: 'Well-Child Visit gaps closed & confirmed (per 1,000 invitations)',
               ageSexBaseline: 412,
-              mediSenseRulesPlusM1: Math.round(638 + jitter),
+              mediSenseRulesPlusM1: 638,
               unit: 'confirmed visits',
             },
             {
               metric: 'Adult screening yield (newly confirmed conditions per 100 invitations)',
               ageSexBaseline: 11.4,
-              mediSenseRulesPlusM1: Math.round((21.8 + jitter * 0.1) * 10) / 10,
+              mediSenseRulesPlusM1: 21.8,
               unit: 'per 100 invited',
             },
             {

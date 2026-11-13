@@ -33,6 +33,8 @@ async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
 export const apiClient = {
   getGovernanceStatus: () => apiFetch<any>('/api/governance/status'),
 
+  getDemoCounts: () => apiFetch<{ cohortSize: number; panelSize: number; story: string }>('/api/demo/counts'),
+
   runAcceptanceSuite: () => apiFetch<any>('/api/governance/acceptance-tests'),
 
   getMe: () => apiFetch<{ user: any }>('/api/auth/me'),

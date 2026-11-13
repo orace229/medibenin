@@ -15,21 +15,58 @@
   --ink-700: #334155;
   --ink-500: #64748B;
   --ink-200: #E2E8F0;
+  /* Semantic feedback tokens (soft-light family, mirrored by LevelBadge/StateChip) */
+  --tone-danger-bg: #FEF2F2;
+  --tone-danger-border: #FECACA;
+  --tone-danger-text: #B91C1C;
+  --tone-warn-bg: #FFF7ED;
+  --tone-warn-border: #FED7AA;
+  --tone-warn-text: #C2410C;
+  --tone-due-bg: #FEFCE8;
+  --tone-due-border: #FDE68A;
+  --tone-due-text: #854D0E;
+  --tone-ok-bg: #F0FDF4;
+  --tone-ok-border: #BBF7D0;
+  --tone-ok-text: #15803D;
+  --tone-neutral-bg: #F1F5F9;
+  --tone-neutral-border: #E2E8F0;
+  --tone-neutral-text: #475569;
+}
+
+/* Tailwind v4 theme tokens: expose the palette + fonts as utilities
+   (bg-brand-900, text-ink-700, font-heading…) without touching component styles */
+@theme {
+  --font-sans: 'Atkinson Hyperlegible', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Atkinson Hyperlegible', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --color-brand-50: #F2FAF8;
+  --color-brand-100: #D5F2EE;
+  --color-brand-500: #14A39A;
+  --color-brand-700: #0F6B6B;
+  --color-brand-800: #0D5253;
+  --color-brand-900: #0B3B3C;
+  --color-brand-950: #041D1E;
+  --color-canvas: #F8FCFB;
+  --color-accent-600: #2F6FDE;
+  --color-ink-200: #E2E8F0;
+  --color-ink-500: #64748B;
+  --color-ink-700: #334155;
+  --color-ink-900: #0F172A;
 }
 
 body {
   background-color: var(--canvas);
   color: var(--ink-700);
-  font-family: 'Inter', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  font-family: 'Atkinson Hyperlegible', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
 h1, h2, h3, h4, .font-heading {
-  font-family: 'Plus Jakarta Sans', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
-  letter-spacing: -0.03em;
+  font-family: 'Atkinson Hyperlegible', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Legibility-first: Atkinson already opens letterforms, keep tracking subtle */
+  letter-spacing: -0.01em;
 }
 
 .font-editorial {
