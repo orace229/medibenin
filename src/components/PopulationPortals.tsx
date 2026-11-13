@@ -301,8 +301,8 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                     </span>
                     <h2 className="text-base font-extrabold text-[#0B3B3C] font-heading">
                       {isFr
-                        ? 'Rattachement d’Enfants par Recherche BD Parent & Validation Définitive de Majorité'
-                        : 'Child Registration via Parent DB Lookup & Definitive Majority Detachment Validation'}
+                        ? 'Inscrire un enfant & valider la majorité'
+                        : 'Child Registration & Majority Validation'}
                     </h2>
                   </div>
 
