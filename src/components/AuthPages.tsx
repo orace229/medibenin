@@ -8,7 +8,6 @@ import {
   UserCheck,
   CheckCircle2,
   Lock,
-  ShieldCheck,
   Stethoscope,
   HeartHandshake,
 } from 'lucide-react';
@@ -110,7 +109,6 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
   const [password, setPassword] = useState('MediSense-Demo-2026');
   const [selectedRole, setSelectedRole] = useState<UserRole>(initialPreset.role);
   const [selectedToken, setSelectedToken] = useState(initialPreset.token);
-  const [prefillBanner, setPrefillBanner] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [forgotNotice, setForgotNotice] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -132,7 +130,6 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
     setPassword('MediSense-Demo-2026');
     setSelectedRole(found.role);
     setSelectedToken(found.token);
-    setPrefillBanner(null);
     setErrorMsg(null);
   }, [initialRole]);
 
@@ -142,14 +139,6 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
     setSelectedRole(preset.role);
     setSelectedToken(preset.token);
     setErrorMsg(null);
-    const roleLabel = isAr ? preset.labelAr : isFr ? preset.labelFr : preset.labelEn;
-    setPrefillBanner(
-      isAr
-        ? `تم ملء بيانات الاعتماد لدور (${roleLabel}). اضغط على زر تسجيل الدخول أدناه للمتابعة.`
-        : isFr
-        ? `Identifiants pré-remplis pour « ${roleLabel} ». Cliquez sur le bouton « Se connecter » ci-dessous pour ouvrir le portail.`
-        : `Credentials auto-filled for "${roleLabel}". Click the "Sign In" button below to access the portal.`
-    );
   };
 
   const handleSwitchPortalCategory = (nextCat: 'citizen' | 'health_agent') => {
@@ -160,7 +149,6 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
     setPassword('MediSense-Demo-2026');
     setSelectedRole(defaultPreset.role);
     setSelectedToken(defaultPreset.token);
-    setPrefillBanner(null);
     setErrorMsg(null);
   };
 
@@ -203,8 +191,6 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
   const activePresets =
     portalCategory === 'citizen' ? CITIZEN_PRESETS : HEALTH_AGENT_PRESETS;
-  const currentPresetObj =
-    ALL_ROLE_PRESETS.find((p) => p.role === selectedRole) || activePresets[0];
 
   return (
     <div
@@ -335,13 +321,6 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               ? 'Du dépistage préventif au rendez-vous confirmé en une seule visite.'
               : 'From preventive screening rules to a confirmed single-visit care plan.'}
           </h2>
-          <p className="text-xs text-white/85 leading-relaxed">
-            {isAr
-              ? '٤ بوابات معزولة بالكامل (بوابة المريض الموحدة مع أطفاله عبر SMS + ٣ بوابات للكوادر الصحية).'
-              : isFr
-              ? 'Du repérage préventif à une visite réalisée, avec un accompagnement humain.'
-              : 'From a flagged risk to a completed preventive visit.'}
-          </p>
         </div>
       </div>
 
@@ -416,43 +395,26 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       ? 'Connexion Agents de Santé'
                       : 'Healthcare Agent Sign In'}
                   </h1>
-
-                  <p className="text-xs text-[#475569] leading-relaxed">
-                    {portalCategory === 'citizen'
-                      ? isAr
-                        ? 'بوابة موحدة تمنح المريض البالغ الوصول إلى ملفه الشخصي (IFHAS) وملفات أطفاله المرتبطين به (< ١٨ سنة) بعد التأكيد عبر رمز SMS.'
-                        : isFr
-                        ? 'Accédez à votre dossier adulte (IFHAS) ainsi qu’aux dossiers de vos enfants affiliés (< 18 ans) protégés par confirmation SMS OTP.'
-                        : 'Access your personal adult record (IFHAS) and your affiliated children’s records (< 18y) protected via SMS OTP confirmation.'
-                      : isAr
-                      ? 'اختر دورك المهني لملء بيانات الاعتماد تلقائياً، ثم اضغط على تسجيل الدخول.'
-                      : isFr
-                      ? 'Sélectionnez votre fonction d’agent de santé (Médecin, Coordinateur ou Santé Publique) pour pré-remplir vos identifiants, puis validez la connexion.'
-                      : 'Select your affiliated healthcare agent role (Clinician, Coordinator, or Public Health) to pre-fill credentials, then click Sign In.'}
-                  </p>
                 </div>
 
                 {/* Role Credential Pre-fill Selector (Pre-fills credentials ONLY — never bypasses Sign In) */}
                 <div className="bg-[#F8FAFC]/95 border border-[#CBD5E1] rounded-2xl p-3 sm:p-3.5 space-y-2.5">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-[#0B3B3C]">
+                  <div className="flex items-center text-[11px] font-bold text-[#0B3B3C]">
                     <span className="flex items-center gap-1.5">
                       <UserCheck className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
                       <span>
                         {portalCategory === 'citizen'
                           ? isAr
-                            ? '١. الهوية الرقمية للمريض والعائلة (تعبئة تلقائية)'
+                            ? 'اختر الملف'
                             : isFr
-                            ? '1. Profil Patient Unifié & Famille (pré-remplissage sécurisé)'
-                            : '1. Unified Patient & Family Profile (Auto-fill credentials)'
+                            ? 'Choisissez votre profil'
+                            : 'Choose your profile'
                           : isAr
-                          ? '١. اختر دور الممارس الصحي (٣ أدوار معتمدة)'
+                          ? 'اختر دورك'
                           : isFr
-                          ? '1. Rôle Agent de Santé habilité (3 espaces métiers)'
-                          : '1. Authorized Health Agent Role (3 workspaces)'}
+                          ? 'Choisissez votre rôle'
+                          : 'Choose your role'}
                       </span>
-                    </span>
-                    <span className="text-[10px] font-mono text-[#0F6B6B]">
-                      {portalCategory === 'citizen' ? '1 / 4' : '3 / 4'}
                     </span>
                   </div>
 
@@ -492,7 +454,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                                     : 'bg-[#F0FDFA] text-[#0F6B6B] border border-[#99F6E4]'
                                 }`}
                               >
-                                {isFr ? '+ 3 enfants affiliés · SMS OTP' : '+ 3 children · SMS OTP'}
+                                {isFr ? '+ 3 enfants' : '+ 3 children'}
                               </span>
                             )}
                           </div>
@@ -508,13 +470,6 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                     })}
                   </div>
                 </div>
-
-                {prefillBanner && (
-                  <div className="p-2.5 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] text-[#0B3B3C] text-[11px] font-medium flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-[#0F6B6B] shrink-0" />
-                    <span>{prefillBanner}</span>
-                  </div>
-                )}
 
                 {errorMsg && (
                   <div className="p-3 rounded-xl bg-[#FEF2F2] text-[#B91C1C] text-xs font-medium">
@@ -535,19 +490,16 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       <label htmlFor="login-email" className="block text-xs font-semibold text-[#0B3B3C]">
                         {portalCategory === 'citizen'
                           ? isAr
-                            ? 'البريد الإلكتروني للمريض / ولي الأمر'
+                            ? 'البريد الإلكتروني'
                             : isFr
-                            ? 'Identifiant / Email Patient'
-                            : 'Patient / Family Email'
+                            ? 'Email'
+                            : 'Email'
                           : isAr
                           ? 'البريد المهني'
                           : isFr
                           ? 'Email professionnel'
                           : 'Work email'}
                       </label>
-                      <span className="text-[10px] font-mono font-semibold text-[#0F6B6B]">
-                        {isFr ? currentPresetObj.labelFr : currentPresetObj.labelEn}
-                      </span>
                     </div>
                     <input
                       id="login-email"
@@ -563,7 +515,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
                       <label htmlFor="login-password" className="block text-xs font-semibold text-[#0B3B3C]">
-                        {isAr ? 'كلمة المرور' : isFr ? 'Mot de passe sécurisé' : 'Password'}
+                        {isAr ? 'كلمة المرور' : isFr ? 'Mot de passe' : 'Password'}
                       </label>
                       <button
                         type="button"
@@ -605,10 +557,10 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                           ? 'Vérification des droits d’accès...'
                           : 'Verifying access...'
                         : isAr
-                        ? 'تسجيل الدخول إلى البوابة'
+                        ? 'تسجيل الدخول'
                         : isFr
-                        ? `Se connecter (${currentPresetObj.labelFr})`
-                        : `Sign In (${currentPresetObj.labelEn})`}
+                        ? 'Se connecter'
+                        : 'Sign In'}
                     </span>
                     <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
                   </button>
@@ -617,29 +569,20 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 {/* Bottom Switch Link: Patient <-> Health Agent Portal */}
                 <div className="pt-3 border-t border-[#E2E8F0] space-y-2 text-center">
                   {portalCategory === 'citizen' ? (
-                    <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
-                      <p className="text-[11px] text-[#475569]">
+                    <button
+                      type="button"
+                      onClick={() => handleSwitchPortalCategory('health_agent')}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F6B6B] hover:text-[#0B3B3C] hover:underline cursor-pointer"
+                    >
+                      <Stethoscope className="w-3.5 h-3.5" />
+                      <span>
                         {isAr
-                          ? 'هل أنت طبيب أو منسق رعاية أو عامل صحي؟'
+                          ? 'الدخول إلى بوابة الكوادر الصحية ←'
                           : isFr
-                          ? 'Vous êtes médecin, coordinateur ou agent de santé ?'
-                          : 'Are you a physician, care coordinator, or health agent?'}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => handleSwitchPortalCategory('health_agent')}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F6B6B] hover:text-[#0B3B3C] hover:underline cursor-pointer"
-                      >
-                        <Stethoscope className="w-3.5 h-3.5" />
-                        <span>
-                          {isAr
-                            ? 'الدخول إلى بوابة الكوادر الصحية ←'
-                            : isFr
-                            ? 'Accéder au portail Agents de Santé →'
-                            : 'Access Healthcare Agent Portal →'}
-                        </span>
-                      </button>
-                    </div>
+                          ? 'Accéder au portail Agents de Santé →'
+                          : 'Access Healthcare Agent Portal →'}
+                      </span>
+                    </button>
                   ) : (
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center justify-between gap-2 text-xs px-1">
@@ -773,16 +716,11 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
           </motion.div>
         </main>
 
-        <footer className="text-center text-[11px] text-white/85 lg:text-[#64748B] px-4 space-y-1">
+        <footer className="text-center text-[11px] text-white/85 lg:text-[#64748B] px-4">
           <p>
             {isFr
               ? 'Prototype indépendant réalisé par l’équipe CareX. Sans affiliation avec, ni approbation d’une autorité de santé. Données 100 % synthétiques.'
               : 'Independent prototype built by team CareX. Not affiliated with, or endorsed by, any health authority. 100% synthetic data.'}
-          </p>
-          <p className="opacity-80">
-            {isFr
-              ? 'Isolation des espaces par rôle · Données de démonstration'
-              : 'Role-based workspace isolation · Demo data'}
           </p>
         </footer>
       </div>
