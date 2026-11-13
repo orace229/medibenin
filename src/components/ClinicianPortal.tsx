@@ -25,6 +25,10 @@ import {
   PlusCircle,
   CheckCircle2,
   ShieldAlert,
+  Flag,
+  TrendingUp,
+  FileText,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -45,6 +49,7 @@ import {
   StatusChip,
   StatCard,
   AiSuggestionPanel,
+  Ring,
   GlassCard,
 } from './MediSenseUI.tsx';
 import {
@@ -57,6 +62,28 @@ import {
 interface ClinicianPortalProps {
   onLogout: () => void;
 }
+
+/* Panel-level visual language: one shared color per care level, reused by
+ * the recap bars, the filter chips and the legend so the eye never has to
+ * re-learn a mapping. Numeric boundaries are never displayed. */
+const LEVEL_SEQUENCE = ['red', 'orange', 'yellow', 'grey', 'green'] as const;
+
+const LEVEL_BAR_BG: Record<string, string> = {
+  red: 'bg-[#F87171]',
+  orange: 'bg-[#FB923C]',
+  yellow: 'bg-[#FACC15]',
+  grey: 'bg-[#CBD5E1]',
+  green: 'bg-[#4ADE80]',
+};
+
+const LEVEL_DOT: Record<string, string> = {
+  all: 'bg-[#94A3B8]',
+  red: 'bg-[#F87171]',
+  orange: 'bg-[#FB923C]',
+  yellow: 'bg-[#FACC15]',
+  grey: 'bg-[#CBD5E1]',
+  green: 'bg-[#4ADE80]',
+};
 
 interface GuidedAnalysisFormState {
   patientId?: string;
@@ -178,7 +205,7 @@ const DEFAULT_ANALYSIS_FORM: GuidedAnalysisFormState = {
 export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
   onLogout,
 }) => {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const isFr = locale === 'fr';
 
   const [patients, setPatients] = useState<ClinicianPatientListItem[]>([]);
@@ -675,6 +702,27 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
   const redCount = patients.filter((p) => p.overallLevel === 'red').length;
   const greyCount = patients.filter((p) => p.overallLevel === 'grey').length;
   const overdueCount = patients.filter((p) => p.overallLevel === 'orange').length;
+
+  const levelCounts: Record<string, number> = {
+    red: redCount,
+    orange: overdueCount,
+    yellow: patients.filter((p) => p.overallLevel === 'yellow').length,
+    grey: greyCount,
+    green: patients.filter((p) => p.overallLevel === 'green').length,
+  };
+  const pathwayCounts: Record<string, number> = {
+    child: patients.filter((p) => p.pathwayType === 'child').length,
+    adolescent: patients.filter((p) => p.pathwayType === 'adolescent').length,
+    adult: patients.filter((p) => p.pathwayType === 'adult').length,
+  };
+  const levelShortLabels: Record<string, string> = {
+    all: isFr ? 'Tous' : 'All',
+    red: t('levelRed'),
+    orange: t('levelOrange'),
+    yellow: t('levelYellow'),
+    grey: t('levelGrey'),
+    green: t('levelGreen'),
+  };
 
   const isMinorForm =
     analysisForm.pathwayType !== 'adult' || Number(analysisForm.ageYears || 0) < 18;
@@ -1623,6 +1671,112 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               />
             </div>
 
+            {/* Panel pulse — clickable recap bars double as filters */}
+            <GlassCard interactive={false} className="!p-4 sm:!p-5 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B]">
+                  {isFr ? 'Vue d’ensemble du panel' : 'Panel overview'}
+                </span>
+                <span className="text-[10px] text-[#64748B] font-medium">
+                  {isFr ? 'Cliquez sur une zone pour filtrer' : 'Click a segment to filter'}
+                </span>
+              </div>
+
+              {/* Levels bar */}
+              <div className="space-y-1.5">
+                <div className="flex h-7 w-full rounded-xl overflow-hidden border border-[#E2E8F0] bg-[#F8FAFC]">
+                  {patients.length === 0 ? (
+                    <div className="flex-1" />
+                  ) : (
+                    LEVEL_SEQUENCE.map((lvl) => {
+                      const count = levelCounts[lvl];
+                      if (count === 0) return null;
+                      const width = (count / patients.length) * 100;
+                      const selected = levelFilter === lvl;
+                      return (
+                        <button
+                          key={lvl}
+                          type="button"
+                          onClick={() => setLevelFilter(selected ? 'all' : lvl)}
+                          title={`${levelShortLabels[lvl]} — ${count}`}
+                          className={`${LEVEL_BAR_BG[lvl]} flex items-center justify-center text-[10px] font-bold text-[#0B3B3C] transition-all cursor-pointer ${
+                            selected ? 'ring-2 ring-inset ring-[#0F6B6B] z-10' : 'hover:brightness-105'
+                          }`}
+                          style={{ width: `${width}%` }}
+                        >
+                          {count}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-x-3.5 gap-y-1 text-[10px] font-semibold text-[#64748B]">
+                  {LEVEL_SEQUENCE.map((lvl) => (
+                    <span key={lvl} className="inline-flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${LEVEL_DOT[lvl]}`} />
+                      {levelShortLabels[lvl]}
+                      <span className="tabular-nums text-[#334155]">{levelCounts[lvl]}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Pathways bar */}
+              <div className="space-y-1.5 pt-3 border-t border-[#E2E8F0]/70">
+                <div className="flex h-6 w-full rounded-xl overflow-hidden border border-[#E2E8F0] bg-[#F8FAFC]">
+                  {patients.length === 0 ? (
+                    <div className="flex-1" />
+                  ) : (
+                    (['child', 'adolescent', 'adult'] as const).map((pw) => {
+                      const count = pathwayCounts[pw];
+                      if (count === 0) return null;
+                      const width = (count / patients.length) * 100;
+                      const selected = pathwayFilter === pw;
+                      return (
+                        <button
+                          key={pw}
+                          type="button"
+                          onClick={() => setPathwayFilter(selected ? 'all' : pw)}
+                          title={`${pw} — ${count}`}
+                          className={`${
+                            pw === 'child'
+                              ? 'bg-[#99F6E4]'
+                              : pw === 'adolescent'
+                              ? 'bg-[#5EEAD4]'
+                              : 'bg-[#14A39A]'
+                          } flex items-center justify-center text-[10px] font-bold text-[#0B3B3C] transition-all cursor-pointer ${
+                            selected ? 'ring-2 ring-inset ring-[#0B3B3C] z-10' : 'hover:brightness-105'
+                          }`}
+                          style={{ width: `${width}%` }}
+                        >
+                          {count}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-x-3.5 gap-y-1 text-[10px] font-semibold text-[#64748B]">
+                  {(
+                    [
+                      ['child', isFr ? 'Enfants (0–9 ans)' : 'Children (0–9y)'],
+                      ['adolescent', isFr ? 'Adolescents (10–17 ans)' : 'Adolescents (10–17y)'],
+                      ['adult', isFr ? 'Adultes (18 ans+)' : 'Adults (18y+)'],
+                    ] as const
+                  ).map(([pw, label]) => (
+                    <span key={pw} className="inline-flex items-center gap-1.5">
+                      <span
+                        className={`w-2 h-2 rounded-full ${
+                          pw === 'child' ? 'bg-[#99F6E4]' : pw === 'adolescent' ? 'bg-[#5EEAD4]' : 'bg-[#14A39A]'
+                        }`}
+                      />
+                      {label}
+                      <span className="tabular-nums text-[#334155]">{pathwayCounts[pw]}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </GlassCard>
+
             {/* Filter & Search Bar */}
             <div className="liquid-glass rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
               <div className="relative flex-1 w-full">
@@ -1645,11 +1799,12 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                       key={lvl}
                       type="button"
                       onClick={() => setLevelFilter(lvl)}
-                      className={`px-2.5 py-1 rounded-lg font-semibold capitalize whitespace-nowrap shrink-0 ${
+                      className={`px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap shrink-0 inline-flex items-center gap-1.5 ${
                         levelFilter === lvl ? 'bg-white text-[#0B3B3C] shadow-2xs' : 'text-[#64748B]'
                       }`}
                     >
-                      {lvl}
+                      <span className={`w-2 h-2 rounded-full ${LEVEL_DOT[lvl]}`} />
+                      {levelShortLabels[lvl]}
                     </button>
                   ))}
                 </div>
@@ -1660,10 +1815,10 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                   onChange={(e) => setPathwayFilter(e.target.value)}
                   className="px-3 py-1.5 rounded-xl border border-[#E2E8F0] bg-white/90 font-semibold text-[#0B3B3C]"
                 >
-                  <option value="all">All Pathways</option>
-                  <option value="child">Child (0–9y)</option>
-                  <option value="adolescent">Adolescent (10–17y)</option>
-                  <option value="adult">Adult (18y+)</option>
+                  <option value="all">{isFr ? 'Tous les parcours' : 'All Pathways'}</option>
+                  <option value="child">{isFr ? 'Enfant (0–9 ans)' : 'Child (0–9y)'}</option>
+                  <option value="adolescent">{isFr ? 'Adolescent (10–17 ans)' : 'Adolescent (10–17y)'}</option>
+                  <option value="adult">{isFr ? 'Adulte (18 ans+)' : 'Adult (18y+)'}</option>
                 </select>
               </div>
             </div>
@@ -1846,96 +2001,129 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     </p>
                   </div>
                 )}
+
+                <Ring
+                  done={patientDetail.preventionProgressDone}
+                  total={patientDetail.preventionProgressTotal}
+                  label={isFr ? 'Prévention à jour' : 'Up-to-date prevention'}
+                />
               </GlassCard>
 
-              {/* 8 Key Clinician Action Bar */}
-              <div className="liquid-glass rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 space-y-2.5">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B]">
-                  {isFr ? 'Actions Cliniques & Saisie Guidée' : 'Clinical Consultation Controls'}
-                </p>
-                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={handleRunEvaluation}
-                    className="px-3 sm:px-3.5 py-2 rounded-xl btn-liquid-primary text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">Evaluate</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveActionPanel('guided-workbench')}
-                    className="px-3 sm:px-3.5 py-2 rounded-xl bg-[#F0FDFA] border border-[#14A39A] text-[#0B3B3C] text-xs font-bold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
-                  >
-                    <Calculator className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">
-                      {isFr ? 'Saisie guidée' : 'Guided input'}
+              {/* Flags at a glance — same color language as the dashboard recap */}
+              <div className="flex flex-wrap items-center gap-2">
+                {LEVEL_SEQUENCE.map((lvl) => {
+                  const count = patientDetail.flags.filter((f) => f.level === lvl).length;
+                  if (count === 0) return null;
+                  return (
+                    <span
+                      key={lvl}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 border border-[#E2E8F0] text-[11px] font-semibold text-[#334155]`}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${LEVEL_DOT[lvl]}`} />
+                      {levelShortLabels[lvl]}
+                      <span className="tabular-nums font-bold text-[#0B3B3C]">{count}</span>
                     </span>
-                  </button>
+                  );
+                })}
+              </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setActiveActionPanel('missing-data')}
-                    className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
-                  >
-                    <ClipboardPlus className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">{isFr ? 'Compléter les mesures' : 'Enter missing data'}</span>
-                  </button>
+              {/* 8 Key Clinician Action Bar — grouped to cut visual fatigue */}
+              <div className="liquid-glass rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 space-y-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
+                    {isFr ? 'Évaluation clinique' : 'Clinical evaluation'}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={handleRunEvaluation}
+                      className="px-3.5 py-2 rounded-xl btn-liquid-primary text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">Evaluate</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={handleGenerateAiSummary}
-                    className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">{isFr ? 'Résumé du cas' : 'Case summary'}</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveActionPanel('guided-workbench')}
+                      className="px-3.5 py-2 rounded-xl bg-[#F0FDFA] border border-[#14A39A] text-[#0B3B3C] text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                    >
+                      <Calculator className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
+                      <span className="truncate">
+                        {isFr ? 'Saisie guidée' : 'Guided input'}
+                      </span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setActiveActionPanel('pathway-decision')}
-                    className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
-                  >
-                    <CheckSquare className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">{isFr ? 'Réviser le plan' : 'Review plan'}</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveActionPanel('missing-data')}
+                      className="px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                    >
+                      <ClipboardPlus className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
+                      <span className="truncate">{isFr ? 'Compléter les mesures' : 'Enter missing data'}</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleOpenInvitationPreview()}
-                    className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
-                  >
-                    <Send className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">{isFr ? 'Préparer l’invitation' : 'Prepare invitation'}</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={handleGenerateAiSummary}
+                      className="px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
+                      <span className="truncate">{isFr ? 'Résumé du cas' : 'Case summary'}</span>
+                    </button>
+                  </div>
+                </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setActiveActionPanel('confirm-visit')}
-                    className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
-                  >
-                    <QrCode className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">{isFr ? 'Confirmer la visite' : 'Confirm visit'}</span>
-                  </button>
+                <div className="pt-2.5 border-t border-[#E2E8F0]/70">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
+                    {isFr ? 'Coordination du parcours' : 'Care coordination'}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setActiveActionPanel('pathway-decision')}
+                      className="px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                    >
+                      <CheckSquare className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
+                      <span className="truncate">{isFr ? 'Réviser le plan' : 'Review plan'}</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setActiveActionPanel('conclusion')}
-                    className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
-                  >
-                    <FileCheck className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">{isFr ? 'Enregistrer la conclusion' : 'Record outcome'}</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenInvitationPreview()}
+                      className="px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                    >
+                      <Send className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
+                      <span className="truncate">{isFr ? 'Préparer l’invitation' : 'Prepare invitation'}</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={handleExportFhir}
-                    className="px-3 sm:px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center justify-center sm:justify-start gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
-                  >
-                    <Download className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                    <span className="truncate">{isFr ? 'Exporter le fichier FHIR' : 'Export FHIR file'}</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveActionPanel('confirm-visit')}
+                      className="px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                    >
+                      <QrCode className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
+                      <span className="truncate">{isFr ? 'Confirmer la visite' : 'Confirm visit'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveActionPanel('conclusion')}
+                      className="px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                    >
+                      <FileCheck className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
+                      <span className="truncate">{isFr ? 'Enregistrer la conclusion' : 'Record outcome'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleExportFhir}
+                      className="px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
+                      <span className="truncate">{isFr ? 'Exporter le fichier FHIR' : 'Export FHIR file'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -2239,28 +2427,29 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 </GlassCard>
               )}
 
-              {/* Record Navigation Tabs */}
+              {/* Record Navigation Tabs — icon-coded for instant orientation */}
               <div className="flex flex-wrap gap-1.5 liquid-glass p-1.5 rounded-2xl w-fit">
                 {(
                   [
-                    { id: 'flags', label: `Flags (${patientDetail.flags.length})` },
-                    { id: 'pathway', label: 'Consolidated CarePlan' },
-                    { id: 'measures', label: 'Trends' },
-                    { id: 'summary', label: 'Summary' },
-                    { id: 'consents', label: 'Consents & Audit' },
+                    { id: 'flags', label: isFr ? `Drapeaux (${patientDetail.flags.length})` : `Flags (${patientDetail.flags.length})`, Icon: Flag },
+                    { id: 'pathway', label: isFr ? 'Plan de soin groupé' : 'Consolidated CarePlan', Icon: CheckSquare },
+                    { id: 'measures', label: isFr ? 'Évolution' : 'Trends', Icon: TrendingUp },
+                    { id: 'summary', label: isFr ? 'Résumé' : 'Summary', Icon: FileText },
+                    { id: 'consents', label: isFr ? 'Consentements & audit' : 'Consents & Audit', Icon: ShieldCheck },
                   ] as const
-                ).map((tab) => (
+                ).map(({ id, label, Icon }) => (
                   <button
-                    key={tab.id}
+                    key={id}
                     type="button"
-                    onClick={() => setDetailTab(tab.id)}
-                    className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all ${
-                      detailTab === tab.id
+                    onClick={() => setDetailTab(id)}
+                    className={`px-3.5 py-2 text-xs font-semibold rounded-xl inline-flex items-center gap-1.5 transition-all ${
+                      detailTab === id
                         ? 'bg-[#0B3B3C] text-white shadow-xs'
-                        : 'text-[#64748B] hover:text-[#0B3B3C]'
+                        : 'text-[#64748B] hover:text-[#0B3B3C] hover:bg-white/60'
                     }`}
                   >
-                    {tab.label}
+                    <Icon className="w-3.5 h-3.5 shrink-0" />
+                    {label}
                   </button>
                 ))}
               </div>
