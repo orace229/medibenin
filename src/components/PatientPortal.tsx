@@ -23,7 +23,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  ReferenceArea,
   ResponsiveContainer,
 } from 'recharts';
 import { useI18n } from '../lib/i18n.tsx';
@@ -62,64 +61,172 @@ const BP_ZONE_CHIP: Record<BpZoneKey, string> = {
   none: 'bg-[#F8FAFC] text-[#64748B] border-[#E2E8F0]',
 };
 
-const BpPointTooltip: React.FC<any> = ({ active, payload, label }) => {
-  if (!active || !payload || payload.length === 0) return null;
-  return (
-    <div className="rounded-xl bg-white border border-[#E2E8F0] px-2.5 py-1.5 text-xs shadow-md">
-      <span className="font-semibold text-[#334155]">{label}</span>
-      {' · '}
-      <strong className="text-[#0B3B3C]">{payload[0].value} mmHg</strong>
-    </div>
-  );
-};
+/* ------------------------------------------------------------------
+ * BP 3D gauge — glass tube with qualitative zones (target / follow-up /
+ * confirm), a glossy mercury column at the latest reading, a value
+ * bubble and a zone-change trend arrow. Zone boundaries are never
+ * displayed as numbers; meaning is carried by color + legend.
+ * ------------------------------------------------------------------ */
+const BP_GAUGE = { top: 14, bottom: 180, cx: 37, w: 26 };
+const BP_ZONE_FILL = ['#34D399', '#FBBF24', '#F87171'];
+const BP_ZONE_DOT = ['bg-[#6EE7B7]', 'bg-[#FCD34D]', 'bg-[#FCA5A5]'];
 
-const BpSeriesStrip: React.FC<{
+const BpGauge: React.FC<{
+  clipId: string;
   title: string;
   data: Array<{ dateLabel: string; systolic?: number; diastolic?: number }>;
   dataKey: 'systolic' | 'diastolic';
-  yDomain: [number, number];
+  min: number;
+  max: number;
   target: number;
   limit: number;
-  stroke: string;
-  fill: string;
-}> = ({ title, data, dataKey, yDomain, target, limit, stroke, fill }) => (
-  <div className="space-y-1.5">
-    <span className="text-xs font-bold text-[#334155]">{title}</span>
-    <div className="h-24 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 8 }}>
-          <ReferenceArea y1={yDomain[0]} y2={target} fill="#D1FAE5" fillOpacity={0.55} stroke="none" />
-          <ReferenceArea y1={target} y2={limit} fill="#FDE68A" fillOpacity={0.55} stroke="none" />
-          <ReferenceArea y1={limit} y2={yDomain[1]} fill="#FECACA" fillOpacity={0.5} stroke="none" />
-          <XAxis
-            dataKey="dateLabel"
-            tick={{ fontSize: 10, fill: '#94A3B8' }}
-            tickLine={false}
-            axisLine={false}
-            interval="preserveStartEnd"
-            minTickGap={28}
+  trendLabels: { up: string; down: string; stable: string };
+}> = ({ clipId, title, data, dataKey, min, max, target, limit, trendLabels }) => {
+  const values = data
+    .map((d) => d[dataKey])
+    .filter((v): v is number => typeof v === 'number');
+  const latest = values[values.length - 1];
+  const prev = values.length > 1 ? values[values.length - 2] : null;
+
+  if (latest == null) {
+    return (
+      <div className="flex items-center justify-center h-48 text-xs text-[#64748B]">
+        {title} —
+      </div>
+    );
+  }
+
+  const zoneOf = (v: number) => (v < target ? 0 : v < limit ? 1 : 2);
+  const { top: tTop, bottom: tBot, cx, w } = BP_GAUGE;
+  const r = w / 2;
+  const yOf = (v: number) => tBot - ((v - min) / (max - min)) * (tBot - tTop);
+  const yTarget = yOf(target);
+  const yLimit = yOf(limit);
+  const yLatest = yOf(latest);
+  const zoneColor = BP_ZONE_FILL[zoneOf(latest)];
+
+  let trendKey: 'up' | 'down' | 'stable' = 'stable';
+  if (prev != null) {
+    const dz = zoneOf(latest) - zoneOf(prev);
+    if (dz > 0) trendKey = 'up';
+    else if (dz < 0) trendKey = 'down';
+  }
+  const trendColor =
+    trendKey === 'up' ? '#B91C1C' : trendKey === 'down' ? '#15803D' : '#64748B';
+  const trendArrow = trendKey === 'up' ? '▲' : trendKey === 'down' ? '▼' : '◆';
+
+  const bubbleY = Math.min(Math.max(yLatest - 12, tTop), tBot - 26);
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <span className="text-xs font-bold text-[#334155]">{title}</span>
+      <svg viewBox="0 0 140 196" className="w-full max-w-[150px] h-auto" role="img" aria-label={title}>
+        <defs>
+          <clipPath id={clipId}>
+            <rect x={cx - r} y={tTop} width={w} height={tBot - tTop} rx={r} />
+          </clipPath>
+          <linearGradient id={`${clipId}-glass`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#64748B" stopOpacity="0.4" />
+            <stop offset="16%" stopColor="#FFFFFF" stopOpacity="0.15" />
+            <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.55" />
+            <stop offset="84%" stopColor="#FFFFFF" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#64748B" stopOpacity="0.4" />
+          </linearGradient>
+          <filter id={`${clipId}-shadow`} x="-40%" y="-40%" width="180%" height="180%">
+            <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="#0B3B3C" floodOpacity="0.28" />
+          </filter>
+        </defs>
+
+        {/* Qualitative zone bands (soft, no numbers) */}
+        <g clipPath={`url(#${clipId})`}>
+          <rect x={cx - r} y={yLimit} width={w} height={tBot - yLimit} fill="#FECACA" />
+          <rect x={cx - r} y={yTarget} width={w} height={yLimit - yTarget} fill="#FDE68A" />
+          <rect x={cx - r} y={tTop} width={w} height={yTarget - tTop} fill="#D1FAE5" />
+          <line x1={cx - r} x2={cx + r} y1={yTarget} y2={yTarget} stroke="#94A3B8" strokeOpacity="0.55" strokeDasharray="2 2" />
+          <line x1={cx - r} x2={cx + r} y1={yLimit} y2={yLimit} stroke="#94A3B8" strokeOpacity="0.55" strokeDasharray="2 2" />
+
+          {/* Mercury column at the latest reading */}
+          <rect
+            x={cx - r + 4}
+            y={yLatest}
+            width={w - 8}
+            height={tBot - yLatest}
+            fill={zoneColor}
+            opacity="0.95"
           />
-          <YAxis domain={yDomain} hide />
-          <Tooltip
-            content={<BpPointTooltip />}
-            cursor={{ stroke: '#94A3B8', strokeDasharray: '3 3' }}
+          {/* Glossy highlight on the mercury */}
+          <rect
+            x={cx - r + 5}
+            y={Math.max(yLatest + 3, tTop + 3)}
+            width={5}
+            height={Math.max(tBot - yLatest - 8, 0)}
+            rx="2.5"
+            fill="#FFFFFF"
+            opacity="0.55"
           />
-          <Area
-            type="monotone"
-            dataKey={dataKey}
-            stroke={stroke}
-            fill={fill}
-            fillOpacity={0.35}
-            strokeWidth={2.5}
-            dot={{ r: 2.5, strokeWidth: 0, fill: stroke }}
-            activeDot={{ r: 5 }}
-            connectNulls
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+          {/* Specular streak of the tube */}
+          <rect x={cx - r + 3} y={tTop + 3} width={4} height={tBot - tTop - 6} rx="2" fill="#FFFFFF" opacity="0.45" />
+        </g>
+
+        {/* Glass tube outline on top for depth */}
+        <rect
+          x={cx - r}
+          y={tTop}
+          width={w}
+          height={tBot - tTop}
+          rx={r}
+          fill={`url(#${clipId}-glass)`}
+          stroke="#CBD5E1"
+          strokeWidth="1.5"
+        />
+
+        {/* Value bubble */}
+        <rect
+          x={cx + r + 7}
+          y={bubbleY}
+          width={66}
+          height={24}
+          rx="12"
+          fill="#FFFFFF"
+          stroke={zoneColor}
+          strokeWidth="1.5"
+          filter={`url(#${clipId}-shadow)`}
+        />
+        <text x={cx + r + 40} y={bubbleY + 16} textAnchor="middle">
+          <tspan fontSize="12" fontWeight="700" fill="#0B3B3C">
+            {latest}
+          </tspan>
+          <tspan fontSize="9" fill="#64748B">
+            {' '}
+            mmHg
+          </tspan>
+        </text>
+
+        {/* Ground cap */}
+        <ellipse cx={cx} cy={tBot + 3} rx={r} ry="3.5" fill="#CBD5E1" opacity="0.5" />
+      </svg>
+
+      {/* Zone-change trend vs previous reading */}
+      <span className="text-[10px] font-bold tabular-nums" style={{ color: trendColor }}>
+        {trendArrow} {trendLabels[trendKey]}
+      </span>
+
+      {/* Recent readings, colored by zone (hover = date + exact value) */}
+      <div className="flex items-center justify-center gap-1.5">
+        {data
+          .slice(-4)
+          .filter((d) => typeof d[dataKey] === 'number')
+          .map((d, i) => (
+            <span
+              key={i}
+              title={`${d.dateLabel} · ${d[dataKey]} mmHg`}
+              className={`w-2.5 h-2.5 rounded-full ${BP_ZONE_DOT[zoneOf(d[dataKey] as number)]}`}
+            />
+          ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 interface PatientPortalProps {
   role: 'patient' | 'parent';
@@ -1021,7 +1128,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           systolic?: number;
                           diastolic?: number;
                         }> = profile.bpSeries || [];
-                        const lastBp = series.length > 0 ? series[series.length - 1] : null;
                         return (
                           <>
                             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1062,54 +1168,42 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               </span>
                             </div>
 
-                            {/* Latest readings */}
-                            {lastBp && (
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                                  <p className="text-[11px] font-semibold text-[#64748B]">
-                                    {isFr ? 'Dernière — Systolique' : isAr ? 'الأحدث — الانقباضي' : 'Latest — Systolic'}
-                                  </p>
-                                  <p className="text-lg font-extrabold text-[#0B3B3C] font-heading">
-                                    {lastBp.systolic ?? '—'}{' '}
-                                    <span className="text-[11px] font-semibold text-[#64748B]">mmHg</span>
-                                  </p>
-                                </div>
-                                <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                                  <p className="text-[11px] font-semibold text-[#64748B]">
-                                    {isFr ? 'Dernière — Diastolique' : isAr ? 'الأحدث — الانبساطي' : 'Latest — Diastolic'}
-                                  </p>
-                                  <p className="text-lg font-extrabold text-[#0B3B3C] font-heading">
-                                    {lastBp.diastolic ?? '—'}{' '}
-                                    <span className="text-[11px] font-semibold text-[#64748B]">mmHg</span>
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-
                             {series.length > 0 ? (
                               <>
-                                <BpSeriesStrip
-                                  title={isFr ? 'Systolique' : isAr ? 'الانقباضي' : 'Systolic'}
-                                  data={series}
-                                  dataKey="systolic"
-                                  yDomain={[90, 170]}
-                                  target={130}
-                                  limit={140}
-                                  stroke="#0F6B6B"
-                                  fill="#D5F2EE"
-                                />
-                                <BpSeriesStrip
-                                  title={isFr ? 'Diastolique' : isAr ? 'الانبساطي' : 'Diastolic'}
-                                  data={series}
-                                  dataKey="diastolic"
-                                  yDomain={[50, 110]}
-                                  target={85}
-                                  limit={90}
-                                  stroke="#2F6FDE"
-                                  fill="#EFF6FF"
-                                />
+                                <div className="grid grid-cols-2 gap-3 pt-1">
+                                  <BpGauge
+                                    clipId="bp-sys"
+                                    title={isFr ? 'Systolique' : isAr ? 'الانقباضي' : 'Systolic'}
+                                    data={series}
+                                    dataKey="systolic"
+                                    min={90}
+                                    max={170}
+                                    target={130}
+                                    limit={140}
+                                    trendLabels={{
+                                      up: isFr ? 'En hausse' : isAr ? 'ارتفاع' : 'Rising',
+                                      down: isFr ? 'En amélioration' : isAr ? 'تحسّن' : 'Improving',
+                                      stable: isFr ? 'Stable' : isAr ? 'مستقر' : 'Stable',
+                                    }}
+                                  />
+                                  <BpGauge
+                                    clipId="bp-dia"
+                                    title={isFr ? 'Diastolique' : isAr ? 'الانبساطي' : 'Diastolic'}
+                                    data={series}
+                                    dataKey="diastolic"
+                                    min={50}
+                                    max={110}
+                                    target={85}
+                                    limit={90}
+                                    trendLabels={{
+                                      up: isFr ? 'En hausse' : isAr ? 'ارتفاع' : 'Rising',
+                                      down: isFr ? 'En amélioration' : isAr ? 'تحسّن' : 'Improving',
+                                      stable: isFr ? 'Stable' : isAr ? 'مستقر' : 'Stable',
+                                    }}
+                                  />
+                                </div>
                                 {/* Shared zone legend */}
-                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] font-semibold text-[#64748B] pt-1 border-t border-[#E2E8F0]">
+                                <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[10px] font-semibold text-[#64748B] pt-2 border-t border-[#E2E8F0]">
                                   <span className="flex items-center gap-1.5">
                                     <span className="w-2.5 h-2.5 rounded-sm bg-[#D1FAE5] border border-[#A7F3D0]" />
                                     {isFr ? 'Zone cible' : isAr ? 'النطاق المستهدف' : 'Target zone'}

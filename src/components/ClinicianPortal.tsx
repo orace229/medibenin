@@ -63,18 +63,9 @@ interface ClinicianPortalProps {
   onLogout: () => void;
 }
 
-/* Panel-level visual language: one shared color per care level, reused by
- * the recap bars, the filter chips and the legend so the eye never has to
- * re-learn a mapping. Numeric boundaries are never displayed. */
+/* Panel-level visual language: one shared label per care level, reused by
+ * the filter chips and the flags strip so wording stays consistent. */
 const LEVEL_SEQUENCE = ['red', 'orange', 'yellow', 'grey', 'green'] as const;
-
-const LEVEL_BAR_BG: Record<string, string> = {
-  red: 'bg-[#F87171]',
-  orange: 'bg-[#FB923C]',
-  yellow: 'bg-[#FACC15]',
-  grey: 'bg-[#CBD5E1]',
-  green: 'bg-[#4ADE80]',
-};
 
 const LEVEL_DOT: Record<string, string> = {
   all: 'bg-[#94A3B8]',
@@ -216,6 +207,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [pathwayFilter, setPathwayFilter] = useState<string>('all');
+  const [showRefinements, setShowRefinements] = useState(false);
 
   const [detailTab, setDetailTab] = useState<
     'calculations' | 'flags' | 'pathway' | 'measures' | 'summary' | 'consents'
@@ -1671,113 +1663,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               />
             </div>
 
-            {/* Panel pulse — clickable recap bars double as filters */}
-            <GlassCard interactive={false} className="!p-4 sm:!p-5 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B]">
-                  {isFr ? 'Vue d’ensemble du panel' : 'Panel overview'}
-                </span>
-                <span className="text-[10px] text-[#64748B] font-medium">
-                  {isFr ? 'Cliquez sur une zone pour filtrer' : 'Click a segment to filter'}
-                </span>
-              </div>
-
-              {/* Levels bar */}
-              <div className="space-y-1.5">
-                <div className="flex h-7 w-full rounded-xl overflow-hidden border border-[#E2E8F0] bg-[#F8FAFC]">
-                  {patients.length === 0 ? (
-                    <div className="flex-1" />
-                  ) : (
-                    LEVEL_SEQUENCE.map((lvl) => {
-                      const count = levelCounts[lvl];
-                      if (count === 0) return null;
-                      const width = (count / patients.length) * 100;
-                      const selected = levelFilter === lvl;
-                      return (
-                        <button
-                          key={lvl}
-                          type="button"
-                          onClick={() => setLevelFilter(selected ? 'all' : lvl)}
-                          title={`${levelShortLabels[lvl]} — ${count}`}
-                          className={`${LEVEL_BAR_BG[lvl]} flex items-center justify-center text-[10px] font-bold text-[#0B3B3C] transition-all cursor-pointer ${
-                            selected ? 'ring-2 ring-inset ring-[#0F6B6B] z-10' : 'hover:brightness-105'
-                          }`}
-                          style={{ width: `${width}%` }}
-                        >
-                          {count}
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-x-3.5 gap-y-1 text-[10px] font-semibold text-[#64748B]">
-                  {LEVEL_SEQUENCE.map((lvl) => (
-                    <span key={lvl} className="inline-flex items-center gap-1.5">
-                      <span className={`w-2 h-2 rounded-full ${LEVEL_DOT[lvl]}`} />
-                      {levelShortLabels[lvl]}
-                      <span className="tabular-nums text-[#334155]">{levelCounts[lvl]}</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Pathways bar */}
-              <div className="space-y-1.5 pt-3 border-t border-[#E2E8F0]/70">
-                <div className="flex h-6 w-full rounded-xl overflow-hidden border border-[#E2E8F0] bg-[#F8FAFC]">
-                  {patients.length === 0 ? (
-                    <div className="flex-1" />
-                  ) : (
-                    (['child', 'adolescent', 'adult'] as const).map((pw) => {
-                      const count = pathwayCounts[pw];
-                      if (count === 0) return null;
-                      const width = (count / patients.length) * 100;
-                      const selected = pathwayFilter === pw;
-                      return (
-                        <button
-                          key={pw}
-                          type="button"
-                          onClick={() => setPathwayFilter(selected ? 'all' : pw)}
-                          title={`${pw} — ${count}`}
-                          className={`${
-                            pw === 'child'
-                              ? 'bg-[#99F6E4]'
-                              : pw === 'adolescent'
-                              ? 'bg-[#5EEAD4]'
-                              : 'bg-[#14A39A]'
-                          } flex items-center justify-center text-[10px] font-bold text-[#0B3B3C] transition-all cursor-pointer ${
-                            selected ? 'ring-2 ring-inset ring-[#0B3B3C] z-10' : 'hover:brightness-105'
-                          }`}
-                          style={{ width: `${width}%` }}
-                        >
-                          {count}
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-x-3.5 gap-y-1 text-[10px] font-semibold text-[#64748B]">
-                  {(
-                    [
-                      ['child', isFr ? 'Enfants (0–9 ans)' : 'Children (0–9y)'],
-                      ['adolescent', isFr ? 'Adolescents (10–17 ans)' : 'Adolescents (10–17y)'],
-                      ['adult', isFr ? 'Adultes (18 ans+)' : 'Adults (18y+)'],
-                    ] as const
-                  ).map(([pw, label]) => (
-                    <span key={pw} className="inline-flex items-center gap-1.5">
-                      <span
-                        className={`w-2 h-2 rounded-full ${
-                          pw === 'child' ? 'bg-[#99F6E4]' : pw === 'adolescent' ? 'bg-[#5EEAD4]' : 'bg-[#14A39A]'
-                        }`}
-                      />
-                      {label}
-                      <span className="tabular-nums text-[#334155]">{pathwayCounts[pw]}</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </GlassCard>
-
-            {/* Filter & Search Bar */}
+            {/* Compact search with optional refinements */}
             <div className="liquid-glass rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
               <div className="relative flex-1 w-full">
                 <Search className="w-4 h-4 text-[#64748B] absolute start-3.5 top-3" />
@@ -1799,12 +1685,15 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                       key={lvl}
                       type="button"
                       onClick={() => setLevelFilter(lvl)}
-                      className={`px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap shrink-0 inline-flex items-center gap-1.5 ${
+                      className={`px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap shrink-0 tabular-nums ${
                         levelFilter === lvl ? 'bg-white text-[#0B3B3C] shadow-2xs' : 'text-[#64748B]'
                       }`}
                     >
-                      <span className={`w-2 h-2 rounded-full ${LEVEL_DOT[lvl]}`} />
                       {levelShortLabels[lvl]}
+                      <span className="opacity-60">
+                        {' '}
+                        ({lvl === 'all' ? patients.length : levelCounts[lvl]})
+                      </span>
                     </button>
                   ))}
                 </div>
