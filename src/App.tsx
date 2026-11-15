@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { I18nProvider } from './lib/i18n.tsx';
 import { setApiAuthToken } from './lib/api.ts';
 import { UserRole } from './lib/types.ts';
@@ -19,7 +19,7 @@ const ROLE_TO_DEMO_TOKEN: Record<UserRole, string> = {
   public_health: 'demo-token-public-health',
 };
 
-const SESSION_STORAGE_KEY = 'medisense.session';
+const SESSION_STORAGE_KEY = 'MediBenin.session';
 
 function readStoredSessionRole(): UserRole | null {
   try {
@@ -35,7 +35,7 @@ function readStoredSessionRole(): UserRole | null {
 // Restored synchronously at module scope so the portal survives a page refresh.
 const storedSessionRole = readStoredSessionRole();
 
-function MediSenseApplication() {
+function MediBeninApplication() {
   const [view, setView] = useState<AppView>(storedSessionRole ? 'portal' : 'landing');
   const [currentRole, setCurrentRole] = useState<UserRole>(storedSessionRole ?? 'patient');
   const [preselectedLoginRole, setPreselectedLoginRole] = useState<UserRole>('patient');
@@ -46,7 +46,7 @@ function MediSenseApplication() {
     try {
       sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(role));
     } catch {
-      /* storage unavailable — session kept in memory only */
+      /* storage unavailable â€” session kept in memory only */
     }
     setCurrentRole(role);
     setView('portal');
@@ -62,7 +62,7 @@ function MediSenseApplication() {
   const handleLogout = () => {
     try {
       sessionStorage.removeItem(SESSION_STORAGE_KEY);
-      sessionStorage.removeItem('medisense.authToken');
+      sessionStorage.removeItem('MediBenin.authToken');
     } catch {
       /* ignore */
     }
@@ -96,7 +96,7 @@ function MediSenseApplication() {
     );
   }
 
-  // Active Role Portal (Strict RBAC session isolation — no in-app role switcher)
+  // Active Role Portal (Strict RBAC session isolation â€” no in-app role switcher)
   if (currentRole === 'patient' || currentRole === 'parent') {
     return <PatientPortal role={currentRole} onLogout={handleLogout} />;
   }
@@ -111,7 +111,7 @@ function MediSenseApplication() {
 export default function App() {
   return (
     <I18nProvider>
-      <MediSenseApplication />
+      <MediBeninApplication />
     </I18nProvider>
   );
 }

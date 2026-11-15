@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+﻿import { Request, Response, NextFunction } from 'express';
 import { adminAuth } from '../lib/firebase-admin.ts';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { getOrCreateUser } from '../db/users.ts';
@@ -10,7 +10,7 @@ export interface AuthRequest extends Request {
 const DEMO_ACCOUNTS: Record<string, { uid: string; email: string; role: string; displayName: string; preferredLanguage: string; linkedPatientIds: string[] }> = {
   'demo-token-patient': {
     uid: 'demo-patient-tariq',
-    email: 'tariq.nadim@demo.medisense.ae',
+    email: 'tariq.nadim@demo.MediBenin.ae',
     role: 'patient',
     displayName: 'Tariq Al-Nadim (36y)',
     preferredLanguage: 'en',
@@ -18,7 +18,7 @@ const DEMO_ACCOUNTS: Record<string, { uid: string; email: string; role: string; 
   },
   'demo-token-parent': {
     uid: 'demo-parent-amira',
-    email: 'amira.mansoor@demo.medisense.ae',
+    email: 'amira.mansoor@demo.MediBenin.ae',
     role: 'parent',
     displayName: 'Amira Al-Mansoor (Parent)',
     preferredLanguage: 'en',
@@ -111,7 +111,7 @@ export const requireAuth = async (
     const decodedToken = await adminAuth.verifyIdToken(token);
     const dbUser = await getOrCreateUser(
       decodedToken.uid,
-      decodedToken.email || 'user@medisense.ae',
+      decodedToken.email || 'user@MediBenin.ae',
       decodedToken.name || decodedToken.email?.split('@')[0] || 'Authenticated User',
       // New Firebase accounts are unprivileged by default. Clinical roles are
       // provisioned explicitly after credential/licence verification.

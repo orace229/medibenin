@@ -1,4 +1,4 @@
-import test from 'node:test';
+﻿import test from 'node:test';
 import assert from 'node:assert/strict';
 import { computeCommunityAlerts } from './benchmarkEngine.ts';
 
@@ -15,14 +15,14 @@ function person(overrides: Record<string, any> = {}) {
     languageNeedsSupport: false,
     channel: 'WhatsApp',
     accessTimeMinutes: 20,
-    ageBand: '40–64 years',
+    ageBand: '40â€“64 years',
     consentGenomic: false,
     clinicalProfile: {},
     truth: { hasTrueNeed: true },
     overallLevel: 'orange',
     recommended: true,
-    invitedMediSense: true,
-    attendedMediSense: false,
+    invitedMediBenin: true,
+    attendedMediBenin: false,
     ...overrides,
   } as any;
 }
@@ -54,16 +54,16 @@ test('C3: a nationality segment more than 10 points below pooled adoption trigge
       person({
         id: `SA-${i}`,
         nationalityGroup: 'South Asia',
-        invitedMediSense: true,
-        attendedMediSense: i < 10, // 10/50 = 20% adoption
+        invitedMediBenin: true,
+        attendedMediBenin: i < 10, // 10/50 = 20% adoption
       })
     ),
     ...Array.from({ length: 50 }, (_, i) =>
       person({
         id: `EM-${i}`,
         nationalityGroup: 'Emirati',
-        invitedMediSense: true,
-        attendedMediSense: true, // 50/50 = 100%
+        invitedMediBenin: true,
+        attendedMediBenin: true, // 50/50 = 100%
       })
     ),
   ];

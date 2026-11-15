@@ -1,6 +1,6 @@
-{
-  "name": "MediSense — Precision Prevention & Screening",
-  "description": "Precision prevention and screening platform for children, adults, and communities — closing the loop between identified risk and completed care visits with visible uncertainty and equity safeguards.",
+﻿{
+  "name": "MediBenin â€” Precision Prevention & Screening",
+  "description": "Precision prevention and screening platform for children, adults, and communities â€” closing the loop between identified risk and completed care visits with visible uncertainty and equity safeguards.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

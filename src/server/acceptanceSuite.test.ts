@@ -1,9 +1,9 @@
-import test from 'node:test';
+﻿import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runAllAcceptanceTests } from './acceptanceSuite.ts';
 import { computeFindriscBreakdown } from './rulesEngine.ts';
 
-test('MediSense acceptance invariants', async (t) => {
+test('MediBenin acceptance invariants', async (t) => {
   const report = runAllAcceptanceTests();
   for (const item of report.results) {
     await t.test(`${item.id}: ${item.title}`, () => {

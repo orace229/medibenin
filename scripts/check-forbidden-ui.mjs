@@ -1,6 +1,6 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 /**
- * check-forbidden-ui.mjs — Phase A gate for MediSense.
+ * check-forbidden-ui.mjs â€” Phase A gate for MediBenin.
  *
  * Scans UI-facing source files for developer/spec vocabulary, rule identifiers,
  * thresholds and formulas that must never be visible in any portal, and for
@@ -57,27 +57,27 @@ const PATTERNS = [
   [/\bpct\b/, 'pct abbreviation'],
   [/\d+\s*\/\s*26\b/, 'score /26 pts'],
   [/\bABU_DHABI_/, 'ABU_DHABI_ rule id'],
-  [/Screen 1|Screen 2|Écran 1|Écran 2/, 'Screen 1/2 wording'],
+  [/Screen 1|Screen 2|Ã‰cran 1|Ã‰cran 2/, 'Screen 1/2 wording'],
   [/AI Summary/i, '"AI Summary" label'],
   [/Clinician Validated/i, '"100% Clinician Validated" claim'],
   [/Parity Guarantee/i, '"Parity Guarantee" claim'],
   [/\bDoH\b/, 'health-authority (DoH) wording'],
   [/\bIMC\b/, 'French/English mixing (IMC)'],
   [/Mesure \d/, 'French/English mixing (Mesure N)'],
-  [/\bAnthropométrie\b/, 'French/English mixing (Anthropométrie)'],
-  [/\bAncienneté\b/i, 'French/English mixing (Ancienneté)'],
-  [/Probabilité Calibrée/i, 'French/English mixing (Probabilité Calibrée)'],
+  [/\bAnthropomÃ©trie\b/, 'French/English mixing (AnthropomÃ©trie)'],
+  [/\bAnciennetÃ©\b/i, 'French/English mixing (AnciennetÃ©)'],
+  [/ProbabilitÃ© CalibrÃ©e/i, 'French/English mixing (ProbabilitÃ© CalibrÃ©e)'],
   [/cas pris en charge/i, 'French/English mixing (cas pris en charge)'],
   // Patterns hardened in Phase E (regressions caught during Phases C/D):
   [/\(Rule [A-Z]\d+\)/, 'internal rule id in display string'],
-  [/\(Règle [A-Z]\d+\)/, 'internal rule id in display string (FR)'],
+  [/\(RÃ¨gle [A-Z]\d+\)/, 'internal rule id in display string (FR)'],
   [/\[To verify/, 'internal governance marker [To verify]'],
   [/\[Simulated/, 'internal governance marker [Simulated]'],
   [/\bAPI-level\b/, 'developer wording "API-level"'],
   [/\bengine\b/i, 'developer wording "engine"'],
   [/\bdatabase\b/i, 'developer wording "database"'],
-  [/base de données/i, 'developer wording "base de données"'],
-  [/C1–C4|C1-C4/, 'internal consent purpose codes C1–C4'],
+  [/base de donnÃ©es/i, 'developer wording "base de donnÃ©es"'],
+  [/C1â€“C4|C1-C4/, 'internal consent purpose codes C1â€“C4'],
 ];
 
 /** Strip comments so that internal code comments are not flagged: only
@@ -111,7 +111,7 @@ for (const file of files) {
 }
 
 if (violations.length > 0) {
-  console.error('\n✗ Forbidden UI content found:\n');
+  console.error('\nâœ— Forbidden UI content found:\n');
   for (const v of violations) {
     console.error(`  ${v.file}:${v.line}  [${v.label}]`);
     console.error(`    ${v.text}`);
@@ -120,4 +120,4 @@ if (violations.length > 0) {
   process.exit(1);
 }
 
-console.log('✓ check:ui passed — no forbidden UI content detected.');
+console.log('âœ“ check:ui passed â€” no forbidden UI content detected.');

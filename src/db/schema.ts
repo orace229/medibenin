@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+﻿import { relations } from 'drizzle-orm';
 import {
   boolean,
   integer,
@@ -137,7 +137,7 @@ export const patients = pgTable('patients', {
   syntheticGroundTruth: jsonb('synthetic_ground_truth').$type<{
     hasTrueUnmetCondition: boolean;
     invitedUnderAgeSexOnly: boolean;
-    confirmedVisitUnderMediSense: boolean;
+    confirmedVisitUnderMediBenin: boolean;
     confirmedVisitUnderBaseline: boolean;
     daysToVisit: number;
   }>(),
@@ -164,7 +164,7 @@ export const flags = pgTable('flags', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// 5. Recommendations & Care Pathways (Exigence 2 — 8-state machine + Referral Code)
+// 5. Recommendations & Care Pathways (Exigence 2 â€” 8-state machine + Referral Code)
 export const recommendations = pgTable('recommendations', {
   id: text('id').primaryKey(),
   patientId: text('patient_id')
@@ -188,7 +188,7 @@ export const recommendations = pgTable('recommendations', {
   conclusionStatus: text('conclusion_status'), // 'normal' | 'abnormal' | null
   conclusionNotes: text('conclusion_notes'),
   remindersSentCount: integer('reminders_sent_count').notNull().default(0),
-  // Strictly isolated Logistics & ML fields (Screen 1 Coordinator ONLY — NEVER returned in Screen 2 Clinician API)
+  // Strictly isolated Logistics & ML fields (Screen 1 Coordinator ONLY â€” NEVER returned in Screen 2 Clinician API)
   priorityScoreSprio: real('priority_score_sprio').notNull().default(0),
   mlNoShowProbM1: real('ml_no_show_prob_m1').notNull().default(0),
   mlTopFactorsM1: jsonb('ml_top_factors_m1').$type<string[]>().notNull().default([]),
@@ -196,7 +196,7 @@ export const recommendations = pgTable('recommendations', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-// 6. Consents by Purpose (5 distinct toggles — Section 3.3)
+// 6. Consents by Purpose (5 distinct toggles â€” Section 3.3)
 export const consents = pgTable('consents', {
   id: serial('id').primaryKey(),
   patientId: text('patient_id')
@@ -245,7 +245,7 @@ export const notifications = pgTable('notifications', {
   sentAt: text('sent_at').notNull(),
 });
 
-// 9. Access Requests (Clinician onboarding stub — Phase 2)
+// 9. Access Requests (Clinician onboarding stub â€” Phase 2)
 export const accessRequests = pgTable('access_requests', {
   id: serial('id').primaryKey(),
   fullName: text('full_name').notNull(),

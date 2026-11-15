@@ -1,11 +1,11 @@
-import {
+﻿import {
   ClinicianPatientDetail,
   ClinicianPatientListItem,
   ConsentState,
   Locale,
 } from './types.ts';
 
-const AUTH_TOKEN_STORAGE_KEY = 'medisense.authToken';
+const AUTH_TOKEN_STORAGE_KEY = 'MediBenin.authToken';
 
 function restoreStoredAuthToken(): string {
   try {
@@ -22,7 +22,7 @@ export function setApiAuthToken(token: string) {
   try {
     sessionStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
   } catch {
-    /* storage unavailable — token kept in memory only */
+    /* storage unavailable â€” token kept in memory only */
   }
 }
 

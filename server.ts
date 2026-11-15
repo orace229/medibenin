@@ -1,4 +1,4 @@
-import 'dotenv/config';
+﻿import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -112,7 +112,7 @@ async function startServer() {
           overallLevel: 'green',
           overallCertainty: 'high',
           primaryReasonSummary:
-            '18 years reached — Eligible for Majority Detachment & transition from WCV to autonomous Adult IFHAS portal',
+            '18 years reached â€” Eligible for Majority Detachment & transition from WCV to autonomous Adult IFHAS portal',
           nextDueDate: '2026-12-10',
           preventionProgressDone: 4,
           preventionProgressTotal: 4,
@@ -238,7 +238,7 @@ async function startServer() {
   });
 
   // Public, non-PHI governance view of every versioned threshold document
-  // (§9.2 — auditable, hash-verified clinical thresholds; same pattern as the
+  // (Â§9.2 â€” auditable, hash-verified clinical thresholds; same pattern as the
   // signed rule table). Any change to a threshold value must ship as a new
   // document version; this endpoint exposes exactly what is deployed.
   app.get('/api/governance/thresholds', (_req, res) => {
@@ -285,7 +285,7 @@ async function startServer() {
       res.json({
         status: 'received',
         request: inserted[0],
-        message: 'Access request received — pending clinical administrator validation.',
+        message: 'Access request received â€” pending clinical administrator validation.',
       });
     } catch (error: any) {
       console.error('Error submitting access request:', error);
@@ -616,7 +616,7 @@ async function startServer() {
           if (sys < 60 || sys > 260 || dia < 30 || dia > 160 || dia >= sys) {
             return res.status(400).json({
               error:
-                'Blood pressure reading is outside physiological bounds (Sys 60–260, Dia 30–160, Dia < Sys). Please verify cuff placement and re-measure after 5 minutes of rest.',
+                'Blood pressure reading is outside physiological bounds (Sys 60â€“260, Dia 30â€“160, Dia < Sys). Please verify cuff placement and re-measure after 5 minutes of rest.',
             });
           }
         }
@@ -691,7 +691,7 @@ async function startServer() {
           overallLevel: evaluated.overallLevel,
           overallCertainty: evaluated.overallCertainty,
           primaryReasonSummary:
-            evaluated.flags[0]?.title || 'Baseline measurements completed — preventive status updated',
+            evaluated.flags[0]?.title || 'Baseline measurements completed â€” preventive status updated',
         })
         .where(eq(patients.id, patientId));
 
@@ -771,7 +771,7 @@ async function startServer() {
           if (sys < 60 || sys > 260 || dia < 30 || dia > 160 || dia >= sys) {
             return res.status(400).json({
               error:
-                'Blood pressure reading outside physiological bounds (Systolic 60–260 mmHg, Diastolic 30–160 mmHg, Diastolic < Systolic).',
+                'Blood pressure reading outside physiological bounds (Systolic 60â€“260 mmHg, Diastolic 30â€“160 mmHg, Diastolic < Systolic).',
             });
           }
         }
@@ -1315,7 +1315,7 @@ async function startServer() {
         `Suggested next step: consolidate all pending preventive checks into a single appointment at ${p.facilityCenter}.`;
 
       res.json({
-        label: 'Automatic summary from rules — requires clinician validation',
+        label: 'Automatic summary from rules â€” requires clinician validation',
         summaryText,
         generatedAt: new Date().toISOString(),
       });
@@ -1481,7 +1481,7 @@ async function startServer() {
         });
       }
 
-      // §5.5 — Sync conflict: a centre-confirmed "done" prevails over any other
+      // Â§5.5 â€” Sync conflict: a centre-confirmed "done" prevails over any other
       // recorded state (e.g. an offline agent's "postponed"); the conflict is
       // resolved by the documented rules and logged for the coordinator.
       const previousState = recs[0].state as PathwayState | undefined;
@@ -1506,10 +1506,10 @@ async function startServer() {
         actorName: req.user?.displayName || 'Health Centre Desk',
         actorRole: 'Clinician / Centre',
         dataCategory: resolution?.conflictDetected
-          ? 'Sync Conflict Resolution (§5.5) — centre-confirmed visit prevails'
+          ? 'Sync Conflict Resolution (Â§5.5) â€” centre-confirmed visit prevails'
           : 'HMAC Referral Pass Verification',
         purposeDescription: resolution?.conflictDetected
-          ? `Conflict logged: previous state "${previousState}" (agent) vs centre-confirmed "Réalisée" — final state: done (${resolution.reason})`
+          ? `Conflict logged: previous state "${previousState}" (agent) vs centre-confirmed "RÃ©alisÃ©e" â€” final state: done (${resolution.reason})`
           : 'Confirmed completed preventive visit at health centre (Closed-loop state: Done)',
         ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
       });
@@ -1568,7 +1568,7 @@ async function startServer() {
         timestamp: new Date().toISOString(),
         meta: {
           profile: ['http://hl7.org/fhir/R4/StructureDefinition/Bundle'],
-          tag: [{ system: 'https://medisense.example/governance', code: 'SYNTHETIC_DEMO_EXPORT' }],
+          tag: [{ system: 'https://MediBenin.example/governance', code: 'SYNTHETIC_DEMO_EXPORT' }],
         },
         entry: [
           {
@@ -1584,7 +1584,7 @@ async function startServer() {
               resourceType: 'Consent',
               id: `CONSENT-${p.id}`,
               status: 'active',
-              scope: { text: 'MediSense 5-Purpose Granular Prevention Consent' },
+              scope: { text: 'MediBenin 5-Purpose Granular Prevention Consent' },
               provision: {
                 type: pConsents[0]?.shareWithFacility ? 'permit' : 'deny',
               },
@@ -1597,7 +1597,7 @@ async function startServer() {
               status: 'final',
               subject: { reference: `Patient/${p.id}` },
               prediction: [{ qualitativeRisk: { text: f.level.toUpperCase() } }],
-              note: [{ text: `${f.title} — Source: ${f.sourceLabel} — Certainty: ${f.certainty}` }],
+              note: [{ text: `${f.title} â€” Source: ${f.sourceLabel} â€” Certainty: ${f.certainty}` }],
             },
           })),
           ...pRecs.map((r) => ({
@@ -1606,7 +1606,7 @@ async function startServer() {
               id: r.id,
               status: r.state === 'done' ? 'completed' : r.state === 'refused' ? 'revoked' : 'active',
               intent: 'order',
-              identifier: [{ system: 'https://medisense.example/referral-hmac', value: r.referralCodeHmac }],
+              identifier: [{ system: 'https://MediBenin.example/referral-hmac', value: r.referralCodeHmac }],
               subject: { reference: `Patient/${p.id}` },
               code: { text: r.pathwayTitle },
             },
@@ -1615,7 +1615,7 @@ async function startServer() {
       };
 
       res.setHeader('Content-Type', 'application/fhir+json');
-      res.setHeader('Content-Disposition', `attachment; filename="medisense-fhir-${p.id}.json"`);
+      res.setHeader('Content-Disposition', `attachment; filename="MediBenin-fhir-${p.id}.json"`);
       res.send(JSON.stringify(fhirBundle, null, 2));
     } catch (error: any) {
       console.error('Error exporting FHIR bundle:', error);
@@ -1834,7 +1834,7 @@ async function startServer() {
         status: 'sms_sent',
         childId,
         childName: child.displayName,
-        maskedPhone: '+971 50 ••• 8492',
+        maskedPhone: '+971 50 â€¢â€¢â€¢ 8492',
         demoOtpCode: otpCode,
         expiresInSeconds: 300,
       });
@@ -1886,7 +1886,7 @@ async function startServer() {
     }
   });
 
-  // Request Majority Detachment (18y+) — Submitted for validation by the Competent Service
+  // Request Majority Detachment (18y+) â€” Submitted for validation by the Competent Service
   app.post('/api/patient/family/request-majority-detachment', requireAuth, requireRole('patient', 'parent'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
@@ -1915,7 +1915,7 @@ async function startServer() {
         actorName: child.displayName,
         actorRole: 'Patient (18y Majority Transition)',
         dataCategory: 'Family Affiliation & Majority Autonomy',
-        purposeDescription: 'Requested majority detachment (18y+) — awaiting definitive validation by competent service',
+        purposeDescription: 'Requested majority detachment (18y+) â€” awaiting definitive validation by competent service',
         ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
       });
 
@@ -2012,7 +2012,7 @@ async function startServer() {
         status: 'approved',
         childId,
         newPathwayType: 'adult',
-        autonomousEmail: `${child.displayName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@demo.medisense.ae`,
+        autonomousEmail: `${child.displayName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@demo.MediBenin.ae`,
       });
     } catch (error: any) {
       console.error('Error approving majority detachment:', error);
@@ -2050,7 +2050,7 @@ async function startServer() {
           if (sys < 60 || sys > 260 || dia < 30 || dia > 160 || dia >= sys) {
             return res.status(400).json({
               error:
-                'Blood pressure reading outside physiological bounds (Sys 60–260, Dia 30–160, Dia < Sys). Please rest 5 minutes and re-measure.',
+                'Blood pressure reading outside physiological bounds (Sys 60â€“260, Dia 30â€“160, Dia < Sys). Please rest 5 minutes and re-measure.',
             });
           }
         }
@@ -2221,7 +2221,7 @@ async function startServer() {
         actorName: req.user?.displayName || p.displayName,
         actorRole: 'Patient / Family',
         dataCategory: 'Guided Self-Assessment & Home Vitals (Provenance D)',
-        purposeDescription: 'Submitted self-assessment & home measurements — preventive pathway recalculated',
+        purposeDescription: 'Submitted self-assessment & home measurements â€” preventive pathway recalculated',
         ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
       });
 
@@ -2276,7 +2276,7 @@ async function startServer() {
         dataCategory: 'Preventive Appointment Choice',
         purposeDescription:
           responseType === 'refuse'
-            ? 'Declined preventive invitation — all automated reminders immediately halted (TEST-E3)'
+            ? 'Declined preventive invitation â€” all automated reminders immediately halted (TEST-E3)'
             : `Updated preventive appointment response: ${nextState.toUpperCase()}`,
         ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
       });
@@ -2292,7 +2292,7 @@ async function startServer() {
     }
   });
 
-  // Patient Granular Consents Update (5 toggles — immediate recalculation & reminder halt)
+  // Patient Granular Consents Update (5 toggles â€” immediate recalculation & reminder halt)
   app.put('/api/patient/profile/:id/consents', requireAuth, requireRole('patient', 'parent'), requirePatientScope(), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
@@ -2362,7 +2362,7 @@ async function startServer() {
             overallLevel: 'grey',
             overallCertainty: 'low',
             primaryReasonSummary:
-              'Evaluation paused — the patient withdrew the evaluation and prevention-calendar purpose',
+              'Evaluation paused â€” the patient withdrew the evaluation and prevention-calendar purpose',
           })
           .where(eq(patients.id, patientId));
         await db
@@ -2435,7 +2435,7 @@ async function startServer() {
         actorRole: 'Patient / Family',
         dataCategory: 'Consent Preferences (5 Purposes)',
         purposeDescription: !nextConsents.channelReminders
-          ? 'Withdrew reminder consent — all outreach immediately stopped'
+          ? 'Withdrew reminder consent â€” all outreach immediately stopped'
           : 'Updated granular data use authorizations',
         ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
       });
@@ -2512,9 +2512,9 @@ async function startServer() {
         .filter((i) => (i.overallLevel === 'orange' || i.overallLevel === 'yellow') && i.recommendationState !== 'refused')
         .sort((a, b) => b.priorityScoreSprio - a.priorityScoreSprio);
 
-      // Sensitivity analysis of S_prio weights (§5.3): computed on the benchmark
-      // cohort (same seed as the observatory) via the REAL ±0.10 perturbation and
-      // top-K overlap — no hardcoded percentage.
+      // Sensitivity analysis of S_prio weights (Â§5.3): computed on the benchmark
+      // cohort (same seed as the observatory) via the REAL Â±0.10 perturbation and
+      // top-K overlap â€” no hardcoded percentage.
       const benchmarkSensitivity = getObservatorySummary(20261120, 'baseline').sensitivityAnalysis;
       const stable = benchmarkSensitivity.topKOverlapPercent >= 80;
 
@@ -2526,7 +2526,7 @@ async function startServer() {
           topKOverlapPercent: benchmarkSensitivity.topKOverlapPercent,
           status: stable
             ? 'Stable under weight perturbation (top-K overlap >= 80%)'
-            : `Unstable under weight perturbation (top-K overlap ${benchmarkSensitivity.topKOverlapPercent}%) — flagged for clinical governance review (§5.3)`,
+            : `Unstable under weight perturbation (top-K overlap ${benchmarkSensitivity.topKOverlapPercent}%) â€” flagged for clinical governance review (Â§5.3)`,
         },
         redImmediateQueue,
         greyCompletionQueue,
@@ -2739,7 +2739,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`MediSense Full-Stack Server listening on http://0.0.0.0:${PORT}`);
+    console.log(`MediBenin Full-Stack Server listening on http://0.0.0.0:${PORT}`);
   });
 }
 

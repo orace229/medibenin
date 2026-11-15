@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   Users,
@@ -14,14 +14,14 @@ import { useI18n } from '../lib/i18n.tsx';
 import { apiClient } from '../lib/api.ts';
 import { computeWilson95 } from '../lib/wilson.ts';
 import {
-  MediSenseLogo,
+  MediBeninLogo,
   DemoBanner,
   LanguageSwitch,
   LevelBadge,
   StatusChip,
   StatCard,
   GlassCard,
-} from './MediSenseUI.tsx';
+} from './MediBeninUI.tsx';
 
 interface PopulationPortalsProps {
   role: 'coordinator' | 'public_health';
@@ -118,7 +118,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
 
   const invitationBlockedLabel = (item: any) => {
     if (item.overallLevel === 'red') return isFr ? 'Revue clinique requise' : 'Clinical review required';
-    if (item.overallLevel === 'grey') return isFr ? 'Compléter les données' : 'Complete data first';
+    if (item.overallLevel === 'grey') return isFr ? 'ComplÃ©ter les donnÃ©es' : 'Complete data first';
     return isFr ? 'Valider le plan' : 'Validate plan first';
   };
 
@@ -127,8 +127,8 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
       await apiClient.approveMajorityDetachment(childId);
       setFeedback(
         isFr
-          ? `Détachement à la majorité validé pour ${childName} — compte adulte activé.`
-          : `Majority detachment confirmed for ${childName} — autonomous adult account active.`
+          ? `DÃ©tachement Ã  la majoritÃ© validÃ© pour ${childName} â€” compte adulte activÃ©.`
+          : `Majority detachment confirmed for ${childName} â€” autonomous adult account active.`
       );
       await loadData();
     } catch (err: any) {
@@ -153,7 +153,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
       setShowAddMinorPanel(false);
       setFeedback(
         isFr
-          ? `${res.patient.displayName} inscrit et affilié au parent ${minorForm.parentPatientId}.`
+          ? `${res.patient.displayName} inscrit et affiliÃ© au parent ${minorForm.parentPatientId}.`
           : `${res.patient.displayName} registered and affiliated to parent ${minorForm.parentPatientId}.`
       );
       await loadData();
@@ -176,10 +176,10 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
   }, [role, obsScenario]);
 
   // Public-health indicators, pooled from the safeguarded segment table.
-  // Pooling uses ONLY the declared dimension (§7.1 publication hierarchy) so that
+  // Pooling uses ONLY the declared dimension (Â§7.1 publication hierarchy) so that
   // each person is counted exactly once. Segments with n < 10 are suppressed
-  // server-side; 10–29 segments are shown individually but excluded from pooled
-  // comparisons (§7.3: "small sample: no comparative conclusion").
+  // server-side; 10â€“29 segments are shown individually but excluded from pooled
+  // comparisons (Â§7.3: "small sample: no comparative conclusion").
   const poolingDimension: string = obsData?.poolingDimension || 'Region';
   const dimensionSegments: any[] = (obsData?.safeguardedSegments || []).filter(
     (s: any) => s.dimension === poolingDimension
@@ -211,8 +211,8 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
     })
     .filter((v: any): v is number => v !== null);
   const falseNegativeRange = falseNegativeProps.length
-    ? `${Math.min(...falseNegativeProps)}–${Math.max(...falseNegativeProps)}%`
-    : '—';
+    ? `${Math.min(...falseNegativeProps)}â€“${Math.max(...falseNegativeProps)}%`
+    : 'â€”';
 
   return (
     <div className="min-h-screen ambient-mesh text-[#334155] flex flex-col">
@@ -221,14 +221,14 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
       <header className="liquid-glass border-b border-white/60 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 h-15 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-            <MediSenseLogo />
+            <MediBeninLogo />
             <span className="hidden md:inline text-xs font-semibold text-[#64748B] border-s border-[#E2E8F0] ps-4 truncate">
               {role === 'coordinator'
                 ? isFr
-                  ? 'Coordinateur · Coordination des soins'
+                  ? 'Coordinateur Â· Coordination des soins'
                   : 'Care Coordinator'
                 : isFr
-                ? 'Observatoire Santé Publique'
+                ? 'Observatoire SantÃ© Publique'
                 : 'Public Health Observatory'}
             </span>
           </div>
@@ -239,11 +239,11 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
               <span>
                 {role === 'coordinator'
                   ? isFr
-                    ? 'Orace A. · Coordinateur'
-                    : 'Orace A. · Coordinator'
+                    ? 'Orace A. Â· Coordinateur'
+                    : 'Orace A. Â· Coordinator'
                   : isFr
-                  ? 'Bienderan E. · Santé Publique'
-                  : 'Bienderan E. · Public Health'}
+                  ? 'Bienderan E. Â· SantÃ© Publique'
+                  : 'Bienderan E. Â· Public Health'}
               </span>
             </span>
             <LanguageSwitch />
@@ -255,7 +255,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
             >
               <LogOut className="w-3.5 h-3.5 text-[#64748B]" />
               <span className="hidden sm:inline">
-                {isFr ? 'Déconnexion' : 'Sign Out'}
+                {isFr ? 'DÃ©connexion' : 'Sign Out'}
               </span>
             </button>
           </div>
@@ -292,25 +292,25 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
             >
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <StatCard
-                  title={isFr ? 'File rouge — urgences' : 'Immediate Red Queue'}
+                  title={isFr ? 'File rouge â€” urgences' : 'Immediate Red Queue'}
                   value={coordData.redImmediateQueue?.length || 0}
-                  subtitle={isFr ? 'Hors score de priorité' : 'Bypasses priority score'}
+                  subtitle={isFr ? 'Hors score de prioritÃ©' : 'Bypasses priority score'}
                   icon={<AlertTriangle className="w-4 h-4 text-[#B91C1C]" />}
                 />
                 <StatCard
-                  title={isFr ? 'File grise — données à compléter' : 'Level Grey Queue'}
+                  title={isFr ? 'File grise â€” donnÃ©es Ã  complÃ©ter' : 'Level Grey Queue'}
                   value={coordData.greyCompletionQueue?.length || 0}
                   subtitle={isFr ? 'Mesures de base manquantes' : 'Missing baseline data'}
                   icon={<HelpCircle className="w-4 h-4 text-[#475569]" />}
                 />
                 <StatCard
-                  title={isFr ? 'Capacité du jour' : 'Daily Capacity'}
+                  title={isFr ? 'CapacitÃ© du jour' : 'Daily Capacity'}
                   value={`${coordData.prioritizedInvitationQueue?.length || 0} / ${coordData.dailyCapacityLimit}`}
                   subtitle={isFr ? `${coordData.humanContactBudgetB} relances par jour` : `${coordData.humanContactBudgetB} outreach contacts/day`}
                   icon={<Users className="w-4 h-4" />}
                 />
                 <StatCard
-                  title={isFr ? 'Stabilité du classement' : 'Ranking stability'}
+                  title={isFr ? 'StabilitÃ© du classement' : 'Ranking stability'}
                   value={`${coordData.sensitivityAnalysis?.topKOverlapPercent}%`}
                   subtitle={coordData.sensitivityAnalysis?.status}
                   icon={<ShieldCheck className="w-4 h-4" />}
@@ -325,19 +325,19 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                     onClick={() => switchCoordView('queues')}
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F6B6B] hover:text-[#0B3B3C] liquid-glass px-3.5 py-2 rounded-xl cursor-pointer"
                   >
-                    ← {isFr ? 'Retour à la coordination' : 'Back to care coordination'}
+                    â† {isFr ? 'Retour Ã  la coordination' : 'Back to care coordination'}
                   </button>
                   <GlassCard interactive={false} className="space-y-4 border border-[#0F6B6B]/35">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
                       {isFr
-                        ? 'Affiliations familiales & majorité'
+                        ? 'Affiliations familiales & majoritÃ©'
                         : 'Family Affiliation & Majority Governance'}
                     </span>
                     <h2 className="text-base font-extrabold text-[#0B3B3C] font-heading">
                       {isFr
-                        ? 'Inscrire un enfant & valider la majorité'
+                        ? 'Inscrire un enfant & valider la majoritÃ©'
                         : 'Child Registration & Majority Validation'}
                     </h2>
                   </div>
@@ -349,7 +349,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                   >
                     {showAddMinorPanel
                       ? isFr
-                        ? 'Fermer le formulaire d’affiliation'
+                        ? 'Fermer le formulaire dâ€™affiliation'
                         : 'Close Affiliation Form'
                       : isFr
                       ? '+ Inscrire & Affilier un Enfant (< 18 ans)'
@@ -365,7 +365,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                       <div className="sm:col-span-2">
                         <label className="block font-bold text-[#0B3B3C] mb-1">
-                          {isFr ? 'Nom complet de l’enfant (< 18 ans)' : 'Minor Full Name (< 18y)'}
+                          {isFr ? 'Nom complet de lâ€™enfant (< 18 ans)' : 'Minor Full Name (< 18y)'}
                         </label>
                         <input
                           type="text"
@@ -391,13 +391,13 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                           }
                           className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] bg-white font-semibold text-[#0B3B3C]"
                         >
-                          <option value="child">Enfant (0–9 ans)</option>
-                          <option value="adolescent">Adolescent (10–17 ans)</option>
+                          <option value="child">Enfant (0â€“9 ans)</option>
+                          <option value="adolescent">Adolescent (10â€“17 ans)</option>
                         </select>
                       </div>
                       <div>
                         <label className="block font-bold text-[#0B3B3C] mb-1">
-                          {isFr ? 'Âge (années < 18)' : 'Age (years < 18)'}
+                          {isFr ? 'Ã‚ge (annÃ©es < 18)' : 'Age (years < 18)'}
                         </label>
                         <input
                           type="number"
@@ -461,7 +461,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                         className="px-4 py-2 rounded-xl btn-liquid-primary font-bold cursor-pointer"
                       >
                         {isFr
-                          ? `Valider l’inscription & Affilier au parent (${minorForm.parentPatientId})`
+                          ? `Valider lâ€™inscription & Affilier au parent (${minorForm.parentPatientId})`
                           : `Register Minor & Affiliate to Parent (${minorForm.parentPatientId})`}
                       </button>
                     </div>
@@ -473,13 +473,13 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                   <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
                       {isFr
-                        ? `Validation Définitive de Majorité (18 ans+) · (${familyData.pendingMajorityDetachments.length})`
-                        : `Definitive Majority Detachment Validation (18y+) · (${familyData.pendingMajorityDetachments.length})`}
+                        ? `Validation DÃ©finitive de MajoritÃ© (18 ans+) Â· (${familyData.pendingMajorityDetachments.length})`
+                        : `Definitive Majority Detachment Validation (18y+) Â· (${familyData.pendingMajorityDetachments.length})`}
                     </span>
                     {familyData.pendingMajorityDetachments.length === 0 ? (
                       <p className="text-[#64748B]">
                         {isFr
-                          ? 'Tous les dossiers majeurs (18 ans+) ont été détachés et validés.'
+                          ? 'Tous les dossiers majeurs (18 ans+) ont Ã©tÃ© dÃ©tachÃ©s et validÃ©s.'
                           : 'All 18y+ records have been detached and validated.'}
                       </p>
                     ) : (
@@ -490,7 +490,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                         >
                           <div>
                             <p className="font-bold text-[#0B3B3C]">
-                              {item.childName} ({item.ageYears} ans · {item.childId})
+                              {item.childName} ({item.ageYears} ans Â· {item.childId})
                             </p>
                             <p className="text-[11px] text-[#64748B]">
                               {isFr ? 'Parent actuel :' : 'Current Parent:'} {item.parentName} ({item.parentId})
@@ -504,7 +504,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                             className="px-3 py-1.5 rounded-xl btn-liquid-primary font-bold cursor-pointer"
                           >
                             {isFr
-                              ? 'Valider définitivement le détachement (18 ans+)'
+                              ? 'Valider dÃ©finitivement le dÃ©tachement (18 ans+)'
                               : 'Definitively Validate Detachment (18y+)'}
                           </button>
                         </div>
@@ -515,8 +515,8 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                   <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#0B3B3C] block">
                       {isFr
-                        ? `Enfants actuellement affiliés (< 18 ans) · (${familyData.affiliatedRecords.length})`
-                        : `Currently Affiliated Children (< 18y) · (${familyData.affiliatedRecords.length})`}
+                        ? `Enfants actuellement affiliÃ©s (< 18 ans) Â· (${familyData.affiliatedRecords.length})`
+                        : `Currently Affiliated Children (< 18y) Â· (${familyData.affiliatedRecords.length})`}
                     </span>
                     <div className="space-y-1.5 max-h-36 overflow-y-auto">
                       {familyData.affiliatedRecords.map((rec) => (
@@ -527,7 +527,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                           <div>
                             <span className="font-bold text-[#0B3B3C]">{rec.childName}</span>
                             <span className="text-[11px] text-[#64748B] ms-1.5">
-                              ({rec.ageYears < 2 ? `${rec.ageMonths}m` : `${rec.ageYears}a`}) →{' '}
+                              ({rec.ageYears < 2 ? `${rec.ageMonths}m` : `${rec.ageYears}a`}) â†’{' '}
                               {rec.parentName}
                             </span>
                           </div>
@@ -558,13 +558,13 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                       <div>
                         <h2 className="text-base font-bold text-[#0B3B3C] font-heading">
                           {isFr
-                            ? 'Coordination des soins — Files de relance du jour'
-                            : 'Care coordination — Daily outreach queues'}
+                            ? 'Coordination des soins â€” Files de relance du jour'
+                            : 'Care coordination â€” Daily outreach queues'}
                         </h2>
                         <p className="text-xs text-[#64748B]">
                           {isFr
-                            ? 'Le risque de non-présentation renforce uniquement l’accompagnement — il ne baisse jamais la priorité.'
-                            : 'M1 No-Show risk strengthens accompaniment only — never lowers priority.'}
+                            ? 'Le risque de non-prÃ©sentation renforce uniquement lâ€™accompagnement â€” il ne baisse jamais la prioritÃ©.'
+                            : 'M1 No-Show risk strengthens accompaniment only â€” never lowers priority.'}
                         </p>
                       </div>
 
@@ -620,7 +620,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                             {item.displayName}
                           </span>
                           <span className="text-[11px] text-[#64748B]">
-                            {item.ageYears}y · {item.region} · {item.preferredLanguage.toUpperCase()}
+                            {item.ageYears}y Â· {item.region} Â· {item.preferredLanguage.toUpperCase()}
                           </span>
                         </div>
                         <LevelBadge level={item.overallLevel} size="sm" />
@@ -712,7 +712,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                           <td className="py-3 px-3">
                             <span className="font-bold text-[#0B3B3C] block">{item.displayName}</span>
                             <span className="text-[11px] text-[#64748B]">
-                              {item.ageYears}y · {item.region} · {item.preferredLanguage.toUpperCase()}
+                              {item.ageYears}y Â· {item.region} Â· {item.preferredLanguage.toUpperCase()}
                             </span>
                           </td>
                           <td className="py-3 px-3">
@@ -788,67 +788,67 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs text-[#64748B]">
                   {isFr
-                    ? 'Scénario du banc d’essai : la comparaison change de scénario, la vérité cachée reste indépendante du moteur.'
+                    ? 'ScÃ©nario du banc dâ€™essai : la comparaison change de scÃ©nario, la vÃ©ritÃ© cachÃ©e reste indÃ©pendante du moteur.'
                     : 'Benchmark scenario: switching changes the stress scenario; hidden truth remains independent of the rules layer.'}
                 </p>
                 <label className="flex items-center gap-2 text-xs font-semibold text-[#0B3B3C]">
-                  <span>{isFr ? 'Scénario' : 'Scenario'}</span>
+                  <span>{isFr ? 'ScÃ©nario' : 'Scenario'}</span>
                   <select
                     value={obsScenario}
                     onChange={(e) => setObsScenario(e.target.value)}
                     className="px-2.5 py-1.5 rounded-xl border border-[#E2E8F0] bg-white text-xs"
                   >
                     <option value="baseline">Baseline</option>
-                    <option value="mnar_missing">{isFr ? 'Données manquantes non aléatoires' : 'MNAR missing data'}</option>
-                    <option value="underreporting">{isFr ? 'Sous-déclaration' : 'Under-reporting'}</option>
+                    <option value="mnar_missing">{isFr ? 'DonnÃ©es manquantes non alÃ©atoires' : 'MNAR missing data'}</option>
+                    <option value="underreporting">{isFr ? 'Sous-dÃ©claration' : 'Under-reporting'}</option>
                     <option value="incomplete_history">{isFr ? 'Historique incomplet' : 'Incomplete history'}</option>
-                    <option value="equity_gap">{isFr ? 'Écart d’équité (C3)' : 'Equity gap (C3)'}</option>
+                    <option value="equity_gap">{isFr ? 'Ã‰cart dâ€™Ã©quitÃ© (C3)' : 'Equity gap (C3)'}</option>
                   </select>
                 </label>
               </div>
 
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                 <StatCard
-                  title={isFr ? 'Cohorte synthétique' : 'Synthetic Cohort'}
+                  title={isFr ? 'Cohorte synthÃ©tique' : 'Synthetic Cohort'}
                   value={obsData.cohortTotal}
-                  subtitle={isFr ? 'Données reproductibles' : 'Reproducible data'}
+                  subtitle={isFr ? 'DonnÃ©es reproductibles' : 'Reproducible data'}
                   icon={<BarChart3 className="w-4 h-4" />}
                 />
                 <StatCard
-                  title={isFr ? 'Portée' : 'Reach'}
-                  value={pooledReach !== null ? `${pooledReach}%` : '—'}
-                  subtitle={`95% CI [${reachCi.lower}–${reachCi.upper}%] · n=${totalEligibleN}${
+                  title={isFr ? 'PortÃ©e' : 'Reach'}
+                  value={pooledReach !== null ? `${pooledReach}%` : 'â€”'}
+                  subtitle={`95% CI [${reachCi.lower}â€“${reachCi.upper}%] Â· n=${totalEligibleN}${
                     smallSampleExcluded > 0
                       ? isFr
-                        ? ` · ${smallSampleExcluded} petit(s) segment(s) exclu(s)`
-                        : ` · ${smallSampleExcluded} small segment(s) excluded`
+                        ? ` Â· ${smallSampleExcluded} petit(s) segment(s) exclu(s)`
+                        : ` Â· ${smallSampleExcluded} small segment(s) excluded`
                       : ''
                   }`}
                   icon={<Users className="w-4 h-4" />}
                 />
                 <StatCard
                   title={isFr ? 'Adoption' : 'Adoption'}
-                  value={pooledAdoption !== null ? `${pooledAdoption}%` : '—'}
-                  subtitle={`95% CI [${adoptionCi.lower}–${adoptionCi.upper}%] · ${
-                    isFr ? 'visites confirmées / invités' : 'confirmed visits / invited'
+                  value={pooledAdoption !== null ? `${pooledAdoption}%` : 'â€”'}
+                  subtitle={`95% CI [${adoptionCi.lower}â€“${adoptionCi.upper}%] Â· ${
+                    isFr ? 'visites confirmÃ©es / invitÃ©s' : 'confirmed visits / invited'
                   }`}
                   icon={<Send className="w-4 h-4" />}
                 />
                 <StatCard
-                  title={isFr ? 'Boucle complète' : 'Closed-loop completion'}
-                  value={pooledClosedLoop !== null ? `${pooledClosedLoop}%` : '—'}
-                  subtitle={`95% CI [${closedLoopCi.lower}–${closedLoopCi.upper}%] · ${
-                    isFr ? 'confirmés parmi invités' : 'confirmed among invited'
+                  title={isFr ? 'Boucle complÃ¨te' : 'Closed-loop completion'}
+                  value={pooledClosedLoop !== null ? `${pooledClosedLoop}%` : 'â€”'}
+                  subtitle={`95% CI [${closedLoopCi.lower}â€“${closedLoopCi.upper}%] Â· ${
+                    isFr ? 'confirmÃ©s parmi invitÃ©s' : 'confirmed among invited'
                   }`}
                   icon={<ShieldCheck className="w-4 h-4" />}
                 />
                 <StatCard
-                  title={isFr ? 'Faux négatifs estimés' : 'False-negative estimate'}
+                  title={isFr ? 'Faux nÃ©gatifs estimÃ©s' : 'False-negative estimate'}
                   value={falseNegativeRange}
                   subtitle={
                     isFr
-                      ? 'Plage des segments visibles (10–29 exclus)'
-                      : 'Range across visible segments (10–29 excluded)'
+                      ? 'Plage des segments visibles (10â€“29 exclus)'
+                      : 'Range across visible segments (10â€“29 excluded)'
                   }
                   icon={<AlertTriangle className="w-4 h-4 text-[#C2410C]" />}
                 />
@@ -875,10 +875,10 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                   </h2>
                   <p className="text-xs text-[#64748B]">
                     {isFr
-                      ? 'Les groupes de moins de 10 sont masqués ; les groupes de 10 à 29 sont affichés mais exclus des totaux et comparaisons.'
-                      : 'Groups below 10 are masked; groups of 10–29 are shown but excluded from pooled totals and comparisons.'}{' '}
+                      ? 'Les groupes de moins de 10 sont masquÃ©s ; les groupes de 10 Ã  29 sont affichÃ©s mais exclus des totaux et comparaisons.'
+                      : 'Groups below 10 are masked; groups of 10â€“29 are shown but excluded from pooled totals and comparisons.'}{' '}
                     {isFr
-                      ? 'La plus petite cellule complémentaire est masquée automatiquement.'
+                      ? 'La plus petite cellule complÃ©mentaire est masquÃ©e automatiquement.'
                       : 'The smallest complementary cell is masked automatically.'}
                   </p>
                 </div>
@@ -914,10 +914,10 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                               <>
                                 <td className="py-3 px-3 text-end font-mono">{seg.totalEligible}</td>
                                 <td className="py-3 px-3 text-end font-mono whitespace-nowrap">
-                                  {seg.reachWilson?.proportion}% [{seg.reachWilson?.lower}–{seg.reachWilson?.upper}%]
+                                  {seg.reachWilson?.proportion}% [{seg.reachWilson?.lower}â€“{seg.reachWilson?.upper}%]
                                 </td>
                                 <td className="py-3 px-3 text-end font-mono whitespace-nowrap">
-                                  {seg.adoptionRateWilson?.proportion}% [{seg.adoptionRateWilson?.lower}–{seg.adoptionRateWilson?.upper}%]
+                                  {seg.adoptionRateWilson?.proportion}% [{seg.adoptionRateWilson?.lower}â€“{seg.adoptionRateWilson?.upper}%]
                                 </td>
                                 <td className="py-3 px-3 text-end font-mono whitespace-nowrap">
                                   {seg.falsePositiveRateDisplay}
@@ -935,11 +935,11 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                 </div>
               </GlassCard>
 
-              {/* Methodology & provenance footnote (§4.6 / §7 / §8.4) — kept compact by design */}
+              {/* Methodology & provenance footnote (Â§4.6 / Â§7 / Â§8.4) â€” kept compact by design */}
               <p className="text-[11px] leading-relaxed text-[#64748B] px-1">
                 {isFr
-                  ? 'Méthodologie : les risques cardiovasculaires sont calculés sur les valeurs publiées du chart OMS 2019 non-laboratoire (Afrique du Nord & Moyen-Orient ; Asie du Sud) — aucune valeur inventée. Le benchmark compare des bras à capacité d’invitation égale, contre une vérité cachée générée par un mécanisme indépendant du moteur de règles (§7/§8.4), reproductible sur 3 graines. Scénario affiché : '
-                  : 'Methodology: cardiovascular risks are computed from the published WHO 2019 non-laboratory CVD risk chart values (North Africa & Middle East; South Asia) — no invented figures. The benchmark compares equal-invitation-capacity arms against a hidden truth generated by a mechanism independent of the rules layer (§7/§8.4), reproducible across 3 seeds. Displayed scenario: '}
+                  ? 'MÃ©thodologie : les risques cardiovasculaires sont calculÃ©s sur les valeurs publiÃ©es du chart OMS 2019 non-laboratoire (Afrique du Nord & Moyen-Orient ; Asie du Sud) â€” aucune valeur inventÃ©e. Le benchmark compare des bras Ã  capacitÃ© dâ€™invitation Ã©gale, contre une vÃ©ritÃ© cachÃ©e gÃ©nÃ©rÃ©e par un mÃ©canisme indÃ©pendant du moteur de rÃ¨gles (Â§7/Â§8.4), reproductible sur 3 graines. ScÃ©nario affichÃ© : '
+                  : 'Methodology: cardiovascular risks are computed from the published WHO 2019 non-laboratory CVD risk chart values (North Africa & Middle East; South Asia) â€” no invented figures. The benchmark compares equal-invitation-capacity arms against a hidden truth generated by a mechanism independent of the rules layer (Â§7/Â§8.4), reproducible across 3 seeds. Displayed scenario: '}
                 <strong className="text-[#0B3B3C]">{obsData.scenarioNote}</strong>
               </p>
             </motion.div>

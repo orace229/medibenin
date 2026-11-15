@@ -1,6 +1,6 @@
-services:
+﻿services:
   - type: web
-    name: medisense
+    name: MediBenin
     runtime: node
     plan: free
     branch: main
@@ -14,7 +14,7 @@ services:
         value: production
       - key: DEMO_MODE
         value: "true"
-      # Neon Lakebase Postgres (preferred — set these in Render dashboard)
+      # Neon Lakebase Postgres (preferred â€” set these in Render dashboard)
       - key: DATABASE_URL
         sync: false
       - key: DATABASE_URL_UNPOOLED

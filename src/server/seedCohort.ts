@@ -1,4 +1,4 @@
-import { db } from '../db/index.ts';
+﻿import { db } from '../db/index.ts';
 import {
   consents,
   flags,
@@ -33,19 +33,19 @@ export function createSeededRng(seed: number) {
 }
 
 // ============================================================================
-// Hidden ground truth (§7 & §8.4) — DECOUPLED from the visible panel design.
+// Hidden ground truth (Â§7 & Â§8.4) â€” DECOUPLED from the visible panel design.
 // The visible panel (isGrey/isOrange/isYellow levels, BP/BMI profiles) uses
 // illustrative constants; the hidden truth below is drawn from an INDEPENDENT
 // mechanism: a disjoint seeded-unit stream block (salts 200+) plus a documented
 // prevalence-shaped risk function that is deliberately DIFFERENT from the rules
 // engine's scoring functions (WHO 2019 chart lookup, FINDRISC logistic) so that
-// the truth cannot be circularly derived from the engine (Cahier des Charges §7
-// "Vérité cachée … pour limiter la circularité" and §9.2). These constants are
-// documented generator tunables — same status as the §8.3/§8.4 benchmark
-// constants in benchmarkEngine.ts — and never engine outputs.
+// the truth cannot be circularly derived from the engine (Cahier des Charges Â§7
+// "VÃ©ritÃ© cachÃ©e â€¦ pour limiter la circularitÃ©" and Â§9.2). These constants are
+// documented generator tunables â€” same status as the Â§8.3/Â§8.4 benchmark
+// constants in benchmarkEngine.ts â€” and never engine outputs.
 // ============================================================================
 
-/** Salt block reserved for hidden-truth streams; panel design uses salts 1–4. */
+/** Salt block reserved for hidden-truth streams; panel design uses salts 1â€“4. */
 const GROUND_TRUTH_SALT_BASE = 200;
 
 const TRUTH_CONSTANTS = {
@@ -55,7 +55,7 @@ const TRUTH_CONSTANTS = {
   adultAgeRampStart: 40,
   maleExcess: 0.05,
   maxPrevalence: 0.65,
-  mediSenseConfirmProb: 0.78,
+  MediBeninConfirmProb: 0.78,
   baselineConfirmProb: 0.52,
   visitWindowDays: [5, 30] as [number, number],
 };
@@ -70,7 +70,7 @@ export function drawSyntheticGroundTruth(
 ): {
   hasTrueUnmetCondition: boolean;
   invitedUnderAgeSexOnly: boolean;
-  confirmedVisitUnderMediSense: boolean;
+  confirmedVisitUnderMediBenin: boolean;
   confirmedVisitUnderBaseline: boolean;
   daysToVisit: number;
 } {
@@ -87,7 +87,7 @@ export function drawSyntheticGroundTruth(
 
   const hasTrueUnmetCondition = u(0) < Math.min(TRUTH_CONSTANTS.maxPrevalence, prevalence);
   const invitedUnderAgeSexOnly = ageYears >= AGE_SEX_ONLY_SCREENING_START_AGE;
-  const confirmedVisitUnderMediSense = u(1) < TRUTH_CONSTANTS.mediSenseConfirmProb;
+  const confirmedVisitUnderMediBenin = u(1) < TRUTH_CONSTANTS.MediBeninConfirmProb;
   const confirmedVisitUnderBaseline = u(2) < TRUTH_CONSTANTS.baselineConfirmProb;
   const [lo, hi] = TRUTH_CONSTANTS.visitWindowDays;
   const daysToVisit = lo + Math.round(u(3) * (hi - lo));
@@ -95,7 +95,7 @@ export function drawSyntheticGroundTruth(
   return {
     hasTrueUnmetCondition,
     invitedUnderAgeSexOnly,
-    confirmedVisitUnderMediSense,
+    confirmedVisitUnderMediBenin,
     confirmedVisitUnderBaseline,
     daysToVisit,
   };
@@ -108,7 +108,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
       return { seeded: false, totalPatients: existingCount[0].value, seed };
     }
 
-    console.log(`Seeding MediSense PostgreSQL database with deterministic seed ${seed}...`);
+    console.log(`Seeding MediBenin PostgreSQL database with deterministic seed ${seed}...`);
     const signedTable = getCanonicalSignedRuleTable();
 
     // 1. Insert Signed Rules Table
@@ -130,7 +130,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
     const demoUsers = [
       {
         uid: 'demo-patient-tariq',
-        email: 'tariq.nadim@demo.medisense.ae',
+        email: 'tariq.nadim@demo.MediBenin.ae',
         displayName: 'Tariq Al-Nadim (Adult 36y)',
         role: 'patient',
         preferredLanguage: 'en',
@@ -139,7 +139,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
       },
       {
         uid: 'demo-parent-amira',
-        email: 'amira.mansoor@demo.medisense.ae',
+        email: 'amira.mansoor@demo.MediBenin.ae',
         displayName: 'Amira Al-Mansoor (Parent)',
         role: 'parent',
         preferredLanguage: 'en',
@@ -229,7 +229,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
           ],
           vaccinesList: [
             { name: 'BCG & HepB (Birth)', status: 'done' as const, dateLabel: 'May 2025' },
-            { name: 'Hexavalent & PCV (2–6m)', status: 'done' as const, dateLabel: 'Nov 2025' },
+            { name: 'Hexavalent & PCV (2â€“6m)', status: 'done' as const, dateLabel: 'Nov 2025' },
             { name: 'MMR Dose 1 (12m)', status: 'done' as const, dateLabel: 'May 2026' },
             { name: '18-Month Booster (DTP-Hib-IPV & MMR 2)', status: 'overdue' as const, dateLabel: 'Due Oct 2026' },
           ],
@@ -349,7 +349,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
           ],
         },
       },
-      // Persona 4: Level Grey (Incomplete data — Mariam, 49y)
+      // Persona 4: Level Grey (Incomplete data â€” Mariam, 49y)
       {
         id: 'PT-49Y-MARIAM-GREY',
         displayName: 'Mariam Al-Mazrouei',
@@ -369,7 +369,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
         accessTimeMinutes: 25,
         missedVisitsCount: 1,
         facilityCenter: 'Al Towayya Healthcare Centre (Al Ain)',
-        primaryReasonSummary: 'Insufficient clinical data — resting blood pressure and baseline weight/height required to complete evaluation',
+        primaryReasonSummary: 'Insufficient clinical data â€” resting blood pressure and baseline weight/height required to complete evaluation',
         nextDueDate: '2026-11-19',
         preventionProgressDone: 1,
         preventionProgressTotal: 4,
@@ -382,7 +382,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
           oldestMeasureMonths: 26,
         },
       },
-      // Persona 5: Level Red (Pregnancy + Elevated BP — Fatima, 29y, TEST-S3 & TEST-S2 Eclipse)
+      // Persona 5: Level Red (Pregnancy + Elevated BP â€” Fatima, 29y, TEST-S3 & TEST-S2 Eclipse)
       {
         id: 'PT-29Y-FATIMA-RED',
         displayName: 'Fatima Al-Kaabi',
@@ -431,7 +431,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
           ],
         },
       },
-      // Persona 6: Level Green (Up to date — Omar, 44y)
+      // Persona 6: Level Green (Up to date â€” Omar, 44y)
       {
         id: 'PT-44Y-OMAR-GREEN',
         displayName: 'Omar Al-Suwaidi',
@@ -502,7 +502,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
         accessTimeMinutes: 42,
         missedVisitsCount: 1,
         facilityCenter: 'Madinat Zayed Healthcare Centre (Al Dhafra)',
-        primaryReasonSummary: 'Premature infant follow-up (evaluated on corrected age of 6.2 months) — 6-month Well-Child Visit due',
+        primaryReasonSummary: 'Premature infant follow-up (evaluated on corrected age of 6.2 months) â€” 6-month Well-Child Visit due',
         nextDueDate: '2026-11-25',
         preventionProgressDone: 3,
         preventionProgressTotal: 4,
@@ -694,7 +694,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
         .values([
           {
             patientId: p.id,
-            actorName: 'MediSense Prevention Engine',
+            actorName: 'MediBenin Prevention Engine',
             actorRole: 'Automated Rule Evaluation',
             dataCategory: 'Clinical measurements & preventive calendar',
             purposeDescription: 'Preventive check-up planning',
@@ -774,7 +774,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
 
       const reasonSummary =
         level === 'grey'
-          ? 'Insufficient clinical measurements — resting blood pressure and BMI needed'
+          ? 'Insufficient clinical measurements â€” resting blood pressure and BMI needed'
           : level === 'orange'
           ? pathwayType === 'adult'
             ? 'Elevated resting blood pressure and metabolic follow-up recommended'
@@ -952,7 +952,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
     const finalCount = await db.select({ value: count() }).from(patients);
     return { seeded: true, totalPatients: finalCount[0]?.value || 53, seed };
   } catch (error) {
-    console.error('Error seeding MediSense database:', error);
-    throw new Error('Failed to seed MediSense database.', { cause: error });
+    console.error('Error seeding MediBenin database:', error);
+    throw new Error('Failed to seed MediBenin database.', { cause: error });
   }
 }

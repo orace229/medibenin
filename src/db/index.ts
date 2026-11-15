@@ -1,4 +1,4 @@
-import * as dotenv from 'dotenv';
+﻿import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { drizzle } from 'drizzle-orm/node-postgres';
@@ -28,7 +28,7 @@ export const createPool = () => {
         port: Number(process.env.SQL_PORT || 5432),
         user: process.env.SQL_USER || process.env.SQL_ADMIN_USER || 'postgres',
         password: String(password),
-        database: process.env.SQL_DB_NAME || 'medisense',
+        database: process.env.SQL_DB_NAME || 'MediBenin',
         ssl: process.env.SQL_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
         max: 10,
         connectionTimeoutMillis: 15000,
