@@ -18,6 +18,7 @@ export const createPool = () => {
       user: process.env.SQL_USER || process.env.SQL_ADMIN_USER || 'postgres',
       password: String(password),
       database: process.env.SQL_DB_NAME || 'medisense',
+      ssl: process.env.SQL_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
       max: 10,
       connectionTimeoutMillis: 15000,
     });

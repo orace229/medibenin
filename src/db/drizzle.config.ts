@@ -32,7 +32,7 @@ export default defineConfig({
     user: user,
     password: password,
     database: sqlDbName,
-    ssl: false,
+    ssl: process.env.SQL_SSL === 'true' ? 'require' : false,
   },
   verbose: true,
 });

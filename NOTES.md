@@ -51,3 +51,12 @@
 7. **P6** — M-CHAT-R 3–7 now requires the follow-up interview; a positive follow-up refers, a negative one closes the screen.
 8. **P3** — missed WCV count can be derived from the age at the last visit using the versioned schedule.
 9. **Tests** — 58 tests total; growth-reference tests cover published median/SD cells and domain boundaries.
+
+## Deployment Readiness (2026-11-15)
+
+- Dynamic `PORT` support (Render/Koyeb/Fly).
+- Optional TLS for managed PostgreSQL (`SQL_SSL=true`).
+- Versioned Drizzle migration `drizzle/0000_*.sql`; start command runs `npm run db:migrate` before the server.
+- `render.yaml` free Node service, `.node-version` 20.19.0, `DEPLOY.md` Render + Neon guide.
+- `react-is` made explicit because Recharts imports it; production build verified.
+- Production path validated on a temporary PostgreSQL: build, migrate, start, `/`, `/proof`, demo counts, governance status, patient/clinician/observatory APIs, 19/19 acceptance tests.

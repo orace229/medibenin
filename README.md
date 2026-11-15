@@ -82,6 +82,12 @@ dossiers liés et aux membres de la famille affiliés). La santé publique n'a
 - `GET /api/governance/thresholds` — documents de seuils versionnés (hash SHA-256).
 - `GET /api/observatory/summary` — observatoire agrégé (Wilson 95 %, masquage n < 10).
 
+## Déploiement gratuit
+
+Un guide complet Render + Neon est fourni dans [`DEPLOY.md`](./DEPLOY.md).
+Le fichier `render.yaml` décrit le service web gratuit et `drizzle/` contient
+les migrations non interactives appliquées au démarrage.
+
 ## Tests et qualité
 
 ```bash
