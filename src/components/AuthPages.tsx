@@ -44,11 +44,11 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     category: 'citizen',
     token: 'demo-token-patient',
     labelEn: 'Patient Portal',
-    labelFr: 'Portail Patient UnifiÃ©',
-    labelAr: 'Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ù…Ø±ÙŠØ¶ Ø§Ù„Ù…ÙˆØ­Ø¯Ø©',
-    email: 'tariq.nadim@demo.MediBenin.example',
-    subtitleEn: 'Tariq Al-Nadim (36y Â· Personal Record + Affiliated Children)',
-    subtitleFr: 'Tariq Al-Nadim (36 ans Â· Dossier personnel + Enfants affiliÃ©s)',
+    labelFr: 'Portail Patient Unifié',
+    labelAr: 'بوابة المريض الموحدة',
+    email: 'tariq.nadim@demo.medisense.example',
+    subtitleEn: 'Tariq Al-Nadim (36y · Personal Record + Affiliated Children)',
+    subtitleFr: 'Tariq Al-Nadim (36 ans · Dossier personnel + Enfants affiliés)',
   },
   {
     role: 'parent',
@@ -56,19 +56,19 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     token: 'demo-token-parent',
     labelEn: 'Parent Portal',
     labelFr: 'Portail Parent',
-    labelAr: 'Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„ÙˆØ§Ù„Ø¯ÙŠÙ†',
-    email: 'amira.mansoor@demo.MediBenin.example',
-    subtitleEn: 'Amira Al-Mansoor (Parent Â· Affiliated children)',
-    subtitleFr: 'Amira Al-Mansoor (Parent Â· Enfants affiliÃ©s)',
+    labelAr: 'بوابة الوالدين',
+    email: 'amira.mansoor@demo.medisense.example',
+    subtitleEn: 'Amira Al-Mansoor (Parent · Affiliated children)',
+    subtitleFr: 'Amira Al-Mansoor (Parent · Enfants affiliés)',
   },
   {
     role: 'clinician',
     category: 'health_agent',
     token: 'demo-token-clinician',
     labelEn: 'Physician / Clinician',
-    labelFr: 'MÃ©decin / Clinicien',
-    labelAr: 'Ø·Ø¨ÙŠØ¨ Ø³Ø±ÙŠØ±ÙŠ',
-    email: 'dr.kpegbe@demo.MediBenin.example',
+    labelFr: 'Médecin / Clinicien',
+    labelAr: 'طبيب سريري',
+    email: 'dr.kpegbe@demo.medisense.example',
     subtitleEn: 'Dr. Sydney Kpegbe (Clinical consultation)',
     subtitleFr: 'Dr. Sydney Kpegbe (Consultation clinique)',
   },
@@ -78,8 +78,8 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     token: 'demo-token-coordinator',
     labelEn: 'Care Coordinator',
     labelFr: 'Coordinateur de Soins',
-    labelAr: 'Ù…Ù†Ø³Ù‚ Ø§Ù„Ø±Ø¹Ø§ÙŠØ©',
-    email: 'orace.coord@demo.MediBenin.example',
+    labelAr: 'منسق الرعاية',
+    email: 'orace.coord@demo.medisense.example',
     subtitleEn: 'Orace A. (Outreach queues)',
     subtitleFr: 'Orace A. (Files de relance)',
   },
@@ -88,11 +88,11 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     category: 'health_agent',
     token: 'demo-token-public-health',
     labelEn: 'Public Health Agent',
-    labelFr: 'SantÃ© Publique',
-    labelAr: 'Ø§Ù„ØµØ­Ø© Ø§Ù„Ø¹Ø§Ù…Ø©',
-    email: 'bienderan.epi@demo.MediBenin.example',
+    labelFr: 'Santé Publique',
+    labelAr: 'الصحة العامة',
+    email: 'bienderan.epi@demo.medisense.example',
     subtitleEn: 'Bienderan E. (Population Observatory & Equity)',
-    subtitleFr: 'Bienderan E. (Observatoire Population & Ã‰quitÃ©)',
+    subtitleFr: 'Bienderan E. (Observatoire Population & Équité)',
   },
 ];
 
@@ -117,7 +117,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
     initialPreset.category
   );
   const [email, setEmail] = useState(initialPreset.email);
-  const [password, setPassword] = useState('MediBenin-Demo-2026');
+  const [password, setPassword] = useState('MediSense-Demo-2026');
   const [selectedRole, setSelectedRole] = useState<UserRole>(initialPreset.role);
   const [selectedToken, setSelectedToken] = useState(initialPreset.token);
   const [showPassword, setShowPassword] = useState(false);
@@ -138,7 +138,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
     const found = ALL_ROLE_PRESETS.find((p) => p.role === initialRole) || CITIZEN_PRESETS[0];
     setPortalCategory(found.category);
     setEmail(found.email);
-    setPassword('MediBenin-Demo-2026');
+    setPassword('MediSense-Demo-2026');
     setSelectedRole(found.role);
     setSelectedToken(found.token);
     setErrorMsg(null);
@@ -146,7 +146,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
   const handlePresetClick = (preset: RolePreset) => {
     setEmail(preset.email);
-    setPassword('MediBenin-Demo-2026');
+    setPassword('MediSense-Demo-2026');
     setSelectedRole(preset.role);
     setSelectedToken(preset.token);
     setErrorMsg(null);
@@ -157,7 +157,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
     const defaultPreset =
       nextCat === 'citizen' ? CITIZEN_PRESETS[0] : HEALTH_AGENT_PRESETS[0];
     setEmail(defaultPreset.email);
-    setPassword('MediBenin-Demo-2026');
+    setPassword('MediSense-Demo-2026');
     setSelectedRole(defaultPreset.role);
     setSelectedToken(defaultPreset.token);
     setErrorMsg(null);
@@ -166,7 +166,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.includes('@') || password.length < 4) {
-      setErrorMsg(isFr ? 'VÃ©rifiez vos identifiants.' : 'Please check your credentials.');
+      setErrorMsg(isFr ? 'Vérifiez vos identifiants.' : 'Please check your credentials.');
       return;
     }
     setLoading(true);
@@ -299,7 +299,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               className="inline-flex items-center gap-2 text-xs font-semibold text-white bg-black/30 hover:bg-black/45 backdrop-blur-md px-3.5 py-2 rounded-xl cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
-              <span>{isAr ? 'Ø§Ù„Ø¹ÙˆØ¯Ø©' : isFr ? 'Accueil' : 'Home'}</span>
+              <span>{isAr ? 'العودة' : isFr ? 'Accueil' : 'Home'}</span>
             </button>
             <MediBeninLogo variant="light" />
           </div>
@@ -308,10 +308,10 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
             <span className="w-2 h-2 rounded-full bg-[#2DD4BF]" />
             <span>
               {isAr
-                ? 'Ø§Ù„ÙˆÙ‚Ø§ÙŠØ© ÙˆØ§Ù„ÙØ­Øµ Ø§Ù„Ø¯Ù‚ÙŠÙ‚ Â· 2026'
+                ? 'الوقاية والفحص الدقيق · 2026'
                 : isFr
-                ? 'DÃ©mo MediBenin Â· Challenge 2026'
-                : 'MediBenin demo Â· Challenge 2026'}
+                ? 'Démo MediSense · Challenge 2026'
+                : 'MediSense demo · Challenge 2026'}
             </span>
           </span>
         </div>
@@ -320,16 +320,16 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
         <div className="relative z-10 rounded-2xl bg-[#041D1E]/45 backdrop-blur-sm p-6 space-y-2 text-white max-w-xl">
           <p className="text-[11px] font-bold uppercase tracking-wider text-white/85">
             {isAr
-              ? 'Ø±Ø¹Ø§ÙŠØ© ÙˆÙ‚Ø§Ø¦ÙŠØ© Ù…ØªÙƒØ§Ù…Ù„Ø©'
+              ? 'رعاية وقائية متكاملة'
               : isFr
-              ? 'Parcours Clinique & Logistique UnifiÃ©'
+              ? 'Parcours Clinique & Logistique Unifié'
               : 'Unified Clinical & Logistics Pathway'}
           </p>
           <h2 className="text-xl xl:text-2xl font-extrabold font-heading leading-snug text-white">
             {isAr
-              ? 'ØªØ­ÙˆÙŠÙ„ Ø§Ù„Ø¥Ø±Ø´Ø§Ø¯Ø§Øª Ø§Ù„ÙˆÙ‚Ø§Ø¦ÙŠØ© Ø¥Ù„Ù‰ Ù…ÙˆØ§Ø¹ÙŠØ¯ Ù…Ø¤ÙƒØ¯Ø©'
+              ? 'تحويل الإرشادات الوقائية إلى مواعيد مؤكدة'
               : isFr
-              ? 'Du dÃ©pistage prÃ©ventif au rendez-vous confirmÃ© en une seule visite.'
+              ? 'Du dépistage préventif au rendez-vous confirmé en une seule visite.'
               : 'From preventive screening rules to a confirmed single-visit care plan.'}
           </h2>
         </div>
@@ -348,7 +348,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               className="inline-flex items-center gap-1.5 sm:gap-2 text-xs font-semibold text-white bg-black/35 hover:bg-black/50 backdrop-blur-md px-3 sm:px-3.5 py-2 rounded-xl cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
-              <span>{isAr ? 'Ø§Ù„Ø¹ÙˆØ¯Ø©' : isFr ? 'Accueil' : 'Home'}</span>
+              <span>{isAr ? 'العودة' : isFr ? 'Accueil' : 'Home'}</span>
             </button>
             <MediBeninLogo variant="light" />
           </div>
@@ -373,10 +373,10 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                         <HeartHandshake className="w-3.5 h-3.5 text-[#0F6B6B]" />
                         <span>
                           {isAr
-                            ? 'Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ù…Ø±ÙŠØ¶ ÙˆØ§Ù„Ø¹Ø§Ø¦Ù„Ø©'
+                            ? 'بوابة المريض والعائلة'
                             : isFr
-                            ? 'Portail Citoyen Â· Patient & Famille'
-                            : 'Citizen Portal Â· Patient & Family'}
+                            ? 'Portail Citoyen · Patient & Famille'
+                            : 'Citizen Portal · Patient & Family'}
                         </span>
                       </>
                     ) : (
@@ -384,10 +384,10 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                         <Stethoscope className="w-3.5 h-3.5 text-[#0F6B6B]" />
                         <span>
                           {isAr
-                            ? 'Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„ÙƒÙˆØ§Ø¯Ø± Ø§Ù„ØµØ­ÙŠØ© Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø©'
+                            ? 'بوابة الكوادر الصحية المعتمدة'
                             : isFr
-                            ? 'Portail Professionnel Â· Agents de SantÃ©'
-                            : 'Professional Portal Â· Healthcare Agents'}
+                            ? 'Portail Professionnel · Agents de Santé'
+                            : 'Professional Portal · Healthcare Agents'}
                         </span>
                       </>
                     )}
@@ -396,19 +396,19 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   <h1 className="text-xl sm:text-2xl font-bold text-[#0B3B3C] font-heading">
                     {portalCategory === 'citizen'
                       ? isAr
-                        ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¥Ù„Ù‰ Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ù…Ø±ÙŠØ¶ Ø§Ù„Ù…ÙˆØ­Ø¯Ø©'
+                        ? 'تسجيل الدخول إلى بوابة المريض الموحدة'
                         : isFr
-                        ? 'Connexion au Portail Patient UnifiÃ©'
+                        ? 'Connexion au Portail Patient Unifié'
                         : 'Unified Patient Portal Sign In'
                       : isAr
-                      ? 'ØªØ³Ø¬ÙŠÙ„ Ø¯Ø®ÙˆÙ„ Ø§Ù„ÙƒÙˆØ§Ø¯Ø± Ø§Ù„ØµØ­ÙŠØ©'
+                      ? 'تسجيل دخول الكوادر الصحية'
                       : isFr
-                      ? 'Connexion Agents de SantÃ©'
+                      ? 'Connexion Agents de Santé'
                       : 'Healthcare Agent Sign In'}
                   </h1>
                 </div>
 
-                {/* Role Credential Pre-fill Selector (Pre-fills credentials ONLY â€” never bypasses Sign In) */}
+                {/* Role Credential Pre-fill Selector (Pre-fills credentials ONLY — never bypasses Sign In) */}
                 <div className="bg-[#F8FAFC]/95 border border-[#CBD5E1] rounded-2xl p-3 sm:p-3.5 space-y-2.5">
                   <div className="flex items-center text-[11px] font-bold text-[#0B3B3C]">
                     <span className="flex items-center gap-1.5">
@@ -416,14 +416,14 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       <span>
                         {portalCategory === 'citizen'
                           ? isAr
-                            ? 'Ø§Ø®ØªØ± Ø§Ù„Ù…Ù„Ù'
+                            ? 'اختر الملف'
                             : isFr
                             ? 'Choisissez votre profil'
                             : 'Choose your profile'
                           : isAr
-                          ? 'Ø§Ø®ØªØ± Ø¯ÙˆØ±Ùƒ'
+                          ? 'اختر دورك'
                           : isFr
-                          ? 'Choisissez votre rÃ´le'
+                          ? 'Choisissez votre rôle'
                           : 'Choose your role'}
                       </span>
                     </span>
@@ -490,7 +490,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
                 {forgotNotice && (
                   <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#0B3B3C] text-xs font-medium">
-                    {isFr ? 'RÃ©initialisation simulÃ©e envoyÃ©e.' : 'Simulated reset link sent.'}
+                    {isFr ? 'Réinitialisation simulée envoyée.' : 'Simulated reset link sent.'}
                   </div>
                 )}
 
@@ -501,12 +501,12 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       <label htmlFor="login-email" className="block text-xs font-semibold text-[#0B3B3C]">
                         {portalCategory === 'citizen'
                           ? isAr
-                            ? 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ'
+                            ? 'البريد الإلكتروني'
                             : isFr
                             ? 'Email'
                             : 'Email'
                           : isAr
-                          ? 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ù…Ù‡Ù†ÙŠ'
+                          ? 'البريد المهني'
                           : isFr
                           ? 'Email professionnel'
                           : 'Work email'}
@@ -526,14 +526,14 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
                       <label htmlFor="login-password" className="block text-xs font-semibold text-[#0B3B3C]">
-                        {isAr ? 'ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±' : isFr ? 'Mot de passe' : 'Password'}
+                        {isAr ? 'كلمة المرور' : isFr ? 'Mot de passe' : 'Password'}
                       </label>
                       <button
                         type="button"
                         onClick={() => setForgotNotice(!forgotNotice)}
                         className="text-[11px] font-medium text-[#0B3B3C] hover:underline"
                       >
-                        {isFr ? 'OubliÃ© ?' : 'Forgot?'}
+                        {isFr ? 'Oublié ?' : 'Forgot?'}
                       </button>
                     </div>
                     <div className="relative">
@@ -565,10 +565,10 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                     <span>
                       {loading
                         ? isFr
-                          ? 'VÃ©rification des droits dâ€™accÃ¨s...'
+                          ? 'Vérification des droits d’accès...'
                           : 'Verifying access...'
                         : isAr
-                        ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„'
+                        ? 'تسجيل الدخول'
                         : isFr
                         ? 'Se connecter'
                         : 'Sign In'}
@@ -588,10 +588,10 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       <Stethoscope className="w-3.5 h-3.5" />
                       <span>
                         {isAr
-                          ? 'Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¥Ù„Ù‰ Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„ÙƒÙˆØ§Ø¯Ø± Ø§Ù„ØµØ­ÙŠØ© â†'
+                          ? 'الدخول إلى بوابة الكوادر الصحية ←'
                           : isFr
-                          ? 'AccÃ©der au portail Agents de SantÃ© â†’'
-                          : 'Access Healthcare Agent Portal â†’'}
+                          ? 'Accéder au portail Agents de Santé →'
+                          : 'Access Healthcare Agent Portal →'}
                       </span>
                     </button>
                   ) : (
@@ -605,9 +605,9 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                           <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" />
                           <span>
                             {isAr
-                              ? 'Ø§Ù„Ø¹ÙˆØ¯Ø© Ø¥Ù„Ù‰ Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ù…Ø±ÙŠØ¶ Ø§Ù„Ù…ÙˆØ­Ø¯Ø©'
+                              ? 'العودة إلى بوابة المريض الموحدة'
                               : isFr
-                              ? 'Retour au Portail Patient UnifiÃ©'
+                              ? 'Retour au Portail Patient Unifié'
                               : 'Back to Unified Patient Portal'}
                           </span>
                         </button>
@@ -618,9 +618,9 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                           className="font-semibold text-[#0B3B3C] hover:underline cursor-pointer"
                         >
                           {isAr
-                            ? 'Ø·Ù„Ø¨ ØµÙ„Ø§Ø­ÙŠØ© Ù…Ù…Ø§Ø±Ø³ ØµØ­ÙŠ'
+                            ? 'طلب صلاحية ممارس صحي'
                             : isFr
-                            ? 'Demander un accÃ¨s professionnel'
+                            ? 'Demander un accès professionnel'
                             : 'Request access'}
                         </button>
                       </div>
@@ -632,14 +632,14 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               /* Request Access Form */
               <div className="space-y-4">
                 <h1 className="text-lg sm:text-xl font-bold text-[#0B3B3C] font-heading">
-                  {isFr ? 'Demande dâ€™accÃ¨s mÃ©decin' : 'Request Clinician Access'}
+                  {isFr ? 'Demande d’accès médecin' : 'Request Clinician Access'}
                 </h1>
 
                 {reqSubmitted ? (
                   <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] text-center space-y-3">
                     <CheckCircle2 className="w-8 h-8 text-[#0B3B3C] mx-auto" />
                     <p className="text-sm font-bold text-[#0B3B3C]">
-                      {isFr ? 'Demande reÃ§ue â€” en attente de validation' : 'Request received â€” pending validation'}
+                      {isFr ? 'Demande reçue — en attente de validation' : 'Request received — pending validation'}
                     </p>
                     <button
                       type="button"
@@ -730,7 +730,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
         <footer className="text-center text-[11px] text-white/85 lg:text-[#64748B] px-4">
           <p>
             {isFr
-              ? 'Prototype indÃ©pendant rÃ©alisÃ© par lâ€™Ã©quipe CareX. Sans affiliation avec, ni approbation dâ€™une autoritÃ© de santÃ©. DonnÃ©es 100 % synthÃ©tiques.'
+              ? 'Prototype indépendant réalisé par l’équipe CareX. Sans affiliation avec, ni approbation d’une autorité de santé. Données 100 % synthétiques.'
               : 'Independent prototype built by team CareX. Not affiliated with, or endorsed by, any health authority. 100% synthetic data.'}
           </p>
         </footer>

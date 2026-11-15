@@ -154,7 +154,7 @@ interface GuidedAnalysisFormState {
 
 const DEFAULT_ANALYSIS_FORM: GuidedAnalysisFormState = {
   parentPatientId: 'PT-36Y-TARIQ',
-  displayName: 'Karim Al-Mansoori (Bilan PersonnalisÃ©)',
+  displayName: 'Karim Al-Mansoori (Bilan Personnalisé)',
   pathwayType: 'adult',
   ageYears: '52',
   ageMonths: '624',
@@ -326,7 +326,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       const res = await apiClient.approveMajorityDetachment(childId);
       setActionFeedback(
         isFr
-          ? `Validation dÃ©finitive effectuÃ©e par le service compÃ©tent : ${childName} (${childId}) est dÃ©sormais dÃ©tachÃ© de la tutelle parentale et rattachÃ© au parcours Adulte IFHAS (${res.autonomousEmail}).`
+          ? `Validation définitive effectuée par le service compétent : ${childName} (${childId}) est désormais détaché de la tutelle parentale et rattaché au parcours Adulte IFHAS (${res.autonomousEmail}).`
           : `Definitive majority detachment validated: ${childName} (${childId}) is now an autonomous Adult IFHAS record (${res.autonomousEmail}).`
       );
       await loadList();
@@ -497,7 +497,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       setAnalysisForm({
         ...DEFAULT_ANALYSIS_FORM,
         patientId: undefined,
-        displayName: 'Youssef Al-Hosani (Adulte 55 ans Â· Bilan CV & MÃ©tabolique)',
+        displayName: 'Youssef Al-Hosani (Adulte 55 ans · Bilan CV & Métabolique)',
         pathwayType: 'adult',
         ageYears: '55',
         ageMonths: '660',
@@ -528,7 +528,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       setAnalysisForm({
         ...DEFAULT_ANALYSIS_FORM,
         patientId: undefined,
-        displayName: 'Ananya Nair (Adult Â· 38y Â· South Asia)',
+        displayName: 'Ananya Nair (Adult · 38y · South Asia)',
         pathwayType: 'adult',
         ageYears: '38',
         ageMonths: '456',
@@ -560,7 +560,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
         ...DEFAULT_ANALYSIS_FORM,
         patientId: undefined,
         parentPatientId: 'PT-36Y-TARIQ',
-        displayName: 'Nahyan Al-Nadim (Enfant 14 mois Â· PrÃ©maturÃ© 32 SA Â· WCV)',
+        displayName: 'Nahyan Al-Nadim (Enfant 14 mois · Prématuré 32 SA · WCV)',
         pathwayType: 'child',
         ageYears: '1',
         ageMonths: '14',
@@ -691,7 +691,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       setDetailTab('summary');
       setActionFeedback(
         isFr
-          ? 'Analyse clinique terminÃ©e. Le parcours prÃ©ventif a Ã©tÃ© mis Ã  jour.'
+          ? 'Analyse clinique terminée. Le parcours préventif a été mis à jour.'
           : 'Clinical analysis completed. The preventive plan has been updated.'
       );
     } catch (err: any) {
@@ -707,7 +707,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
     await apiClient.runEvaluation(selectedPatientId);
     setActionFeedback(
       isFr
-        ? 'Ã‰valuation recalculÃ©e selon les rÃ¨gles signÃ©es.'
+        ? 'Évaluation recalculée selon les règles signées.'
         : 'Evaluation refreshed against the signed rules.'
     );
     await loadPatientDetail(selectedPatientId);
@@ -728,8 +728,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       setActiveActionPanel(null);
       setActionFeedback(
         isFr
-          ? 'Mesures enregistrÃ©es. Le parcours du patient a Ã©tÃ© mis Ã  jour.'
-          : 'Measurements saved. The patientâ€™s plan has been updated.'
+          ? 'Mesures enregistrées. Le parcours du patient a été mis à jour.'
+          : 'Measurements saved. The patient’s plan has been updated.'
       );
       await loadPatientDetail(selectedPatientId);
       await loadList();
@@ -862,16 +862,16 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
         <div>
           <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
             {isFr
-              ? 'Saisie GuidÃ©e & Calculateur Clinique'
+              ? 'Saisie Guidée & Calculateur Clinique'
               : 'Guided Clinical Input & Clinical Calculator'}
           </span>
           <h3 className="text-base sm:text-lg font-extrabold text-[#0B3B3C] font-heading">
             {analysisForm.patientId
               ? isFr
-                ? `Modifier les paramÃ¨tres & recalculer : ${analysisForm.displayName}`
+                ? `Modifier les paramètres & recalculer : ${analysisForm.displayName}`
                 : `Update Clinical Parameters & Recalculate: ${analysisForm.displayName}`
               : isFr
-              ? 'Nouvelle Analyse PrÃ©ventive GuidÃ©e'
+              ? 'Nouvelle Analyse Préventive Guidée'
               : 'New Guided Preventive Clinical Analysis'}
           </h3>
         </div>
@@ -893,14 +893,14 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               onClick={() => applyPresetScenario('south_asia_findrisc')}
               className="px-2.5 py-1 rounded-lg bg-[#F0FDFA] border border-[#99F6E4] text-[#0B3B3C] font-semibold hover:bg-[#CCFBF1]"
             >
-              {isFr ? 'Asie du Sud (Ã‚ge <40 ans)' : 'South Asia (Age <40y)'}
+              {isFr ? 'Asie du Sud (Âge <40 ans)' : 'South Asia (Age <40y)'}
             </button>
             <button
               type="button"
               onClick={() => applyPresetScenario('child_preterm')}
               className="px-2.5 py-1 rounded-lg bg-[#F0FDFA] border border-[#99F6E4] text-[#0B3B3C] font-semibold hover:bg-[#CCFBF1]"
             >
-              {isFr ? 'Enfant PrÃ©maturÃ© 32 SA (<18a AffiliÃ©)' : 'Preterm Child 32w (<18y Affiliated)'}
+              {isFr ? 'Enfant Prématuré 32 SA (<18a Affilié)' : 'Preterm Child 32w (<18y Affiliated)'}
             </button>
             <button
               type="button"
@@ -925,7 +925,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           <Users className="w-3.5 h-3.5 text-[#0F6B6B]" />
           <span>
             {isFr
-              ? '1. IdentitÃ©, Parcours dâ€™Ã‚ge & Modificateur DÃ©mographique'
+              ? '1. Identité, Parcours d’Âge & Modificateur Démographique'
               : '1. Identity, Age Pathway & Demographic Modifier'}
           </span>
         </h4>
@@ -957,18 +957,18 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] bg-white text-[#0B3B3C] font-semibold"
             >
               <option value="adult">{isFr ? 'Adulte (IFHAS 18+)' : 'Adult (IFHAS 18+)'}</option>
-              <option value="child">{isFr ? 'Enfant (WCV 0â€“9 ans)' : 'Child (WCV 0â€“9y)'}</option>
-              <option value="adolescent">{isFr ? 'Adolescent (10â€“17 ans)' : 'Adolescent (10â€“17y)'}</option>
+              <option value="child">{isFr ? 'Enfant (WCV 0–9 ans)' : 'Child (WCV 0–9y)'}</option>
+              <option value="adolescent">{isFr ? 'Adolescent (10–17 ans)' : 'Adolescent (10–17y)'}</option>
             </select>
           </div>
           <div>
             <label className="block font-semibold text-[#334155] mb-1">
               {analysisForm.pathwayType === 'child'
                 ? isFr
-                  ? 'Ã‚ge (en mois)'
+                  ? 'Âge (en mois)'
                   : 'Age (months)'
                 : isFr
-                ? 'Ã‚ge (annÃ©es)'
+                ? 'Âge (années)'
                 : 'Age (years)'}
             </label>
             {analysisForm.pathwayType === 'child' ? (
@@ -1042,12 +1042,12 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 </span>
                 <p className="font-bold text-[#0B3B3C]">
                   {isFr
-                    ? 'Rechercher le parent dans le registre (par ID ou Nom) pour rattacher lâ€™enfant :'
+                    ? 'Rechercher le parent dans le registre (par ID ou Nom) pour rattacher l’enfant :'
                     : 'Search for the parent in the registry (by ID or name) to affiliate this minor:'}
                 </p>
               </div>
               <span className="px-2.5 py-1 rounded-lg bg-white border border-[#99F6E4] font-mono font-bold text-[#0F6B6B]">
-                {isFr ? 'Parent affiliÃ© :' : 'Linked Parent:'} {analysisForm.parentPatientId}
+                {isFr ? 'Parent affilié :' : 'Linked Parent:'} {analysisForm.parentPatientId}
               </span>
             </div>
 
@@ -1083,7 +1083,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                           : 'bg-white border border-[#CBD5E1] text-[#0B3B3C] hover:border-[#0F6B6B]'
                       }`}
                     >
-                      {parent.displayName} ({parent.id} Â· {parent.ageYears}a)
+                      {parent.displayName} ({parent.id} · {parent.ageYears}a)
                     </button>
                   );
                 })}
@@ -1101,15 +1101,15 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               <HeartPulse className="w-3.5 h-3.5 text-[#0F6B6B]" />
               <span>
                 {isFr
-                  ? '2. Protocole TA (2 ou 3 mesures Â· Bornes 60â€“260 / 30â€“160)'
-                  : '2. BP Protocol (2 or 3 readings Â· Bounds 60â€“260 / 30â€“160)'}
+                  ? '2. Protocole TA (2 ou 3 mesures · Bornes 60–260 / 30–160)'
+                  : '2. BP Protocol (2 or 3 readings · Bounds 60–260 / 30–160)'}
               </span>
             </h4>
             {formRequiresBp3 && (
               <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 text-[10px] font-bold">
                 {isFr
-                  ? `Ã‰cart ${bpSpreadSys}/${bpSpreadDia} mmHg entre les 2 mesures â†’ 3e mesure requise`
-                  : `Spread ${bpSpreadSys}/${bpSpreadDia} mmHg between readings â†’ 3rd reading required`}
+                  ? `Écart ${bpSpreadSys}/${bpSpreadDia} mmHg entre les 2 mesures → 3e mesure requise`
+                  : `Spread ${bpSpreadSys}/${bpSpreadDia} mmHg between readings → 3rd reading required`}
               </span>
             )}
           </div>
@@ -1140,7 +1140,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
 
             <div className="p-2.5 rounded-xl bg-white border border-[#E2E8F0]">
               <span className="text-[11px] font-bold text-[#0B3B3C] block mb-1.5">
-                {isFr ? '2e mesure (aprÃ¨s 1 min)' : 'Reading 2 (after 1m)'}
+                {isFr ? '2e mesure (après 1 min)' : 'Reading 2 (after 1m)'}
               </span>
               <div className="flex items-center gap-1">
                 <input
@@ -1198,7 +1198,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             <Activity className="w-3.5 h-3.5 text-[#0F6B6B]" />
             <span>
               {isFr
-                ? '3. Mesures corporelles (calcul automatique de lâ€™indice de masse) & Provenance'
+                ? '3. Mesures corporelles (calcul automatique de l’indice de masse) & Provenance'
                 : '3. Anthropometry (Auto BMI Calculation) & Provenance'}
             </span>
           </h4>
@@ -1253,10 +1253,10 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
                 className="w-full px-2 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-semibold text-[#0B3B3C]"
               >
-                <option value="M">M Â· MesurÃ© protocole</option>
-                <option value="V">V Â· Dossier vÃ©rifiÃ©</option>
-                <option value="D">D Â· DÃ©clarÃ© patient</option>
-                <option value="S">S Â· SynthÃ©tique</option>
+                <option value="M">M · Mesuré protocole</option>
+                <option value="V">V · Dossier vérifié</option>
+                <option value="D">D · Déclaré patient</option>
+                <option value="S">S · Synthétique</option>
               </select>
             </div>
           </div>
@@ -1270,14 +1270,14 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             <Calculator className="w-3.5 h-3.5 text-[#0F6B6B]" />
             <span>
               {isFr
-                ? '4. Facteurs MÃ©taboliques FINDRISC (8 items), OMS 2019 & DÃ©pistages IFHAS (A1â€“A11)'
-                : '4. FINDRISC (8 items), WHO 2019 Factors & IFHAS Screenings (A1â€“A11)'}
+                ? '4. Facteurs Métaboliques FINDRISC (8 items), OMS 2019 & Dépistages IFHAS (A1–A11)'
+                : '4. FINDRISC (8 items), WHO 2019 Factors & IFHAS Screenings (A1–A11)'}
             </span>
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'AntÃ©cÃ©dents familiaux diabÃ¨te' : 'Family History of Diabetes'}
+                {isFr ? 'Antécédents familiaux diabète' : 'Family History of Diabetes'}
               </label>
               <select
                 value={analysisForm.familyHistoryDiabetesLevel}
@@ -1289,10 +1289,10 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
                 className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white text-[#0B3B3C]"
               >
-                <option value="unknown">{isFr ? 'Non renseignÃ©' : 'Not answered'}</option>
+                <option value="unknown">{isFr ? 'Non renseigné' : 'Not answered'}</option>
                 <option value="none">{isFr ? 'Aucun (0 pt)' : 'None (0 pt)'}</option>
-                <option value="second_degree">{isFr ? '2e degrÃ© : Grands-parents/Oncles (+3 pts)' : '2nd degree (+3 pts)'}</option>
-                <option value="first_degree">{isFr ? '1er degrÃ© : Parents/Fratrie (+5 pts)' : '1st degree (+5 pts)'}</option>
+                <option value="second_degree">{isFr ? '2e degré : Grands-parents/Oncles (+3 pts)' : '2nd degree (+3 pts)'}</option>
+                <option value="first_degree">{isFr ? '1er degré : Parents/Fratrie (+5 pts)' : '1st degree (+5 pts)'}</option>
               </select>
             </div>
 
@@ -1312,7 +1312,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
 
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Mois depuis le dernier dÃ©pistage glycÃ©mique' : 'Months since last glycemic screening'}
+                {isFr ? 'Mois depuis le dernier dépistage glycémique' : 'Months since last glycemic screening'}
               </label>
               <input
                 type="number"
@@ -1328,7 +1328,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
 
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Mois depuis le dernier dÃ©pistage colorectal' : 'Months since last colorectal screening'}
+                {isFr ? 'Mois depuis le dernier dépistage colorectal' : 'Months since last colorectal screening'}
               </label>
               <input
                 type="number"
@@ -1360,7 +1360,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'DerniÃ¨re orientation' : 'Last orientation level'}
+                {isFr ? 'Dernière orientation' : 'Last orientation level'}
               </label>
               <select
                 value={analysisForm.orientationLevel}
@@ -1379,7 +1379,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Jours depuis lâ€™orientation' : 'Days since orientation'}
+                {isFr ? 'Jours depuis l’orientation' : 'Days since orientation'}
               </label>
               <input
                 type="number"
@@ -1400,7 +1400,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
               />
               <span className="font-medium text-[#0B3B3C]">
-                {isFr ? 'Orientation non honorÃ©e' : 'Orientation not attended'}
+                {isFr ? 'Orientation non honorée' : 'Orientation not attended'}
               </span>
             </label>
           </div>
@@ -1408,7 +1408,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-1">
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Mois depuis le dernier dÃ©pistage du col' : 'Months since last cervical screening'}
+                {isFr ? 'Mois depuis le dernier dépistage du col' : 'Months since last cervical screening'}
               </label>
               <input
                 type="number"
@@ -1422,7 +1422,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Mois depuis la derniÃ¨re mammographie' : 'Months since last mammography'}
+                {isFr ? 'Mois depuis la dernière mammographie' : 'Months since last mammography'}
               </label>
               <input
                 type="number"
@@ -1448,8 +1448,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
                 className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white"
               >
-                <option value="unknown">{isFr ? 'Non renseignÃ©' : 'Not answered'}</option>
-                <option value="yes">{isFr ? 'Fait / Ã  jour' : 'Done / up to date'}</option>
+                <option value="unknown">{isFr ? 'Non renseigné' : 'Not answered'}</option>
+                <option value="yes">{isFr ? 'Fait / à jour' : 'Done / up to date'}</option>
                 <option value="no">{isFr ? 'Non fait' : 'Not done'}</option>
               </select>
             </div>
@@ -1481,7 +1481,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
                 className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white"
               >
-                <option value="unknown">{isFr ? 'Non renseignÃ©' : 'Not answered'}</option>
+                <option value="unknown">{isFr ? 'Non renseigné' : 'Not answered'}</option>
                 <option value="yes">{isFr ? 'Oui' : 'Yes'}</option>
                 <option value="no">{isFr ? 'Non' : 'No'}</option>
               </select>
@@ -1509,7 +1509,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
               />
               <span className="font-medium text-[#0B3B3C]">
-                {isFr ? 'ActivitÃ© â‰¥30 min/j (FINDRISC)' : 'Activity â‰¥30m/day'}
+                {isFr ? 'Activité ≥30 min/j (FINDRISC)' : 'Activity ≥30m/day'}
               </span>
             </label>
 
@@ -1520,7 +1520,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 onChange={(e) => setAnalysisForm({ ...analysisForm, dailyFruitsVeg: e.target.checked })}
               />
               <span className="font-medium text-[#0B3B3C]">
-                {isFr ? 'Fruits & lÃ©gumes/j' : 'Daily Fruits & Veg'}
+                {isFr ? 'Fruits & légumes/j' : 'Daily Fruits & Veg'}
               </span>
             </label>
 
@@ -1546,7 +1546,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
               />
               <span className="font-medium text-[#0B3B3C]">
-                {isFr ? 'AntÃ©cÃ©dent glycÃ©mie Ã©levÃ©e (+5)' : 'Prior High Glucose (+5)'}
+                {isFr ? 'Antécédent glycémie élevée (+5)' : 'Prior High Glucose (+5)'}
               </span>
             </label>
 
@@ -1559,7 +1559,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
               />
               <span className="font-medium text-[#0B3B3C]">
-                {isFr ? 'AntÃ©cÃ©dent CV prÃ©coce 1er degrÃ©' : '1st-Degree Premature CVD'}
+                {isFr ? 'Antécédent CV précoce 1er degré' : '1st-Degree Premature CVD'}
               </span>
             </label>
 
@@ -1579,7 +1579,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             {analysisForm.sex === 'female' && analysisForm.isPregnant && (
               <div className="p-2 rounded-xl bg-white border border-[#E2E8F0]">
                 <label className="block font-semibold text-[#334155] mb-1">
-                  {isFr ? 'Ã‚ge gestationnel (SA)' : 'Gestational age (weeks)'}
+                  {isFr ? 'Âge gestationnel (SA)' : 'Gestational age (weeks)'}
                 </label>
                 <input
                   type="number"
@@ -1603,20 +1603,20 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
               />
               <span className="font-medium text-[#0B3B3C]">
-                {isFr ? 'Suivi spÃ©cialiste actif (Ã‰clipse)' : 'Active Specialist Follow-up'}
+                {isFr ? 'Suivi spécialiste actif (Éclipse)' : 'Active Specialist Follow-up'}
               </span>
             </label>
           </div>
         </div>
       ) : (
-        /* Pediatric & Adolescent Parameters (Rules P1â€“P11) */
+        /* Pediatric & Adolescent Parameters (Rules P1–P11) */
         <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0] space-y-3">
           <h4 className="text-xs font-bold uppercase tracking-wider text-[#0B3B3C] flex items-center gap-1.5">
             <Baby className="w-3.5 h-3.5 text-[#0F6B6B]" />
             <span>
               {isFr
-                ? '4. ParamÃ¨tres PÃ©diatriques OMS, PrÃ©maturitÃ© & DÃ©veloppement (RÃ¨gles P1â€“P11)'
-                : '4. WHO Pediatric Growth, Prematurity & Development (Rules P1â€“P11)'}
+                ? '4. Paramètres Pédiatriques OMS, Prématurité & Développement (Règles P1–P11)'
+                : '4. WHO Pediatric Growth, Prematurity & Development (Rules P1–P11)'}
             </span>
           </h4>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2.5 text-xs">
@@ -1637,7 +1637,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Score Z Poids/Ã‚ge' : 'Weight-for-Age Z'}
+                {isFr ? 'Score Z Poids/Âge' : 'Weight-for-Age Z'}
               </label>
               <input
                 type="number"
@@ -1649,7 +1649,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'PÃ©rimÃ¨tre brachial (mm)' : 'MUAC (mm)'}
+                {isFr ? 'Périmètre brachial (mm)' : 'MUAC (mm)'}
               </label>
               <input
                 type="number"
@@ -1660,7 +1660,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Score M-CHAT-R (0â€“20)' : 'M-CHAT-R Score'}
+                {isFr ? 'Score M-CHAT-R (0–20)' : 'M-CHAT-R Score'}
               </label>
               <input
                 type="number"
@@ -1673,7 +1673,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Score entretien de suivi M-CHAT-R/F (0â€“20)' : 'M-CHAT-R/F follow-up score'}
+                {isFr ? 'Score entretien de suivi M-CHAT-R/F (0–20)' : 'M-CHAT-R/F follow-up score'}
               </label>
               <input
                 type="number"
@@ -1688,7 +1688,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'HÃ©moglobine (g/dL)' : 'Hemoglobin (g/dL)'}
+                {isFr ? 'Hémoglobine (g/dL)' : 'Hemoglobin (g/dL)'}
               </label>
               <input
                 type="number"
@@ -1717,7 +1717,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Ã‚ge de la derniÃ¨re visite WCV (mois)' : 'Age at last WCV (months)'}
+                {isFr ? 'Âge de la dernière visite WCV (mois)' : 'Age at last WCV (months)'}
               </label>
               <input
                 type="number"
@@ -1731,7 +1731,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'DÃ©pistage anÃ©mie (12â€“24 mois)' : 'Anemia screening (12â€“24 months)'}
+                {isFr ? 'Dépistage anémie (12–24 mois)' : 'Anemia screening (12–24 months)'}
               </label>
               <select
                 value={analysisForm.anemiaScreeningDone}
@@ -1743,14 +1743,14 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
                 className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white"
               >
-                <option value="unknown">{isFr ? 'Non renseignÃ©' : 'Not answered'}</option>
+                <option value="unknown">{isFr ? 'Non renseigné' : 'Not answered'}</option>
                 <option value="yes">{isFr ? 'Fait' : 'Done'}</option>
                 <option value="no">{isFr ? 'Non fait' : 'Not done'}</option>
               </select>
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Vaccins adolescents Ã  jour' : 'Adolescent vaccines up to date'}
+                {isFr ? 'Vaccins adolescents à jour' : 'Adolescent vaccines up to date'}
               </label>
               <select
                 value={analysisForm.adolescentVaccinesUpToDate}
@@ -1762,14 +1762,14 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
                 className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white"
               >
-                <option value="unknown">{isFr ? 'Non renseignÃ©' : 'Not answered'}</option>
+                <option value="unknown">{isFr ? 'Non renseigné' : 'Not answered'}</option>
                 <option value="yes">{isFr ? 'Oui' : 'Yes'}</option>
                 <option value="no">{isFr ? 'Non' : 'No'}</option>
               </select>
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Enfant zÃ©ro dose' : 'Zero-dose child'}
+                {isFr ? 'Enfant zéro dose' : 'Zero-dose child'}
               </label>
               <select
                 value={analysisForm.isZeroDoseChild}
@@ -1781,7 +1781,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
                 className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white"
               >
-                <option value="unknown">{isFr ? 'Non renseignÃ©' : 'Not answered'}</option>
+                <option value="unknown">{isFr ? 'Non renseigné' : 'Not answered'}</option>
                 <option value="yes">{isFr ? 'Oui' : 'Yes'}</option>
                 <option value="no">{isFr ? 'Non' : 'No'}</option>
               </select>
@@ -1795,12 +1795,12 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
         <div className="bg-[#F8FAFC] p-3.5 rounded-2xl border border-[#E2E8F0] flex items-center justify-between gap-3">
           <div>
             <span className="font-bold text-[#0B3B3C] block">
-              {isFr ? 'AccÃ©lÃ©rateur GÃ©nomique Consenti (G1â€“G3)' : 'Consented Genomic Accelerator (G1â€“G3)'}
+              {isFr ? 'Accélérateur Génomique Consenti (G1–G3)' : 'Consented Genomic Accelerator (G1–G3)'}
             </span>
             <span className="text-[11px] text-[#64748B]">
               {isFr
-                ? 'Avance uniquement le calendrier prÃ©ventif Â· consentement gÃ©rÃ© par le patient'
-                : 'Strictly advances screening schedule Â· consent managed by the patient'}
+                ? 'Avance uniquement le calendrier préventif · consentement géré par le patient'
+                : 'Strictly advances screening schedule · consent managed by the patient'}
             </span>
           </div>
           <select
@@ -1814,9 +1814,9 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             className="px-3 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-semibold text-[#0B3B3C]"
           >
             <option value="none">{isFr ? 'Aucun signal' : 'None'}</option>
-            <option value="cvd">G1 Â· Cardiovasculaire (-5 ans)</option>
-            <option value="diabetes">G2 Â· DiabÃ¨te / HbA1c annuel</option>
-            <option value="oncology">G3 Â· Oncologie ciblÃ©e</option>
+            <option value="cvd">G1 · Cardiovasculaire (-5 ans)</option>
+            <option value="diabetes">G2 · Diabète / HbA1c annuel</option>
+            <option value="oncology">G3 · Oncologie ciblée</option>
           </select>
         </div>
 
@@ -1832,12 +1832,12 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             <div>
               <span className="font-bold text-[#991B1B] block">
                 {isFr
-                  ? 'SymptÃ´me dâ€™alarme aigu'
+                  ? 'Symptôme d’alarme aigu'
                   : 'Acute red-flag symptom'}
               </span>
               <span className="text-[11px] text-[#B91C1C]">
                 {isFr
-                  ? 'Les relances de routine sont suspendues et une prise en charge urgente est dÃ©clenchÃ©e immÃ©diatement.'
+                  ? 'Les relances de routine sont suspendues et une prise en charge urgente est déclenchée immédiatement.'
                   : 'Routine outreach is paused and immediate urgent review is triggered.'}
               </span>
             </div>
@@ -1868,7 +1868,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 ? 'Calcul en cours...'
                 : 'Calculating...'
               : isFr
-              ? 'ExÃ©cuter lâ€™Analyse Clinique'
+              ? 'Exécuter l’Analyse Clinique'
               : 'Run Clinical Analysis'}
           </span>
         </button>
@@ -1886,7 +1886,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <MediBeninLogo />
             <span className="hidden md:inline text-xs font-semibold text-[#64748B] border-s border-[#E2E8F0] ps-4 truncate">
-              {isFr ? 'Espace MÃ©decin' : 'Clinician Workspace'}
+              {isFr ? 'Espace Médecin' : 'Clinician Workspace'}
             </span>
           </div>
 
@@ -1894,8 +1894,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold bg-white/85 text-[#0B3B3C] border border-[#D5F2EE] rounded-xl px-3 py-1.5">
               <span>
                 {isFr
-                  ? 'Dr. Sydney Kpegbe Â· MÃ©decin'
-                  : 'Dr. Sydney Kpegbe Â· Clinician'}
+                  ? 'Dr. Sydney Kpegbe · Médecin'
+                  : 'Dr. Sydney Kpegbe · Clinician'}
               </span>
             </span>
             <LanguageSwitch />
@@ -1907,7 +1907,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             >
               <LogOut className="w-3.5 h-3.5 text-[#64748B]" />
               <span className="hidden sm:inline">
-                {isFr ? 'DÃ©connexion' : 'Sign Out'}
+                {isFr ? 'Déconnexion' : 'Sign Out'}
               </span>
             </button>
           </div>
@@ -1941,13 +1941,13 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 </div>
                 <h2 className="text-lg sm:text-xl font-extrabold text-[#0B3B3C] font-heading">
                   {isFr
-                    ? 'Lancer une Nouvelle Analyse GuidÃ©e ou Ã‰valuer un Dossier'
+                    ? 'Lancer une Nouvelle Analyse Guidée ou Évaluer un Dossier'
                     : 'Launch a New Guided Analysis or Evaluate a Patient Record'}
                 </h2>
                 <p className="text-xs text-[#334155] max-w-3xl leading-relaxed">
                   {isFr
-                    ? 'Saisissez les paramÃ¨tres cliniques du patient pour actualiser son parcours prÃ©ventif.'
-                    : 'Enter the patientâ€™s clinical parameters to update their preventive plan.'}
+                    ? 'Saisissez les paramètres cliniques du patient pour actualiser son parcours préventif.'
+                    : 'Enter the patient’s clinical parameters to update their preventive plan.'}
                 </p>
               </div>
               <button
@@ -1966,7 +1966,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                       ? 'Fermer le Calculateur Clinique'
                       : 'Close Clinical Workbench'
                     : isFr
-                    ? '+ Nouvelle Analyse Clinique GuidÃ©e'
+                    ? '+ Nouvelle Analyse Clinique Guidée'
                     : '+ New Guided Clinical Analysis'}
                 </span>
               </button>
@@ -1988,7 +1988,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
                       {isFr
-                        ? 'Validation de majoritÃ© (18 ans et +)'
+                        ? 'Validation de majorité (18 ans et +)'
                         : 'Majority Detachment Validation (18y+)'}
                     </span>
                     <p className="text-xs text-[#334155]">
@@ -2007,10 +2007,10 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     >
                       <div>
                         <span className="font-bold text-[#0B3B3C] block">
-                          {item.childName} ({item.ageYears} ans Â· {item.childId})
+                          {item.childName} ({item.ageYears} ans · {item.childId})
                         </span>
                         <span className="text-[11px] text-[#64748B]">
-                          {isFr ? 'RattachÃ© au parent :' : 'Affiliated to parent:'} {item.parentName} (
+                          {isFr ? 'Rattaché au parent :' : 'Affiliated to parent:'} {item.parentName} (
                           {item.parentId})
                         </span>
                       </div>
@@ -2020,7 +2020,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                         className="px-3 py-1.5 rounded-xl btn-liquid-primary font-bold cursor-pointer"
                       >
                         {isFr
-                          ? 'Valider dÃ©finitivement la majoritÃ© (18 ans+)'
+                          ? 'Valider définitivement la majorité (18 ans+)'
                           : 'Definitively Validate Majority (18y+)'}
                       </button>
                     </div>
@@ -2033,25 +2033,25 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               <StatCard
                 title={isFr ? 'Patients suivis' : 'Active Panel'}
                 value={patients.length}
-                subtitle={isFr ? 'Panel dÃ©mo' : 'Demo panel'}
+                subtitle={isFr ? 'Panel démo' : 'Demo panel'}
                 icon={<Users className="w-4 h-4" />}
               />
               <StatCard
                 title={isFr ? 'Urgences Rouges' : 'Urgent Red'}
                 value={redCount}
-                subtitle={isFr ? 'Revue le jour mÃªme' : 'Same-day review'}
+                subtitle={isFr ? 'Revue le jour même' : 'Same-day review'}
                 icon={<AlertTriangle className="w-4 h-4 text-[#B91C1C]" />}
               />
               <StatCard
                 title={isFr ? 'Dossiers Gris' : 'Level Grey'}
                 value={greyCount}
-                subtitle={isFr ? 'Mesures Ã  complÃ©ter' : 'Measures to complete'}
+                subtitle={isFr ? 'Mesures à compléter' : 'Measures to complete'}
                 icon={<HelpCircle className="w-4 h-4 text-[#475569]" />}
               />
               <StatCard
                 title={isFr ? 'Suivis Orange' : 'Priority Orange'}
                 value={overdueCount}
-                subtitle={isFr ? 'FenÃªtre de 14 jours' : '14-day window'}
+                subtitle={isFr ? 'Fenêtre de 14 jours' : '14-day window'}
                 icon={<Clock className="w-4 h-4 text-[#C2410C]" />}
               />
             </div>
@@ -2098,8 +2098,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                   className="px-3 py-1.5 rounded-xl border border-[#E2E8F0] bg-white/90 font-semibold text-[#0B3B3C]"
                 >
                   <option value="all">{isFr ? 'Tous les parcours' : 'All Pathways'}</option>
-                  <option value="child">{isFr ? 'Enfant (0â€“9 ans)' : 'Child (0â€“9y)'}</option>
-                  <option value="adolescent">{isFr ? 'Adolescent (10â€“17 ans)' : 'Adolescent (10â€“17y)'}</option>
+                  <option value="child">{isFr ? 'Enfant (0–9 ans)' : 'Child (0–9y)'}</option>
+                  <option value="adolescent">{isFr ? 'Adolescent (10–17 ans)' : 'Adolescent (10–17y)'}</option>
                   <option value="adult">{isFr ? 'Adulte (18 ans+)' : 'Adult (18y+)'}</option>
                 </select>
               </div>
@@ -2127,7 +2127,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                         {p.displayName}
                       </span>
                       <span className="text-[11px] text-[#64748B] capitalize">
-                        {p.ageYears >= 2 ? `${p.ageYears} yrs` : `${p.ageMonths} mos`} Â· {p.pathwayType}
+                        {p.ageYears >= 2 ? `${p.ageYears} yrs` : `${p.ageMonths} mos`} · {p.pathwayType}
                       </span>
                     </div>
                     <LevelBadge level={p.overallLevel} size="sm" />
@@ -2226,7 +2226,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F6B6B] hover:text-[#0B3B3C] liquid-glass px-3.5 py-2 rounded-xl"
                 >
                   <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
-                  <span>{isFr ? 'Retour Ã  la liste des patients' : 'Back to patients'}</span>
+                  <span>{isFr ? 'Retour à la liste des patients' : 'Back to patients'}</span>
                 </button>
 
                 <button
@@ -2241,7 +2241,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                   <SlidersHorizontal className="w-3.5 h-3.5" />
                   <span>
                     {isFr
-                      ? 'Modifier ParamÃ¨tres & Recalculer'
+                      ? 'Modifier Paramètres & Recalculer'
                       : 'Edit Clinical Parameters & Recalculate'}
                   </span>
                 </button>
@@ -2267,8 +2267,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     {patientDetail.correctedAgeMonths !== null
                       ? ` (Corrected Prematurity Age: ${patientDetail.correctedAgeMonths} mos)`
                       : ''}{' '}
-                    Â· {patientDetail.pathwayType.toUpperCase()} Â· {patientDetail.nationalityGroup || 'UAE'} Â·{' '}
-                    {patientDetail.facilityCenter} Â· {patientDetail.preferredLanguage.toUpperCase()}
+                    · {patientDetail.pathwayType.toUpperCase()} · {patientDetail.nationalityGroup || 'UAE'} ·{' '}
+                    {patientDetail.facilityCenter} · {patientDetail.preferredLanguage.toUpperCase()}
                   </p>
                 </div>
 
@@ -2287,11 +2287,11 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 <Ring
                   done={patientDetail.preventionProgressDone}
                   total={patientDetail.preventionProgressTotal}
-                  label={isFr ? 'PrÃ©vention Ã  jour' : 'Up-to-date prevention'}
+                  label={isFr ? 'Prévention à jour' : 'Up-to-date prevention'}
                 />
               </GlassCard>
 
-              {/* Flags at a glance â€” same color language as the dashboard recap */}
+              {/* Flags at a glance — same color language as the dashboard recap */}
               <div className="flex flex-wrap items-center gap-2">
                 {LEVEL_SEQUENCE.map((lvl) => {
                   const count = patientDetail.flags.filter((f) => f.level === lvl).length;
@@ -2309,11 +2309,11 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 })}
               </div>
 
-              {/* 8 Key Clinician Action Bar â€” grouped to cut visual fatigue */}
+              {/* 8 Key Clinician Action Bar — grouped to cut visual fatigue */}
               <div className="liquid-glass rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 space-y-3">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
-                    {isFr ? 'Ã‰valuation clinique' : 'Clinical evaluation'}
+                    {isFr ? 'Évaluation clinique' : 'Clinical evaluation'}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -2332,7 +2332,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     >
                       <Calculator className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
                       <span className="truncate">
-                        {isFr ? 'Saisie guidÃ©e' : 'Guided input'}
+                        {isFr ? 'Saisie guidée' : 'Guided input'}
                       </span>
                     </button>
 
@@ -2342,7 +2342,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                       className="px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                     >
                       <ClipboardPlus className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                      <span className="truncate">{isFr ? 'ComplÃ©ter les mesures' : 'Enter missing data'}</span>
+                      <span className="truncate">{isFr ? 'Compléter les mesures' : 'Enter missing data'}</span>
                     </button>
 
                     <button
@@ -2351,7 +2351,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                       className="px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                      <span className="truncate">{isFr ? 'RÃ©sumÃ© du cas' : 'Case summary'}</span>
+                      <span className="truncate">{isFr ? 'Résumé du cas' : 'Case summary'}</span>
                     </button>
                   </div>
                 </div>
@@ -2367,7 +2367,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                       className="px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                     >
                       <CheckSquare className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                      <span className="truncate">{isFr ? 'RÃ©viser le plan' : 'Review plan'}</span>
+                      <span className="truncate">{isFr ? 'Réviser le plan' : 'Review plan'}</span>
                     </button>
 
                     <button
@@ -2376,7 +2376,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                       className="px-3.5 py-2 rounded-xl bg-white/90 border border-[#E2E8F0] hover:border-[#0F6B6B] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                     >
                       <Send className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
-                      <span className="truncate">{isFr ? 'PrÃ©parer lâ€™invitation' : 'Prepare invitation'}</span>
+                      <span className="truncate">{isFr ? 'Préparer l’invitation' : 'Prepare invitation'}</span>
                     </button>
 
                     <button
@@ -2594,7 +2594,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     </div>
                   </div>
                   <p className="text-xs text-[#64748B]">
-                    Channel: <strong>{invitationPreview.channel}</strong> Â· Zero diagnostic or score terms permitted.
+                    Channel: <strong>{invitationPreview.channel}</strong> · Zero diagnostic or score terms permitted.
                   </p>
                   <textarea
                     rows={3}
@@ -2709,14 +2709,14 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 </GlassCard>
               )}
 
-              {/* Record Navigation Tabs â€” icon-coded for instant orientation */}
+              {/* Record Navigation Tabs — icon-coded for instant orientation */}
               <div className="flex flex-wrap gap-1.5 liquid-glass p-1.5 rounded-2xl w-fit">
                 {(
                   [
                     { id: 'flags', label: isFr ? `Drapeaux (${patientDetail.flags.length})` : `Flags (${patientDetail.flags.length})`, Icon: Flag },
-                    { id: 'pathway', label: isFr ? 'Plan de soin groupÃ©' : 'Consolidated CarePlan', Icon: CheckSquare },
-                    { id: 'measures', label: isFr ? 'Ã‰volution' : 'Trends', Icon: TrendingUp },
-                    { id: 'summary', label: isFr ? 'RÃ©sumÃ©' : 'Summary', Icon: FileText },
+                    { id: 'pathway', label: isFr ? 'Plan de soin groupé' : 'Consolidated CarePlan', Icon: CheckSquare },
+                    { id: 'measures', label: isFr ? 'Évolution' : 'Trends', Icon: TrendingUp },
+                    { id: 'summary', label: isFr ? 'Résumé' : 'Summary', Icon: FileText },
                     { id: 'consents', label: isFr ? 'Consentements & audit' : 'Consents & Audit', Icon: ShieldCheck },
                   ] as const
                 ).map(({ id, label, Icon }) => (
@@ -2759,7 +2759,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                           <ShieldAlert className="w-4 h-4 shrink-0" />
                           <span>
                             {isFr
-                              ? 'Relances de routine suspendues : un drapeau rouge urgent ou une prise en charge spÃ©cialisÃ©e est active.'
+                              ? 'Relances de routine suspendues : un drapeau rouge urgent ou une prise en charge spécialisée est active.'
                               : 'Routine outreach paused while an urgent red flag or specialist care is active.'}
                           </span>
                         </div>
@@ -2797,7 +2797,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                     {patientDetail.primaryReasonSummary}
                   </p>
                   <p className="text-xs text-[#64748B]">
-                    Next window: <strong>{patientDetail.nextDueDate}</strong> Â·{' '}
+                    Next window: <strong>{patientDetail.nextDueDate}</strong> ·{' '}
                     <strong>{patientDetail.facilityCenter}</strong>
                   </p>
                   {typeof patientDetail.calculations?.certaintyAudit
@@ -2813,15 +2813,15 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                         <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-[#E2E8F0]">
                           <p className="text-xs text-[#334155] font-medium">
                             {isFr
-                              ? `Dossier complet Ã  ${completeness} %${
+                              ? `Dossier complet à ${completeness} %${
                                   missingCount > 0
-                                    ? ` Â· ${missingCount} mesure(s) Ã  complÃ©ter`
-                                    : ' Â· aucune mesure manquante'
+                                    ? ` · ${missingCount} mesure(s) à compléter`
+                                    : ' · aucune mesure manquante'
                                 }.`
                               : `${completeness}% complete${
                                   missingCount > 0
-                                    ? ` Â· ${missingCount} measurements missing`
-                                    : ' Â· no measurements missing'
+                                    ? ` · ${missingCount} measurements missing`
+                                    : ' · no measurements missing'
                                 }.`}
                           </p>
                           {missingCount > 0 && (
@@ -2831,7 +2831,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                               className="px-3 py-1.5 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] text-xs font-bold text-[#0B3B3C] hover:bg-[#CCFBF1] inline-flex items-center gap-1.5 cursor-pointer"
                             >
                               <ClipboardPlus className="w-3.5 h-3.5 text-[#0F6B6B]" />
-                              <span>{isFr ? 'ComplÃ©ter les mesures' : 'Enter missing data'}</span>
+                              <span>{isFr ? 'Compléter les mesures' : 'Enter missing data'}</span>
                             </button>
                           )}
                         </div>
@@ -2855,7 +2855,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                             <span className="font-mono font-bold text-[#0B3B3C]">
                               {rec.referralCodeDisplay}
                             </span>{' '}
-                            Â· {rec.facilityName}
+                            · {rec.facilityName}
                           </p>
                         </div>
                         <StatusChip state={rec.state} />
@@ -2926,8 +2926,8 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                   ) : (
                     <p className="text-xs text-[#64748B]">
                       {isFr
-                        ? 'Aucune courbe longitudinale enregistrÃ©e pour le moment. Utilisez Â« Saisie guidÃ©e Â» ci-dessus.'
-                        : 'No longitudinal chart recorded yet. Use â€œGuided inputâ€ above.'}
+                        ? 'Aucune courbe longitudinale enregistrée pour le moment. Utilisez « Saisie guidée » ci-dessus.'
+                        : 'No longitudinal chart recorded yet. Use “Guided input” above.'}
                     </p>
                   )}
                 </GlassCard>
@@ -2956,7 +2956,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                             <td className="py-2.5 px-3">{l.dataCategory}</td>
                             <td className="py-2.5 px-3 text-[#64748B]">{l.purposeDescription}</td>
                             <td className="py-2.5 px-3 font-mono text-[11px]">
-                              {isFr ? 'RÃ¨gles signÃ©es Â· v8' : 'Signed rules Â· v8'}
+                              {isFr ? 'Règles signées · v8' : 'Signed rules · v8'}
                             </td>
                           </tr>
                         ))}

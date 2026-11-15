@@ -15,14 +15,14 @@ function person(overrides: Record<string, any> = {}) {
     languageNeedsSupport: false,
     channel: 'WhatsApp',
     accessTimeMinutes: 20,
-    ageBand: '40â€“64 years',
+    ageBand: '40–64 years',
     consentGenomic: false,
     clinicalProfile: {},
     truth: { hasTrueNeed: true },
     overallLevel: 'orange',
     recommended: true,
-    invitedMediBenin: true,
-    attendedMediBenin: false,
+    invitedMediSense: true,
+    attendedMediSense: false,
     ...overrides,
   } as any;
 }
@@ -54,16 +54,16 @@ test('C3: a nationality segment more than 10 points below pooled adoption trigge
       person({
         id: `SA-${i}`,
         nationalityGroup: 'South Asia',
-        invitedMediBenin: true,
-        attendedMediBenin: i < 10, // 10/50 = 20% adoption
+        invitedMediSense: true,
+        attendedMediSense: i < 10, // 10/50 = 20% adoption
       })
     ),
     ...Array.from({ length: 50 }, (_, i) =>
       person({
         id: `EM-${i}`,
         nationalityGroup: 'Emirati',
-        invitedMediBenin: true,
-        attendedMediBenin: true, // 50/50 = 100%
+        invitedMediSense: true,
+        attendedMediSense: true, // 50/50 = 100%
       })
     ),
   ];

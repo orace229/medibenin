@@ -55,10 +55,10 @@ export const DemoBanner: React.FC = () => {
   const { locale } = useI18n();
   const text =
     locale === 'ar'
-      ? 'Ø¨ÙŠØ¦Ø© ØªØ¬Ø±ÙŠØ¨ÙŠØ© Â· Ø¨ÙŠØ§Ù†Ø§Øª Ø§ØµØ·Ù†Ø§Ø¹ÙŠØ© 100%'
+      ? 'بيئة تجريبية · بيانات اصطناعية 100%'
       : locale === 'fr'
-      ? 'Environnement de dÃ©monstration Â· donnÃ©es 100 % synthÃ©tiques'
-      : 'Demonstration environment Â· 100% synthetic data';
+      ? 'Environnement de démonstration · données 100 % synthétiques'
+      : 'Demonstration environment · 100% synthetic data';
 
   return (
     <div className="bg-[#041D1E] text-white text-xs py-2 px-3 sm:px-6 flex items-center justify-between gap-2 border-b border-white/15">
@@ -74,7 +74,7 @@ export const LanguageSwitch: React.FC = () => {
   const options: Array<{ code: Locale; label: string }> = [
     { code: 'en', label: 'EN' },
     { code: 'fr', label: 'FR' },
-    { code: 'ar', label: 'Ø¹Ø±Ø¨ÙŠ' },
+    { code: 'ar', label: 'عربي' },
   ];
 
   return (
@@ -294,7 +294,7 @@ export const PassQrCard: React.FC<{ code: string; facilityName: string }> = ({
       <div className="bg-gradient-to-br from-[#0B3B3C] via-[#0D5253] to-[#041D1E] text-white rounded-2xl p-4 sm:p-5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 shadow-lg border border-white/15">
         <div className="space-y-1 min-w-0">
           <p className="text-[10px] sm:text-[11px] font-semibold text-white/85 uppercase tracking-wider truncate">
-            Centre Pass Â· {facilityName}
+            Centre Pass · {facilityName}
           </p>
           <p className="text-lg sm:text-xl font-mono font-bold tracking-widest text-white tabular-nums">
             {code}
@@ -419,7 +419,7 @@ export const AiSuggestionPanel: React.FC<{
 
         {status !== 'pending' && (
           <span className="text-xs font-semibold text-[#0F6B6B]">
-            {status === 'validated' ? 'âœ“ Validated' : 'Dismissed'}
+            {status === 'validated' ? '✓ Validated' : 'Dismissed'}
           </span>
         )}
       </div>

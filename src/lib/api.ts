@@ -5,7 +5,7 @@ import {
   Locale,
 } from './types.ts';
 
-const AUTH_TOKEN_STORAGE_KEY = 'MediBenin.authToken';
+const AUTH_TOKEN_STORAGE_KEY = 'medisense.authToken';
 
 function restoreStoredAuthToken(): string {
   try {
@@ -22,7 +22,7 @@ export function setApiAuthToken(token: string) {
   try {
     sessionStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
   } catch {
-    /* storage unavailable â€” token kept in memory only */
+    /* storage unavailable — token kept in memory only */
   }
 }
 
@@ -282,4 +282,3 @@ export const apiClient = {
   getObservatorySummary: (seed = 20261120, scenario = 'baseline') =>
     apiFetch<any>(`/api/observatory/summary?seed=${seed}&scenario=${encodeURIComponent(scenario)}`),
 };
-

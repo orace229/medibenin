@@ -1,154 +1,154 @@
-﻿# MediBenin â€” Addendum v8.0 : alignement sur les critÃ¨res d'Ã©valuation
+# MediBenin — Addendum v8.0 : alignement sur les critères d'évaluation
 
-**Addendum Ã  la v7.0 du cahier des charges Â· Challenge 04 : Precision Prevention and Screening**
+**Addendum à la v7.0 du cahier des charges · Challenge 04 : Precision Prevention and Screening**
 
 | | |
 | :--- | :--- |
-| **Version** | 8.0 (addendum Ã  la v7.0), 10 novembre 2026 |
-| **Ã‰quipe** | CareX (UniversitÃ© d'Abomey-Calavi : ENEAM, IFRI, FSS) |
-| **Source des critÃ¨res** | Page officielle du dÃ©fi (Hack2skill), consultÃ©e le 10 novembre 2026. Les six critÃ¨res sont listÃ©s avec la mention Â« Impact first. Then proof that it works. Â». **Les pondÃ©rations ne sont pas publiÃ©es.** |
-| **Non vÃ©rifiÃ©** | Les rÃ©ponses de la FAQ et la page des rÃ¨gles complÃ¨tes n'ont pas pu Ãªtre lues : voir V16 et V17 (section 26) |
-| **Convention** | MÃªmes marquages que la v7.0 : fait sourcÃ©, hypothÃ¨se (H), **[Ã€ VÃ‰RIFIER]**, **[SIMULÃ‰]** |
+| **Version** | 8.0 (addendum à la v7.0), 10 novembre 2026 |
+| **Équipe** | CareX (Université d'Abomey-Calavi : ENEAM, IFRI, FSS) |
+| **Source des critères** | Page officielle du défi (Hack2skill), consultée le 10 novembre 2026. Les six critères sont listés avec la mention « Impact first. Then proof that it works. ». **Les pondérations ne sont pas publiées.** |
+| **Non vérifié** | Les réponses de la FAQ et la page des règles complètes n'ont pas pu être lues : voir V16 et V17 (section 26) |
+| **Convention** | Mêmes marquages que la v7.0 : fait sourcé, hypothèse (H), **[À VÉRIFIER]**, **[SIMULÉ]** |
 
 > [!IMPORTANT]
-> **Ce que cet addendum change dans la stratÃ©gie.** La v7.0 est trÃ¨s forte sur la gouvernance et la pertinence clinique, mais trois critÃ¨res restent insuffisamment servis : la **profondeur technique** (le moteur est 100 % rÃ¨gles), la **solution fonctionnelle** (pÃ©rimÃ¨tre trop large pour 10 jours) et la **viabilitÃ© commerciale** (aucun acheteur ni modÃ¨le Ã©conomique testÃ©). L'Ã©valuation se fait **sur dossier, sans l'Ã©quipe** (le jury dÃ©signe les trois finalistes uniquement sur Ã©valuation, avant GITEX) : tout doit Ãªtre comprÃ©hensible et vÃ©rifiable Ã  partir du dÃ©pÃ´t, de la dÃ©mo hÃ©bergÃ©e et de la vidÃ©o.
+> **Ce que cet addendum change dans la stratégie.** La v7.0 est très forte sur la gouvernance et la pertinence clinique, mais trois critères restent insuffisamment servis : la **profondeur technique** (le moteur est 100 % règles), la **solution fonctionnelle** (périmètre trop large pour 10 jours) et la **viabilité commerciale** (aucun acheteur ni modèle économique testé). L'évaluation se fait **sur dossier, sans l'équipe** (le jury désigne les trois finalistes uniquement sur évaluation, avant GITEX) : tout doit être compréhensible et vérifiable à partir du dépôt, de la démo hébergée et de la vidéo.
 
 ---
 
-## Instructions d'intÃ©gration Ã  la v7.0
+## Instructions d'intégration à la v7.0
 
-| Section v7.0 | Modification Ã  faire |
+| Section v7.0 | Modification à faire |
 | :--- | :--- |
-| 0. Lecture rapide | Ajouter la phrase de positionnement (17.1) et remplacer Â« ce que le jury verra Â» par la liste du 20.1 |
-| 2.3 Statut des briques | Ajouter les lignes M1 et M2 (19.3, 19.4) avec le statut Â« RÃ©el (donnÃ©es synthÃ©tiques) Â» |
-| 9.1 Architecture | Remplacer le schÃ©ma par celui du 19.2 (couche ML) ; appliquer AD-1 (application web unique) |
-| 11.1, 11.2, 11.4 | RemplacÃ©es par les sections 24.1 Ã  24.3 et 20.2 |
-| 13 ModÃ¨le Ã©conomique | ComplÃ©tÃ©e par la section 23 |
-| 14 Matrice des risques | Ajouter le registre des dangers D1 Ã  D12 (21.1) |
-| 15 HypothÃ¨ses et vÃ©rifications | Ajouter H17 Ã  H24 et V16 Ã  V20 (section 26) |
-| Nouvelle section | InsÃ©rer les sections 17 Ã  26 aprÃ¨s la section 16 |
+| 0. Lecture rapide | Ajouter la phrase de positionnement (17.1) et remplacer « ce que le jury verra » par la liste du 20.1 |
+| 2.3 Statut des briques | Ajouter les lignes M1 et M2 (19.3, 19.4) avec le statut « Réel (données synthétiques) » |
+| 9.1 Architecture | Remplacer le schéma par celui du 19.2 (couche ML) ; appliquer AD-1 (application web unique) |
+| 11.1, 11.2, 11.4 | Remplacées par les sections 24.1 à 24.3 et 20.2 |
+| 13 Modèle économique | Complétée par la section 23 |
+| 14 Matrice des risques | Ajouter le registre des dangers D1 à D12 (21.1) |
+| 15 Hypothèses et vérifications | Ajouter H17 à H24 et V16 à V20 (section 26) |
+| Nouvelle section | Insérer les sections 17 à 26 après la section 16 |
 
 ---
 
-## 17. Alignement sur les critÃ¨res d'Ã©valuation
+## 17. Alignement sur les critères d'évaluation
 
 ### 17.1 Positionnement en une phrase
 
-**FR :** MediBenin ne remplace pas le jugement clinique : il ferme la boucle entre un risque repÃ©rÃ© et une visite rÃ©ellement faite, avec des rÃ¨gles publiques, une incertitude visible et des garde-fous d'Ã©quitÃ© mesurÃ©s.
+**FR :** MediBenin ne remplace pas le jugement clinique : il ferme la boucle entre un risque repéré et une visite réellement faite, avec des règles publiques, une incertitude visible et des garde-fous d'équité mesurés.
 
 **EN:** MediBenin does not replace clinical judgement: it closes the loop between an identified risk and a completed visit, using published rules, visible uncertainty and measured equity safeguards.
 
-### 17.2 Matrice critÃ¨re par critÃ¨re
+### 17.2 Matrice critère par critère
 
-| # | CritÃ¨re officiel | Ce que le jury cherche (notre lecture) | Notre rÃ©ponse | Preuve visible dans le dÃ©pÃ´t ou la dÃ©mo | Sections |
+| # | Critère officiel | Ce que le jury cherche (notre lecture) | Notre réponse | Preuve visible dans le dépôt ou la démo | Sections |
 | :---: | :--- | :--- | :--- | :--- | :---: |
-| 1 | **Health impact and clinical relevance** | Un problÃ¨me de santÃ© rÃ©el, une chaÃ®ne causale crÃ©dible jusqu'au bÃ©nÃ©fice, des rÃ¨gles dÃ©fendables cliniquement | ThÃ©orie du changement en 6 maillons, mesure Ã  chaque maillon, rÃ¨gles traÃ§ables jusqu'Ã  une directive et signÃ©es par un clinicien | SchÃ©ma de la chaÃ®ne ; fiche d'un signalement avec rÃ¨gle et source ; modÃ¨le d'impact | 18, 4, 8 |
-| 2 | **Technical depth and architecture** | Une architecture rÃ©flÃ©chie, des choix justifiÃ©s, de l'IA ou du ML bien placÃ©, de la qualitÃ© d'ingÃ©nierie | RÃ¨gles pour le clinique, **ML pour le logistique** (prÃ©diction de non-prÃ©sentation, message adaptÃ© sous contrainte), dÃ©cisions d'architecture documentÃ©es, tests, reproductibilitÃ© | DÃ©pÃ´t avec tests ; fiche modÃ¨le ; schÃ©ma d'architecture ; rÃ©sultats d'Ã©valuation ML | 19, 9 |
-| 3 | **Working solution and demonstration quality** | Un prototype qui tourne, une dÃ©mo claire, qui marche sans l'Ã©quipe | Application web hÃ©bergÃ©e, trois personas prÃ©chargÃ©s, vidÃ©o de 5 minutes, README de dÃ©marrage en moins de 5 minutes | Lien de dÃ©mo, vidÃ©o, rapport de tests | 20, 24 |
-| 4 | **Responsible AI, safety and data governance** | Supervision humaine, gestion des dangers, Ã©quitÃ©, vie privÃ©e, transparence sur l'IA | Registre des dangers, matrice de supervision humaine, gouvernance des donnÃ©es, tests d'Ã©quitÃ©, divulgation de l'usage de l'IA | Registre D1â€“D12, fiche modÃ¨le, journal d'usage des donnÃ©es | 21, 3, 7 |
-| 5 | **Scalability and deployment readiness** | Une route crÃ©dible du prototype Ã  un dÃ©ploiement rÃ©el | Paliers prototype, pilote, programme, autre pays ; modÃ¨le de capacitÃ© ; mode Â« ombre Â» ; checklist de prÃ©paration | Tableau des paliers, checklist avec statuts | 22 |
-| 6 | **Commercial viability and path to pilot** | Un acheteur identifiÃ©, une valeur mesurable, un chemin concret jusqu'au pilote | Panorama de l'existant, Ã©conomie unitaire, pilote en 4 phases dont une phase Â« ombre Â», questions Ã  valider avec un acheteur | Tableau comparatif, plan de pilote avec critÃ¨res de passage fixÃ©s Ã  l'avance | 23, 13 |
+| 1 | **Health impact and clinical relevance** | Un problème de santé réel, une chaîne causale crédible jusqu'au bénéfice, des règles défendables cliniquement | Théorie du changement en 6 maillons, mesure à chaque maillon, règles traçables jusqu'à une directive et signées par un clinicien | Schéma de la chaîne ; fiche d'un signalement avec règle et source ; modèle d'impact | 18, 4, 8 |
+| 2 | **Technical depth and architecture** | Une architecture réfléchie, des choix justifiés, de l'IA ou du ML bien placé, de la qualité d'ingénierie | Règles pour le clinique, **ML pour le logistique** (prédiction de non-présentation, message adapté sous contrainte), décisions d'architecture documentées, tests, reproductibilité | Dépôt avec tests ; fiche modèle ; schéma d'architecture ; résultats d'évaluation ML | 19, 9 |
+| 3 | **Working solution and demonstration quality** | Un prototype qui tourne, une démo claire, qui marche sans l'équipe | Application web hébergée, trois personas préchargés, vidéo de 5 minutes, README de démarrage en moins de 5 minutes | Lien de démo, vidéo, rapport de tests | 20, 24 |
+| 4 | **Responsible AI, safety and data governance** | Supervision humaine, gestion des dangers, équité, vie privée, transparence sur l'IA | Registre des dangers, matrice de supervision humaine, gouvernance des données, tests d'équité, divulgation de l'usage de l'IA | Registre D1–D12, fiche modèle, journal d'usage des données | 21, 3, 7 |
+| 5 | **Scalability and deployment readiness** | Une route crédible du prototype à un déploiement réel | Paliers prototype, pilote, programme, autre pays ; modèle de capacité ; mode « ombre » ; checklist de préparation | Tableau des paliers, checklist avec statuts | 22 |
+| 6 | **Commercial viability and path to pilot** | Un acheteur identifié, une valeur mesurable, un chemin concret jusqu'au pilote | Panorama de l'existant, économie unitaire, pilote en 4 phases dont une phase « ombre », questions à valider avec un acheteur | Tableau comparatif, plan de pilote avec critères de passage fixés à l'avance | 23, 13 |
 
-### 17.3 AutoÃ©valuation qualitative (estimation interne, pas une prÃ©diction de note)
+### 17.3 Autoévaluation qualitative (estimation interne, pas une prédiction de note)
 
-| CritÃ¨re | Ã‰tat v7.0 | Cible v8.0 | Condition pour l'atteindre |
+| Critère | État v7.0 | Cible v8.0 | Condition pour l'atteindre |
 | :--- | :---: | :---: | :--- |
-| 1. Impact et pertinence clinique | Fort | Fort | Ajout de la thÃ©orie du changement et du modÃ¨le d'impact |
-| 2. Profondeur technique | Moyen | Fort | **M1 et M2 livrÃ©s et Ã©valuÃ©s**, dÃ©cisions d'architecture documentÃ©es |
-| 3. Solution fonctionnelle | Moyen | Fort | **PÃ©rimÃ¨tre v8 tenu**, dÃ©ploiement hÃ©bergÃ©, vidÃ©o |
-| 4. IA responsable | Fort | Fort | Registre des dangers et fiche modÃ¨le livrÃ©s |
-| 5. Ã‰chelle et dÃ©ploiement | Moyen | Moyen Ã  Fort | ModÃ¨le de capacitÃ©, mode Â« ombre Â», checklist |
-| 6. ViabilitÃ© commerciale | Fragile | Moyen | Aucun acheteur n'est validÃ© : on prÃ©sente un cadre et un plan, **sans prÃ©tendre Ã  une demande prouvÃ©e** |
+| 1. Impact et pertinence clinique | Fort | Fort | Ajout de la théorie du changement et du modèle d'impact |
+| 2. Profondeur technique | Moyen | Fort | **M1 et M2 livrés et évalués**, décisions d'architecture documentées |
+| 3. Solution fonctionnelle | Moyen | Fort | **Périmètre v8 tenu**, déploiement hébergé, vidéo |
+| 4. IA responsable | Fort | Fort | Registre des dangers et fiche modèle livrés |
+| 5. Échelle et déploiement | Moyen | Moyen à Fort | Modèle de capacité, mode « ombre », checklist |
+| 6. Viabilité commerciale | Fragile | Moyen | Aucun acheteur n'est validé : on présente un cadre et un plan, **sans prétendre à une demande prouvée** |
 
 ---
 
-## 18. CritÃ¨re 1 : impact en santÃ© et pertinence clinique
+## 18. Critère 1 : impact en santé et pertinence clinique
 
-### 18.1 ThÃ©orie du changement
+### 18.1 Théorie du changement
 
 ```mermaid
 flowchart LR
-    A["1. RepÃ©rer<br/>risques et lacunes<br/>(rÃ¨gles P, A, C, G)"] --> B["2. Inviter<br/>bon parcours,<br/>bon moment, bon canal"]
-    B --> C["3. Visite confirmÃ©e<br/>(boucle fermÃ©e)"]
-    C --> D["4. Condition dÃ©tectÃ©e<br/>ou vaccin rattrapÃ©"]
-    D --> E["5. Prise en charge<br/>ou suivi engagÃ©"]
-    E --> F["6. RÃ©sultat de santÃ©<br/>(hors pÃ©rimÃ¨tre du concours)"]
+    A["1. Repérer<br/>risques et lacunes<br/>(règles P, A, C, G)"] --> B["2. Inviter<br/>bon parcours,<br/>bon moment, bon canal"]
+    B --> C["3. Visite confirmée<br/>(boucle fermée)"]
+    C --> D["4. Condition détectée<br/>ou vaccin rattrapé"]
+    D --> E["5. Prise en charge<br/>ou suivi engagé"]
+    E --> F["6. Résultat de santé<br/>(hors périmètre du concours)"]
 ```
 
-La valeur de MediBenin se situe aux maillons **2 et 3**, lÃ  oÃ¹ les programmes existants perdent le plus de personnes entre l'alerte et la visite effective **(H17 de dÃ©part : Ã  confirmer avec le partenaire)**.
+La valeur de MediBenin se situe aux maillons **2 et 3**, là où les programmes existants perdent le plus de personnes entre l'alerte et la visite effective **(H17 de départ : à confirmer avec le partenaire)**.
 
-### 18.2 Ce qu'on mesure Ã  chaque maillon, et oÃ¹
+### 18.2 Ce qu'on mesure à chaque maillon, et où
 
-| Maillon | Indicateur | MesurÃ© dans le prototype | MesurÃ© dans le pilote | Au-delÃ  |
+| Maillon | Indicateur | Mesuré dans le prototype | Mesuré dans le pilote | Au-delà |
 | :---: | :--- | :---: | :---: | :---: |
-| 1 | PortÃ©e, taux de recommandation, part de Niveau Gris, erreurs par segment | Oui (synthÃ©tique) | Oui | |
-| 2 | Part des invitations validÃ©es et envoyÃ©es dans le dÃ©lai du niveau | Oui (simulÃ©) | Oui | |
-| 3 | Adoption = visites confirmÃ©es / invitÃ©s ; ponctualitÃ© | Oui (synthÃ©tique) | Oui | |
-| 4 | Rendement : conditions confirmÃ©es pour 100 invitations ; doses rattrapÃ©es | Oui (synthÃ©tique) | Oui | |
-| 5 | Suivi engagÃ© aprÃ¨s un rÃ©sultat positif | | Oui | |
-| 6 | MorbiditÃ©, mortalitÃ©, coÃ»ts Ã©vitÃ©s | | | **Non revendiquÃ©** |
+| 1 | Portée, taux de recommandation, part de Niveau Gris, erreurs par segment | Oui (synthétique) | Oui | |
+| 2 | Part des invitations validées et envoyées dans le délai du niveau | Oui (simulé) | Oui | |
+| 3 | Adoption = visites confirmées / invités ; ponctualité | Oui (synthétique) | Oui | |
+| 4 | Rendement : conditions confirmées pour 100 invitations ; doses rattrapées | Oui (synthétique) | Oui | |
+| 5 | Suivi engagé après un résultat positif | | Oui | |
+| 6 | Morbidité, mortalité, coûts évités | | | **Non revendiqué** |
 
-### 18.3 ModÃ¨le d'impact (formules, sans chiffres inventÃ©s)
+### 18.3 Modèle d'impact (formules, sans chiffres inventés)
 
-$$\text{Visites supplÃ©mentaires confirmÃ©es} = N_{\text{invitÃ©s}} \times \left(a_{\text{MediBenin}} - a_{\text{rÃ©fÃ©rence}}\right)$$
+$$\text{Visites supplémentaires confirmées} = N_{\text{invités}} \times \left(a_{\text{MediBenin}} - a_{\text{référence}}\right)$$
 
-$$\text{Conditions supplÃ©mentaires dÃ©tectÃ©es} = \text{Visites supplÃ©mentaires} \times r$$
+$$\text{Conditions supplémentaires détectées} = \text{Visites supplémentaires} \times r$$
 
-oÃ¹ $a$ est le taux d'adoption (visites confirmÃ©es / invitÃ©s) et $r$ le rendement par visite (conditions confirmÃ©es / visites). Les valeurs de $a_{\text{rÃ©fÃ©rence}}$ et de $r$ **viennent du partenaire et du pilote** ; le prototype ne les fixe pas.
+où $a$ est le taux d'adoption (visites confirmées / invités) et $r$ le rendement par visite (conditions confirmées / visites). Les valeurs de $a_{\text{référence}}$ et de $r$ **viennent du partenaire et du pilote** ; le prototype ne les fixe pas.
 
-**Table de sensibilitÃ© livrÃ©e avec la dÃ©mo :** rÃ©sultat du modÃ¨le pour une grille de valeurs de $a$ et de $r$, prÃ©sentÃ©e comme un *outil de raisonnement* et non comme une prÃ©vision.
+**Table de sensibilité livrée avec la démo :** résultat du modèle pour une grille de valeurs de $a$ et de $r$, présentée comme un *outil de raisonnement* et non comme une prévision.
 
-### 18.4 Pertinence clinique : ce qui rend les rÃ¨gles dÃ©fendables
+### 18.4 Pertinence clinique : ce qui rend les règles défendables
 
-- Chaque rÃ¨gle cite sa directive, sa version et son statut (PubliÃ©, H ou Ã€ VÃ‰RIFIER) : tableaux 4.2 et 4.3.
-- Toute table est **signÃ©e par un clinicien diplÃ´mÃ©** avant usage (section 12, H14). **Tant que ce clinicien n'est pas identifiÃ©, l'Ã©crire explicitement dans le dossier.**
-- Un rÃ©sultat ne prÃ©sente jamais un score comme un diagnostic ; le Niveau Gris et le badge Â« Ã  confirmer Â» empÃªchent de rassurer Ã  tort.
-- **Ce que nous ne prÃ©tendons pas :** aucune performance clinique, aucun effet sur la santÃ©, aucune sensibilitÃ© ni spÃ©cificitÃ© rÃ©elle (15.2).
+- Chaque règle cite sa directive, sa version et son statut (Publié, H ou À VÉRIFIER) : tableaux 4.2 et 4.3.
+- Toute table est **signée par un clinicien diplômé** avant usage (section 12, H14). **Tant que ce clinicien n'est pas identifié, l'écrire explicitement dans le dossier.**
+- Un résultat ne présente jamais un score comme un diagnostic ; le Niveau Gris et le badge « à confirmer » empêchent de rassurer à tort.
+- **Ce que nous ne prétendons pas :** aucune performance clinique, aucun effet sur la santé, aucune sensibilité ni spécificité réelle (15.2).
 
-### 18.5 AdÃ©quation avec l'Ã©noncÃ© du dÃ©fi
+### 18.5 Adéquation avec l'énoncé du défi
 
-| Attente de l'Ã©noncÃ© | RÃ©ponse MediBenin |
+| Attente de l'énoncé | Réponse MediBenin |
 | :--- | :--- |
-| Passer d'une prise en charge rÃ©active Ã  une prÃ©vention prÃ©dictive | RepÃ©rage par rÃ¨gles multi-domaines plutÃ´t que par Ã¢ge et sexe seuls |
-| Transformer des donnÃ©es longitudinales en actions concrÃ¨tes | Parcours unique, Ã©chÃ©ance, rappel, suivi en Ã©tats, visite confirmÃ©e |
-| Exploiter les informations gÃ©nomiques | RÃ¨gle d'Ã©ligibilitÃ© G1 Ã  G3 **[SIMULÃ‰]**, voie d'accÃ©lÃ©ration familiale pour l'Ã©quitÃ© |
-| Transparence sur l'usage et les autorisations des donnÃ©es | Consentement par finalitÃ©, journal d'usage consultable |
+| Passer d'une prise en charge réactive à une prévention prédictive | Repérage par règles multi-domaines plutôt que par âge et sexe seuls |
+| Transformer des données longitudinales en actions concrètes | Parcours unique, échéance, rappel, suivi en états, visite confirmée |
+| Exploiter les informations génomiques | Règle d'éligibilité G1 à G3 **[SIMULÉ]**, voie d'accélération familiale pour l'équité |
+| Transparence sur l'usage et les autorisations des données | Consentement par finalité, journal d'usage consultable |
 
 ---
 
-## 19. CritÃ¨re 2 : profondeur technique et architecture
+## 19. Critère 2 : profondeur technique et architecture
 
-### 19.1 Principe directeur (dÃ©cision AD-2)
+### 19.1 Principe directeur (décision AD-2)
 
-> **Les rÃ¨gles dÃ©cident du clinique ; le ML n'agit que sur le logistique.**
-> Le niveau d'un signalement (Rouge, Orange, Jaune, Vert, Gris) vient uniquement de rÃ¨gles publiques, signÃ©es et explicables. Le ML estime des **probabilitÃ©s opÃ©rationnelles** (la personne viendra-t-elle ?) pour mieux accompagner, jamais pour dÃ©classer.
+> **Les règles décident du clinique ; le ML n'agit que sur le logistique.**
+> Le niveau d'un signalement (Rouge, Orange, Jaune, Vert, Gris) vient uniquement de règles publiques, signées et explicables. Le ML estime des **probabilités opérationnelles** (la personne viendra-t-elle ?) pour mieux accompagner, jamais pour déclasser.
 
-**Pourquoi ce choix.** (1) Il n'existe pas de donnÃ©es rÃ©elles Ã©tiquetÃ©es pour apprendre un risque clinique. (2) Un risque appris et opaque serait difficile Ã  signer et Ã  auditer. (3) Le dÃ©fi demande de la transparence sur les facteurs de chaque signalement. En revanche, la non-prÃ©sentation est un problÃ¨me oÃ¹ l'apprentissage apporte de la valeur sans compromettre la sÃ©curitÃ© clinique.
+**Pourquoi ce choix.** (1) Il n'existe pas de données réelles étiquetées pour apprendre un risque clinique. (2) Un risque appris et opaque serait difficile à signer et à auditer. (3) Le défi demande de la transparence sur les facteurs de chaque signalement. En revanche, la non-présentation est un problème où l'apprentissage apporte de la valeur sans compromettre la sécurité clinique.
 
-### 19.2 Architecture mise Ã  jour (dÃ©cision AD-1 : une application web unique)
+### 19.2 Architecture mise à jour (décision AD-1 : une application web unique)
 
-**AD-1.** Pour tenir le dÃ©lai, le prototype est **une application web responsive (PWA)** servie par FastAPI et React, qui sert Ã  la fois d'interface de terrain et de console. L'application Flutter native passe en feuille de route (statut mis Ã  jour en 2.3). Une dÃ©monstration hors ligne simple reste possible via le mode PWA **(Facultatif)**.
+**AD-1.** Pour tenir le délai, le prototype est **une application web responsive (PWA)** servie par FastAPI et React, qui sert à la fois d'interface de terrain et de console. L'application Flutter native passe en feuille de route (statut mis à jour en 2.3). Une démonstration hors ligne simple reste possible via le mode PWA **(Facultatif)**.
 
 ```mermaid
 flowchart TB
     subgraph U["Interface web (PWA, React)"]
         U1["Consentement et journal d'usage"]
-        U2["Saisie guidÃ©e et protocoles de mesure"]
-        U3["Ã‰cran 1 : priorisation (logistique)"]
-        U4["Ã‰cran 2 : fiche clinique (sans S_prio, sans ML)"]
-        U5["Tableau de bord : Ã©quitÃ© et rÃ©sultats"]
+        U2["Saisie guidée et protocoles de mesure"]
+        U3["Écran 1 : priorisation (logistique)"]
+        U4["Écran 2 : fiche clinique (sans S_prio, sans ML)"]
+        U5["Tableau de bord : équité et résultats"]
     end
     subgraph A["API (FastAPI)"]
-        A1["Authentification et rÃ´les"]
-        A2["Moteur de rÃ¨gles P, A, C, G<br/>(tables JSON signÃ©es)"]
-        A3["Suivi en Ã©tats, codes d'orientation, conflits"]
+        A1["Authentification et rôles"]
+        A2["Moteur de règles P, A, C, G<br/>(tables JSON signées)"]
+        A3["Suivi en états, codes d'orientation, conflits"]
         A4["Garde-fous : masquage, Wilson"]
         A5["Journal d'audit"]
     end
     subgraph M["Couche ML (logistique seulement)"]
-        M1["M1 : probabilitÃ© de non-prÃ©sentation"]
-        M2["M2 : message adaptÃ© sous contraintes"]
-        M3["Fiche modÃ¨le, versions, suivi de dÃ©rive"]
+        M1["M1 : probabilité de non-présentation"]
+        M2["M2 : message adapté sous contraintes"]
+        M3["Fiche modèle, versions, suivi de dérive"]
     end
     D[("PostgreSQL")]
     U --> A
@@ -161,341 +161,341 @@ flowchart TB
     A2 --> U4
 ```
 
-**Garde-fou architectural :** la couche ML n'a **aucun accÃ¨s en Ã©criture** au niveau d'un signalement ni Ã  l'Ã©cran 2. Un test automatique vÃ©rifie qu'aucun champ issu du ML n'apparaÃ®t dans les rÃ©ponses de l'API destinÃ©es Ã  la fiche clinique (TEST-M2).
+**Garde-fou architectural :** la couche ML n'a **aucun accès en écriture** au niveau d'un signalement ni à l'écran 2. Un test automatique vérifie qu'aucun champ issu du ML n'apparaît dans les réponses de l'API destinées à la fiche clinique (TEST-M2).
 
-### 19.3 M1 : probabilitÃ© de non-prÃ©sentation
+### 19.3 M1 : probabilité de non-présentation
 
-| Ã‰lÃ©ment | Choix |
+| Élément | Choix |
 | :--- | :--- |
-| **Question** | Pour une invitation envoyÃ©e, quelle est la probabilitÃ© qu'elle n'aboutisse pas Ã  une visite confirmÃ©e dans sa fenÃªtre ? |
-| **Cible** | Invitation sans Ã©tat Â« RÃ©alisÃ©e Â» dans le dÃ©lai du niveau |
-| **Variables autorisÃ©es** | Rang de l'invitation, canal, langue, temps d'accÃ¨s, crÃ©neau (jour, heure), nombre de visites manquÃ©es antÃ©rieures, type de parcours, pÃ©riode du Ramadan, dÃ©lai dÃ©jÃ  Ã©coulÃ© |
-| **Variables exclues du modÃ¨le** | NationalitÃ©, religion, gÃ©nomique, Ã©tat de santÃ© dÃ©taillÃ©. Elles ne servent **qu'Ã  l'audit d'Ã©quitÃ©** (21.4) |
-| **ModÃ¨les comparÃ©s** | (a) rÃ©fÃ©rence simple : taux historique par type de parcours ; (b) rÃ©gression logistique ; (c) boosting d'arbres (par exemple `HistGradientBoostingClassifier`). On retient le plus simple dont les performances sont Ã©quivalentes (tolÃ©rance H18) |
+| **Question** | Pour une invitation envoyée, quelle est la probabilité qu'elle n'aboutisse pas à une visite confirmée dans sa fenêtre ? |
+| **Cible** | Invitation sans état « Réalisée » dans le délai du niveau |
+| **Variables autorisées** | Rang de l'invitation, canal, langue, temps d'accès, créneau (jour, heure), nombre de visites manquées antérieures, type de parcours, période du Ramadan, délai déjà écoulé |
+| **Variables exclues du modèle** | Nationalité, religion, génomique, état de santé détaillé. Elles ne servent **qu'à l'audit d'équité** (21.4) |
+| **Modèles comparés** | (a) référence simple : taux historique par type de parcours ; (b) régression logistique ; (c) boosting d'arbres (par exemple `HistGradientBoostingClassifier`). On retient le plus simple dont les performances sont équivalentes (tolérance H18) |
 | **Calibrage** | Calibrage isotonique ou de Platt ; on publie le score de Brier et l'ECE |
-| **Explication** | Coefficients pour (b) ; contributions SHAP, trois facteurs affichÃ©s, pour (c) |
-| **Usage autorisÃ©** | (1) ajuster le moment et le canal du rappel ; (2) proposer un contact humain pour les Orange Ã  forte probabilitÃ© de non-prÃ©sentation (budget H19) ; (3) suggÃ©rer un surbooking agrÃ©gÃ© au niveau du centre |
-| **Usage interdit** | **Abaisser la prioritÃ© d'une personne ou retarder une invitation.** Le ML ne peut que *renforcer* l'accompagnement. Cette rÃ¨gle est testÃ©e (TEST-M1) |
-| **VisibilitÃ©** | Ã‰cran 1 uniquement. Jamais sur la fiche clinique |
-| **Statut** | RÃ©el, entraÃ®nÃ© et Ã©valuÃ© sur donnÃ©es synthÃ©tiques **[SIMULÃ‰]** |
+| **Explication** | Coefficients pour (b) ; contributions SHAP, trois facteurs affichés, pour (c) |
+| **Usage autorisé** | (1) ajuster le moment et le canal du rappel ; (2) proposer un contact humain pour les Orange à forte probabilité de non-présentation (budget H19) ; (3) suggérer un surbooking agrégé au niveau du centre |
+| **Usage interdit** | **Abaisser la priorité d'une personne ou retarder une invitation.** Le ML ne peut que *renforcer* l'accompagnement. Cette règle est testée (TEST-M1) |
+| **Visibilité** | Écran 1 uniquement. Jamais sur la fiche clinique |
+| **Statut** | Réel, entraîné et évalué sur données synthétiques **[SIMULÉ]** |
 
-### 19.4 M2 : message adaptÃ© sous contraintes
+### 19.4 M2 : message adapté sous contraintes
 
-| Ã‰lÃ©ment | Choix |
+| Élément | Choix |
 | :--- | :--- |
-| **RÃ´le** | Reformuler un **modÃ¨le de message validÃ© par la gouvernance clinique** selon la langue, le destinataire et le registre |
-| **Ce que le modÃ¨le voit** | Identifiant du modÃ¨le de message, langue, destinataire (parent, adolescent, adulte), registre. **Aucune donnÃ©e de santÃ© ni donnÃ©e personnelle** |
-| **ContrÃ´les automatiques** | Liste d'exclusion (diagnostic, score, mention gÃ©nÃ©tique), conservation des variables (`[date]`, `[lieu]`), longueur maximale, niveau de lecture, similaritÃ© avec le message validÃ© par rÃ©tro-traduction |
+| **Rôle** | Reformuler un **modèle de message validé par la gouvernance clinique** selon la langue, le destinataire et le registre |
+| **Ce que le modèle voit** | Identifiant du modèle de message, langue, destinataire (parent, adolescent, adulte), registre. **Aucune donnée de santé ni donnée personnelle** |
+| **Contrôles automatiques** | Liste d'exclusion (diagnostic, score, mention génétique), conservation des variables (`[date]`, `[lieu]`), longueur maximale, niveau de lecture, similarité avec le message validé par rétro-traduction |
 | **Validation humaine** | **Toujours** avant envoi (6.5). Aucun envoi automatique |
-| **Repli** | Variantes prÃ©Ã©crites si le modÃ¨le de langage est indisponible, ou si V19 interdit son usage |
-| **Statut** | RÃ©el pour la gÃ©nÃ©ration et les contrÃ´les ; envoi **[SIMULÃ‰]** |
+| **Repli** | Variantes préécrites si le modèle de langage est indisponible, ou si V19 interdit son usage |
+| **Statut** | Réel pour la génération et les contrôles ; envoi **[SIMULÉ]** |
 
-### 19.5 Ce que nous avons volontairement Ã©cartÃ© (M0 : risque clinique appris)
+### 19.5 Ce que nous avons volontairement écarté (M0 : risque clinique appris)
 
-Un modÃ¨le qui apprendrait les lacunes de soins ou le risque Ã  partir de donnÃ©es est **hors prototype**. Raisons : pas d'Ã©tiquettes rÃ©elles, risque de circularitÃ© avec nos donnÃ©es synthÃ©tiques, perte de transparence. Il reste en **feuille de route**, Ã  envisager sur les donnÃ©es du pilote, avec une Ã©valuation prospective et une comparaison aux rÃ¨gles.
+Un modèle qui apprendrait les lacunes de soins ou le risque à partir de données est **hors prototype**. Raisons : pas d'étiquettes réelles, risque de circularité avec nos données synthétiques, perte de transparence. Il reste en **feuille de route**, à envisager sur les données du pilote, avec une évaluation prospective et une comparaison aux règles.
 
-### 19.6 Protocole d'Ã©valuation du ML
+### 19.6 Protocole d'évaluation du ML
 
-| Ã‰lÃ©ment | Protocole |
+| Élément | Protocole |
 | :--- | :--- |
-| DÃ©coupage | Par graine et par pÃ©riode (entraÃ®nement sur les premiÃ¨res pÃ©riodes, test sur les suivantes) |
-| Mesures | PR-AUC, score de Brier, ECE ; **Ã©carts de TPR et de TFP entre segments** |
-| Test d'utilitÃ© | Ã€ **budget de contacts humains B Ã©gal (H19)**, comparer le ciblage alÃ©atoire, le ciblage par rÃ¨gle simple et le ciblage M1 sur le taux de visites confirmÃ©es |
-| ScÃ©narios dÃ©gradÃ©s | Les trois scÃ©narios de 8.4 (donnÃ©es manquantes non alÃ©atoires, sous-dÃ©claration, historique incomplet) |
-| Limite Ã  Ã©crire | La dynamique des non-prÃ©sentations est celle de **notre gÃ©nÃ©rateur** (H24). Le test montre que le mÃ©canisme fonctionne et que le gain est *possible* ; il ne prouve pas un gain rÃ©el |
-| GÃ©nÃ©rateur | Les facteurs de non-prÃ©sentation sont documentÃ©s dans le dÃ©pÃ´t avec leur source **[V20]** et sont distincts des variables du modÃ¨le autant que possible |
+| Découpage | Par graine et par période (entraînement sur les premières périodes, test sur les suivantes) |
+| Mesures | PR-AUC, score de Brier, ECE ; **écarts de TPR et de TFP entre segments** |
+| Test d'utilité | À **budget de contacts humains B égal (H19)**, comparer le ciblage aléatoire, le ciblage par règle simple et le ciblage M1 sur le taux de visites confirmées |
+| Scénarios dégradés | Les trois scénarios de 8.4 (données manquantes non aléatoires, sous-déclaration, historique incomplet) |
+| Limite à écrire | La dynamique des non-présentations est celle de **notre générateur** (H24). Le test montre que le mécanisme fonctionne et que le gain est *possible* ; il ne prouve pas un gain réel |
+| Générateur | Les facteurs de non-présentation sont documentés dans le dépôt avec leur source **[V20]** et sont distincts des variables du modèle autant que possible |
 
-### 19.7 Fiche modÃ¨le (squelette Ã  remplir dans le dÃ©pÃ´t)
+### 19.7 Fiche modèle (squelette à remplir dans le dépôt)
 
 | Rubrique | Contenu |
 | :--- | :--- |
-| IdentitÃ© | Nom, version, date, responsable |
-| Usage prÃ©vu et interdit | 19.3 |
-| DonnÃ©es d'entraÃ®nement | SynthÃ©tiques, graine, structure, limites |
+| Identité | Nom, version, date, responsable |
+| Usage prévu et interdit | 19.3 |
+| Données d'entraînement | Synthétiques, graine, structure, limites |
 | Performance | Mesures de 19.6, avec intervalles |
-| Ã‰quitÃ© | Ã‰carts par segment, seuils d'alerte |
-| Limites connues | DÃ©pendance au gÃ©nÃ©rateur, absence de donnÃ©es rÃ©elles |
-| Surveillance | DÃ©rive des variables, recalibrage, critÃ¨res de retrait |
-| Supervision humaine | Qui peut ignorer ou dÃ©sactiver le modÃ¨le |
+| Équité | Écarts par segment, seuils d'alerte |
+| Limites connues | Dépendance au générateur, absence de données réelles |
+| Surveillance | Dérive des variables, recalibrage, critères de retrait |
+| Supervision humaine | Qui peut ignorer ou désactiver le modèle |
 
-### 19.8 QualitÃ© d'ingÃ©nierie (visible dans le dÃ©pÃ´t)
+### 19.8 Qualité d'ingénierie (visible dans le dépôt)
 
-- Tests unitaires par rÃ¨gle, tests d'acceptation (11.3 et section 20.5), intÃ©gration continue qui les exÃ©cute.
-- ReproductibilitÃ© : une commande (`docker compose up`) lance l'application avec les personas ; la cohorte se rÃ©gÃ©nÃ¨re Ã  partir d'une graine.
-- Tables de rÃ¨gles versionnÃ©es et signÃ©es ; une table non signÃ©e est refusÃ©e (TEST-S5).
-- API documentÃ©e (OpenAPI), validation des entrÃ©es, journal d'audit.
-- Aucun secret ni donnÃ©e rÃ©elle dans le dÃ©pÃ´t.
+- Tests unitaires par règle, tests d'acceptation (11.3 et section 20.5), intégration continue qui les exécute.
+- Reproductibilité : une commande (`docker compose up`) lance l'application avec les personas ; la cohorte se régénère à partir d'une graine.
+- Tables de règles versionnées et signées ; une table non signée est refusée (TEST-S5).
+- API documentée (OpenAPI), validation des entrées, journal d'audit.
+- Aucun secret ni donnée réelle dans le dépôt.
 
 ---
 
-## 20. CritÃ¨re 3 : solution fonctionnelle et qualitÃ© de la dÃ©monstration
+## 20. Critère 3 : solution fonctionnelle et qualité de la démonstration
 
-### 20.1 Ce que l'Ã©valuateur peut faire seul, sans nous
+### 20.1 Ce que l'évaluateur peut faire seul, sans nous
 
-1. Ouvrir le lien de dÃ©mo, choisir un persona, parcourir le parcours complet.
-2. Passer de l'Ã©cran 1 (priorisation) Ã  l'Ã©cran 2 (clinique) et constater que $S_{\text{prio}}$ et le ML ont disparu.
-3. Voir un Niveau Gris et un badge de certitude Â« Faible Â».
-4. Refuser une recommandation et constater l'arrÃªt des relances.
-5. Ouvrir le tableau d'Ã©quitÃ© avec une cellule masquÃ©e.
-6. Lancer le banc d'essai et reproduire un rÃ©sultat Ã  partir de la graine.
+1. Ouvrir le lien de démo, choisir un persona, parcourir le parcours complet.
+2. Passer de l'écran 1 (priorisation) à l'écran 2 (clinique) et constater que $S_{\text{prio}}$ et le ML ont disparu.
+3. Voir un Niveau Gris et un badge de certitude « Faible ».
+4. Refuser une recommandation et constater l'arrêt des relances.
+5. Ouvrir le tableau d'équité avec une cellule masquée.
+6. Lancer le banc d'essai et reproduire un résultat à partir de la graine.
 
-### 20.2 Script de la vidÃ©o : 5 minutes (remplace 11.2)
+### 20.2 Script de la vidéo : 5 minutes (remplace 11.2)
 
-| Temps | SÃ©quence | Message clÃ© |
+| Temps | Séquence | Message clé |
 | :---: | :--- | :--- |
-| 0:00â€“0:30 | ProblÃ¨me et phrase de positionnement | Les personnes qui en ont le plus besoin sont oubliÃ©es |
-| 0:30â€“1:30 | Persona enfant de 18 mois : signalement, facteurs, badge, parcours unique | Transparence et incertitude visibles |
-| 1:30â€“2:15 | Persona adulte de 36 ans : rÃ¨gle A4, signal gÃ©nomique **[SIMULÃ‰]**, modÃ¨le OMS Â« hors domaine Â» | Pas de trou, pas de fausse prÃ©cision |
-| 2:15â€“3:00 | Ã‰cran 1 puis Ã©cran 2 ; M1 renforce l'accompagnement d'un Orange | SÃ©paration population et clinique ; ML au service de l'accompagnement |
-| 3:00â€“3:45 | Message en arabe et en anglais ; refus qui arrÃªte les relances ; visite confirmÃ©e par code | Choix rÃ©el et boucle fermÃ©e |
-| 3:45â€“4:30 | Tableau d'Ã©quitÃ©, masquage, comparaison Ã  l'invitation par Ã¢ge et sexe | Garde-fous et Ã©valuation par les rÃ©sultats |
-| 4:30â€“5:00 | Limites dÃ©clarÃ©es et chemin vers le pilote | HonnÃªtetÃ© et maturitÃ© |
+| 0:00–0:30 | Problème et phrase de positionnement | Les personnes qui en ont le plus besoin sont oubliées |
+| 0:30–1:30 | Persona enfant de 18 mois : signalement, facteurs, badge, parcours unique | Transparence et incertitude visibles |
+| 1:30–2:15 | Persona adulte de 36 ans : règle A4, signal génomique **[SIMULÉ]**, modèle OMS « hors domaine » | Pas de trou, pas de fausse précision |
+| 2:15–3:00 | Écran 1 puis écran 2 ; M1 renforce l'accompagnement d'un Orange | Séparation population et clinique ; ML au service de l'accompagnement |
+| 3:00–3:45 | Message en arabe et en anglais ; refus qui arrête les relances ; visite confirmée par code | Choix réel et boucle fermée |
+| 3:45–4:30 | Tableau d'équité, masquage, comparaison à l'invitation par âge et sexe | Garde-fous et évaluation par les résultats |
+| 4:30–5:00 | Limites déclarées et chemin vers le pilote | Honnêteté et maturité |
 
-La vidÃ©o est sous-titrÃ©e en anglais. Elle est publiÃ©e avec un lien stable et incluse dans le dÃ©pÃ´t.
+La vidéo est sous-titrée en anglais. Elle est publiée avec un lien stable et incluse dans le dépôt.
 
-### 20.3 HÃ©bergement et plan de secours
+### 20.3 Hébergement et plan de secours
 
-- DÃ©mo hÃ©bergÃ©e, accessible sans installation, avec comptes de dÃ©monstration documentÃ©s.
-- **Plan B :** vidÃ©o complÃ¨te et procÃ©dure `docker compose up` testÃ©e sur une machine vierge.
-- Test de la dÃ©mo hÃ©bergÃ©e Ã  froid la veille du dÃ©pÃ´t, depuis un rÃ©seau extÃ©rieur Ã  l'universitÃ©.
+- Démo hébergée, accessible sans installation, avec comptes de démonstration documentés.
+- **Plan B :** vidéo complète et procédure `docker compose up` testée sur une machine vierge.
+- Test de la démo hébergée à froid la veille du dépôt, depuis un réseau extérieur à l'université.
 
 ### 20.4 Personas
 
-Les trois personas de la v7.0 (11.2) sont conservÃ©s et prÃ©chargÃ©s, avec leurs cas limites (dossier incomplet, enfant prÃ©maturÃ©, grossesse). Ils sont dÃ©crits dans le README avec le rÃ©sultat attendu pour chacun.
+Les trois personas de la v7.0 (11.2) sont conservés et préchargés, avec leurs cas limites (dossier incomplet, enfant prématuré, grossesse). Ils sont décrits dans le README avec le résultat attendu pour chacun.
 
-### 20.5 Tests d'acceptation supplÃ©mentaires
+### 20.5 Tests d'acceptation supplémentaires
 
-| Test | VÃ©rification |
+| Test | Vérification |
 | :--- | :--- |
-| TEST-M1 | Aucune sortie de M1 ne modifie le niveau d'un signalement ni n'abaisse un rang de prioritÃ© |
-| TEST-M2 | Aucun champ issu du ML n'apparaÃ®t dans les rÃ©ponses de l'API de la fiche clinique |
-| TEST-M3 | M2 : tout message gÃ©nÃ©rÃ© conserve ses variables et Ã©choue au contrÃ´le s'il contient un terme de la liste d'exclusion |
-| TEST-M4 | La dÃ©mo dÃ©marre Ã  froid sur une machine vierge en suivant le README (README.md fourni ; un garde-fou automatisÃ© vÃ©rifie que chaque commande du README existe bien dans le projet) |
-| TEST-M5 | Le banc d'essai reproduit les mÃªmes rÃ©sultats avec la mÃªme graine |
+| TEST-M1 | Aucune sortie de M1 ne modifie le niveau d'un signalement ni n'abaisse un rang de priorité |
+| TEST-M2 | Aucun champ issu du ML n'apparaît dans les réponses de l'API de la fiche clinique |
+| TEST-M3 | M2 : tout message généré conserve ses variables et échoue au contrôle s'il contient un terme de la liste d'exclusion |
+| TEST-M4 | La démo démarre à froid sur une machine vierge en suivant le README (README.md fourni ; un garde-fou automatisé vérifie que chaque commande du README existe bien dans le projet) |
+| TEST-M5 | Le banc d'essai reproduit les mêmes résultats avec la même graine |
 
 ---
 
-## 21. CritÃ¨re 4 : IA responsable, sÃ©curitÃ© et gouvernance des donnÃ©es
+## 21. Critère 4 : IA responsable, sécurité et gouvernance des données
 
-### 21.1 Registre des dangers (complÃ¨te la matrice 14)
+### 21.1 Registre des dangers (complète la matrice 14)
 
-| ID | Danger | Cause | ConsÃ©quence | GravitÃ© | Mesure | Test |
+| ID | Danger | Cause | Conséquence | Gravité | Mesure | Test |
 | :---: | :--- | :--- | :--- | :---: | :--- | :---: |
-| D1 | Faux nÃ©gatif rassurant | DonnÃ©e manquante, rÃ¨gle trop permissive | Retard de prise en charge | Critique | Niveau Gris ; badge Â« Ã  confirmer Â» ; contrÃ´le de 5 % des Verts ; alerte C4 | E1 |
-| D2 | Faux positif anxiogÃ¨ne | Seuil trop bas | AnxiÃ©tÃ©, examens inutiles | Moyenne | Aide Ã  la dÃ©cision avec limites ; message sans diagnostic ; suivi du taux | E3 |
-| D3 | Message mal traduit ou ambigu | Traduction, reformulation M2 | IncomprÃ©hension, refus | Ã‰levÃ©e | Relecture par locuteurs natifs ; contrÃ´le de rÃ©tro-traduction ; validation humaine | M3 |
-| D4 | Fuite ou usage non autorisÃ© de donnÃ©es | ContrÃ´le d'accÃ¨s, journal absent | Atteinte Ã  la vie privÃ©e | Critique | RÃ´les, journal non modifiable, minimisation, masquage dans l'API | E4 |
-| D5 | Biais du ML contre un segment | DonnÃ©es dÃ©sÃ©quilibrÃ©es | Accompagnement inÃ©gal | Ã‰levÃ©e | Variables sensibles exclues ; audit d'Ã©quitÃ© ; seuils d'alerte | M-Ã©q |
-| D6 | Le score de priorisation utilisÃ© comme dÃ©cision clinique | Confusion des rÃ´les | Mauvaise dÃ©cision individuelle | Ã‰levÃ©e | $S_{\text{prio}}$ absent de l'Ã©cran 2 | E2 |
-| D7 | Relances perÃ§ues comme du harcÃ¨lement | Trop de messages | Perte de confiance | Moyenne | Maximum 2 relances ; refus immÃ©diat ; mesure des dÃ©sinscriptions | E3 |
-| D8 | DonnÃ©es pÃ©rimÃ©es | Mesure ancienne | Signalement erronÃ© | Moyenne | Badge d'anciennetÃ© ; confiance Â« Faible Â» si trop ancienne | E1 |
-| D9 | Conflit de synchronisation | Modifications hors ligne | Visite perdue ou comptÃ©e Ã  tort | Ã‰levÃ©e | RÃ¨gles de 5.5 ; journal des conflits | S1 |
-| D10 | Hallucination du modÃ¨le de langage | GÃ©nÃ©ration libre | Message trompeur | Ã‰levÃ©e | ModÃ¨le de message validÃ© ; contrÃ´les automatiques ; validation humaine ; repli prÃ©Ã©crit | M3 |
-| D11 | ConfidentialitÃ© de l'adolescent | VisibilitÃ© parentale | Atteinte Ã  la confidentialitÃ© | Ã‰levÃ©e | RÃ¨gles de 6.4 ; donnÃ©es sensibles visibles du seul clinicien | Ã€ Ã©crire |
-| D12 | DÃ©rive du modÃ¨le | Changement de population | DÃ©gradation silencieuse | Moyenne | Suivi de dÃ©rive, recalibrage, retrait du modÃ¨le | Ã€ Ã©crire |
+| D1 | Faux négatif rassurant | Donnée manquante, règle trop permissive | Retard de prise en charge | Critique | Niveau Gris ; badge « à confirmer » ; contrôle de 5 % des Verts ; alerte C4 | E1 |
+| D2 | Faux positif anxiogène | Seuil trop bas | Anxiété, examens inutiles | Moyenne | Aide à la décision avec limites ; message sans diagnostic ; suivi du taux | E3 |
+| D3 | Message mal traduit ou ambigu | Traduction, reformulation M2 | Incompréhension, refus | Élevée | Relecture par locuteurs natifs ; contrôle de rétro-traduction ; validation humaine | M3 |
+| D4 | Fuite ou usage non autorisé de données | Contrôle d'accès, journal absent | Atteinte à la vie privée | Critique | Rôles, journal non modifiable, minimisation, masquage dans l'API | E4 |
+| D5 | Biais du ML contre un segment | Données déséquilibrées | Accompagnement inégal | Élevée | Variables sensibles exclues ; audit d'équité ; seuils d'alerte | M-éq |
+| D6 | Le score de priorisation utilisé comme décision clinique | Confusion des rôles | Mauvaise décision individuelle | Élevée | $S_{\text{prio}}$ absent de l'écran 2 | E2 |
+| D7 | Relances perçues comme du harcèlement | Trop de messages | Perte de confiance | Moyenne | Maximum 2 relances ; refus immédiat ; mesure des désinscriptions | E3 |
+| D8 | Données périmées | Mesure ancienne | Signalement erroné | Moyenne | Badge d'ancienneté ; confiance « Faible » si trop ancienne | E1 |
+| D9 | Conflit de synchronisation | Modifications hors ligne | Visite perdue ou comptée à tort | Élevée | Règles de 5.5 ; journal des conflits | S1 |
+| D10 | Hallucination du modèle de langage | Génération libre | Message trompeur | Élevée | Modèle de message validé ; contrôles automatiques ; validation humaine ; repli préécrit | M3 |
+| D11 | Confidentialité de l'adolescent | Visibilité parentale | Atteinte à la confidentialité | Élevée | Règles de 6.4 ; données sensibles visibles du seul clinicien | À écrire |
+| D12 | Dérive du modèle | Changement de population | Dégradation silencieuse | Moyenne | Suivi de dérive, recalibrage, retrait du modèle | À écrire |
 
 ### 21.2 Matrice de supervision humaine
 
-| Action | Qui dÃ©cide | RÃ´le de l'IA ou du ML |
+| Action | Qui décide | Rôle de l'IA ou du ML |
 | :--- | :--- | :--- |
-| Niveau d'un signalement | RÃ¨gles signÃ©es ; le clinicien peut adapter avec un motif | Aucun |
+| Niveau d'un signalement | Règles signées ; le clinicien peut adapter avec un motif | Aucun |
 | Validation d'une invitation | Coordinateur ou clinicien | M2 propose le texte |
-| Ordre des invitations | Coordinateur (liste proposÃ©e par $S_{\text{prio}}$) | M1 peut **renforcer** l'accompagnement |
-| Contact humain pour un Orange | Coordinateur | M1 suggÃ¨re |
-| Modification d'une table de rÃ¨gles | Clinicien signataire | Aucun |
-| Retrait d'un modÃ¨le | Responsable du modÃ¨le et gouvernance clinique | Alerte de dÃ©rive |
+| Ordre des invitations | Coordinateur (liste proposée par $S_{\text{prio}}$) | M1 peut **renforcer** l'accompagnement |
+| Contact humain pour un Orange | Coordinateur | M1 suggère |
+| Modification d'une table de règles | Clinicien signataire | Aucun |
+| Retrait d'un modèle | Responsable du modèle et gouvernance clinique | Alerte de dérive |
 
-### 21.3 Gouvernance des donnÃ©es
+### 21.3 Gouvernance des données
 
-| CatÃ©gorie | FinalitÃ© | Base | Conservation | AccÃ¨s | Suppression |
+| Catégorie | Finalité | Base | Conservation | Accès | Suppression |
 | :--- | :--- | :--- | :---: | :--- | :--- |
-| IdentitÃ© pseudonymisÃ©e | Rattacher les visites | Consentement | H21 | Clinicien du centre | Sur demande |
-| Mesures et antÃ©cÃ©dents | Ã‰valuation et calendrier | Consentement (finalitÃ© 1) | H21 | Clinicien | Sur demande |
-| Contact et prÃ©fÃ©rences | Rappels | Consentement (finalitÃ© 2) | H21 | Coordinateur | Sur retrait |
-| RÃ©sultat gÃ©nomique interprÃ©tÃ© | RÃ¨gle G | Consentement (finalitÃ© 5) | H21 | Clinicien | Sur retrait |
-| DonnÃ©es agrÃ©gÃ©es | Statistiques | Consentement (finalitÃ© 4) | Sans limite, masquÃ©es | Coordinateur | Sans objet |
-| Journal d'accÃ¨s | Audit | Obligation de sÃ©curitÃ© | H21 | Administrateur | Non |
+| Identité pseudonymisée | Rattacher les visites | Consentement | H21 | Clinicien du centre | Sur demande |
+| Mesures et antécédents | Évaluation et calendrier | Consentement (finalité 1) | H21 | Clinicien | Sur demande |
+| Contact et préférences | Rappels | Consentement (finalité 2) | H21 | Coordinateur | Sur retrait |
+| Résultat génomique interprété | Règle G | Consentement (finalité 5) | H21 | Clinicien | Sur retrait |
+| Données agrégées | Statistiques | Consentement (finalité 4) | Sans limite, masquées | Coordinateur | Sans objet |
+| Journal d'accès | Audit | Obligation de sécurité | H21 | Administrateur | Non |
 
-**Principes :** minimisation, sÃ©paration de l'identitÃ© et des donnÃ©es d'analyse (5.6), hÃ©bergement aux Ã‰mirats (V13, V18), aucune donnÃ©e rÃ©elle dans le prototype.
+**Principes :** minimisation, séparation de l'identité et des données d'analyse (5.6), hébergement aux Émirats (V13, V18), aucune donnée réelle dans le prototype.
 
-### 21.4 Plan de test d'Ã©quitÃ©
+### 21.4 Plan de test d'équité
 
-- Segments de 7.1, publication hiÃ©rarchique, masquage selon 7.3.
-- Pour M1 : Ã©cart de TPR et de TFP entre segments ; seuil d'alerte H18 ; un dÃ©passement bloque l'extension.
-- Pour les rÃ¨gles : alertes C3 et C4 (4.4).
-- Rapport d'Ã©quitÃ© gÃ©nÃ©rÃ© automatiquement et inclus dans le dÃ©pÃ´t.
+- Segments de 7.1, publication hiérarchique, masquage selon 7.3.
+- Pour M1 : écart de TPR et de TFP entre segments ; seuil d'alerte H18 ; un dépassement bloque l'extension.
+- Pour les règles : alertes C3 et C4 (4.4).
+- Rapport d'équité généré automatiquement et inclus dans le dépôt.
 
-### 21.5 Liste de contrÃ´le Â« red team Â» pour M2
+### 21.5 Liste de contrôle « red team » pour M2
 
-Tester au minimum : injection dans les variables du message, demande de diagnostic, demande de mention gÃ©nÃ©tique, langue inattendue, message trop long, variables supprimÃ©es, ton culpabilisant, rÃ©fÃ©rence religieuse inappropriÃ©e. RÃ©sultats consignÃ©s dans le dÃ©pÃ´t.
+Tester au minimum : injection dans les variables du message, demande de diagnostic, demande de mention génétique, langue inattendue, message trop long, variables supprimées, ton culpabilisant, référence religieuse inappropriée. Résultats consignés dans le dépôt.
 
 ### 21.6 Transparence sur l'usage de l'IA
 
-Le dossier et l'interface indiquent clairement : oÃ¹ le ML intervient (M1, M2), oÃ¹ il n'intervient pas (niveaux cliniques, Ã©cran 2), les donnÃ©es qu'il utilise et celles qu'il n'utilise pas, et comment une personne ou un clinicien peut l'ignorer.
+Le dossier et l'interface indiquent clairement : où le ML intervient (M1, M2), où il n'intervient pas (niveaux cliniques, écran 2), les données qu'il utilise et celles qu'il n'utilise pas, et comment une personne ou un clinicien peut l'ignorer.
 
 ---
 
-## 22. CritÃ¨re 5 : capacitÃ© de passage Ã  l'Ã©chelle et prÃ©paration au dÃ©ploiement
+## 22. Critère 5 : capacité de passage à l'échelle et préparation au déploiement
 
 ### 22.1 Paliers
 
-| Palier | PÃ©rimÃ¨tre | Ce qui change | PrÃ©requis |
+| Palier | Périmètre | Ce qui change | Prérequis |
 | :--- | :--- | :--- | :--- |
-| **0. Prototype** | DonnÃ©es synthÃ©tiques, un dÃ©ploiement unique | Rien de rÃ©el | Concours |
-| **1. Mode Â« ombre Â»** | Un centre, donnÃ©es rÃ©elles, **aucun contact avec les personnes** : MediBenin calcule en parallÃ¨le et on compare Ã  ce que le centre a rÃ©ellement fait | AccÃ¨s aux donnÃ©es, hÃ©bergement conforme | Accord partenaire, V13, V14 |
-| **2. Pilote** | Un centre, invitations rÃ©elles validÃ©es par humain | Messages rÃ©els, circuit de confirmation | Ã‰thique, protocole 8.5 |
-| **3. Programme** | Plusieurs centres, une rÃ©gion | Multi-Ã©tablissements, intÃ©gration, support | CritÃ¨res de passage atteints |
-| **4. Autre pays** | Profil de rÃ¨gles du pays | Calendriers, langues, cadre lÃ©gal | Section 16 |
+| **0. Prototype** | Données synthétiques, un déploiement unique | Rien de réel | Concours |
+| **1. Mode « ombre »** | Un centre, données réelles, **aucun contact avec les personnes** : MediBenin calcule en parallèle et on compare à ce que le centre a réellement fait | Accès aux données, hébergement conforme | Accord partenaire, V13, V14 |
+| **2. Pilote** | Un centre, invitations réelles validées par humain | Messages réels, circuit de confirmation | Éthique, protocole 8.5 |
+| **3. Programme** | Plusieurs centres, une région | Multi-établissements, intégration, support | Critères de passage atteints |
+| **4. Autre pays** | Profil de règles du pays | Calendriers, langues, cadre légal | Section 16 |
 
-Le **mode Â« ombre Â»** est le choix de prudence : il permet de mesurer la qualitÃ© des signalements sur des donnÃ©es rÃ©elles sans exposer les personnes.
+Le **mode « ombre »** est le choix de prudence : il permet de mesurer la qualité des signalements sur des données réelles sans exposer les personnes.
 
-### 22.2 Points d'Ã©chelle techniques
+### 22.2 Points d'échelle techniques
 
-- API sans Ã©tat, derriÃ¨re un Ã©quilibreur ; base PostgreSQL avec partitionnement par Ã©tablissement ; file de tÃ¢ches pour l'envoi et le recalcul.
-- RÃ¨gles et profils de pays sous forme de configuration signÃ©e, pas de code.
-- Multi-Ã©tablissement dÃ¨s la conception (isolation par Ã©tablissement).
-- ModÃ¨les ML versionnÃ©s, recalibrables sans toucher aux rÃ¨gles.
+- API sans état, derrière un équilibreur ; base PostgreSQL avec partitionnement par établissement ; file de tâches pour l'envoi et le recalcul.
+- Règles et profils de pays sous forme de configuration signée, pas de code.
+- Multi-établissement dès la conception (isolation par établissement).
+- Modèles ML versionnés, recalibrables sans toucher aux règles.
 
-### 22.3 ModÃ¨le de capacitÃ©
+### 22.3 Modèle de capacité
 
-$$K_{\text{jour}} = \min\left(\sum_{c} \text{crÃ©neaux libres}_c,\ \text{capacitÃ© de validation humaine}\right)$$
+$$K_{\text{jour}} = \min\left(\sum_{c} \text{créneaux libres}_c,\ \text{capacité de validation humaine}\right)$$
 
-Les invitations proposÃ©es par jour sont limitÃ©es par la capacitÃ© des centres et par le temps de validation des soignants. La validation par lot des Jaunes (6.5) et la file sÃ©parÃ©e des Rouges Ã©vitent la saturation. Les valeurs rÃ©elles viennent du partenaire (H23).
+Les invitations proposées par jour sont limitées par la capacité des centres et par le temps de validation des soignants. La validation par lot des Jaunes (6.5) et la file séparée des Rouges évitent la saturation. Les valeurs réelles viennent du partenaire (H23).
 
-### 22.4 IntÃ©gration et hÃ©bergement
+### 22.4 Intégration et hébergement
 
-- **IntÃ©gration :** export FHIR R4 rÃ©el dans le prototype ; raccordement Ã  Malaffi ou Ã  d'autres systÃ¨mes via un Ã©tablissement agrÃ©Ã© aprÃ¨s le concours (V14).
-- **HÃ©bergement :** aux Ã‰mirats (V13). Les co-crÃ©ateurs du dÃ©fi incluent Microsoft ; Ã©tudier les rÃ©gions cloud disponibles aux Ã‰mirats est une piste, sans engagement ni prÃ©fÃ©rence technique **[Ã€ VÃ‰RIFIER, V18]**. Le dÃ©fi est neutre sur la technologie.
+- **Intégration :** export FHIR R4 réel dans le prototype ; raccordement à Malaffi ou à d'autres systèmes via un établissement agréé après le concours (V14).
+- **Hébergement :** aux Émirats (V13). Les co-créateurs du défi incluent Microsoft ; étudier les régions cloud disponibles aux Émirats est une piste, sans engagement ni préférence technique **[À VÉRIFIER, V18]**. Le défi est neutre sur la technologie.
 
-### 22.5 Checklist de prÃ©paration au dÃ©ploiement
+### 22.5 Checklist de préparation au déploiement
 
-| Ã‰lÃ©ment | Statut au dÃ©pÃ´t |
+| Élément | Statut au dépôt |
 | :--- | :---: |
-| Application conteneurisÃ©e et reproductible | RÃ©el |
-| Tests automatisÃ©s en intÃ©gration continue | RÃ©el |
-| Journal d'audit et contrÃ´le d'accÃ¨s par rÃ´le | RÃ©el |
-| Surveillance et alertes (santÃ© du service, dÃ©rive) | Partiel |
-| Sauvegarde et restauration documentÃ©es | Feuille de route |
-| Test de charge | Feuille de route (**[Ã€ MESURER]**, aucun chiffre annoncÃ©) |
-| Audit de sÃ©curitÃ© et analyse d'impact | Feuille de route |
-| Qualification rÃ©glementaire (V13) | Feuille de route |
+| Application conteneurisée et reproductible | Réel |
+| Tests automatisés en intégration continue | Réel |
+| Journal d'audit et contrôle d'accès par rôle | Réel |
+| Surveillance et alertes (santé du service, dérive) | Partiel |
+| Sauvegarde et restauration documentées | Feuille de route |
+| Test de charge | Feuille de route (**[À MESURER]**, aucun chiffre annoncé) |
+| Audit de sécurité et analyse d'impact | Feuille de route |
+| Qualification réglementaire (V13) | Feuille de route |
 | Plan de support et de formation des soignants | Feuille de route |
 
 ---
 
-## 23. CritÃ¨re 6 : viabilitÃ© commerciale et voie vers le pilote
+## 23. Critère 6 : viabilité commerciale et voie vers le pilote
 
 > [!NOTE]
-> Aucun acheteur n'a Ã©tÃ© interrogÃ© et aucun prix n'a Ã©tÃ© testÃ©. Cette section prÃ©sente un **cadre et des hypothÃ¨ses Ã  valider**, pas une demande prouvÃ©e.
+> Aucun acheteur n'a été interrogé et aucun prix n'a été testé. Cette section présente un **cadre et des hypothèses à valider**, pas une demande prouvée.
 
-### 23.1 Panorama de l'existant et diffÃ©renciation
+### 23.1 Panorama de l'existant et différenciation
 
-Les catÃ©gories ci-dessous sont celles que nous connaissons ; leurs dÃ©ploiements actuels **[Ã€ VÃ‰RIFIER avant dÃ©pÃ´t]**.
+Les catégories ci-dessous sont celles que nous connaissons ; leurs déploiements actuels **[À VÉRIFIER avant dépôt]**.
 
-| CatÃ©gorie | Exemples | Ce qu'elle apporte | Ce que MediBenin ajoute (Ã  notre connaissance) |
+| Catégorie | Exemples | Ce qu'elle apporte | Ce que MediBenin ajoute (à notre connaissance) |
 | :--- | :--- | :--- | :--- |
-| DÃ©pistage organisÃ© par invitation | Programmes nationaux (sein, col, cÃ´lon) | Structure, registres, relances | RepÃ©rage multi-domaines au-delÃ  de l'Ã¢ge et du sexe ; Ã©quitÃ© mesurÃ©e par segment |
-| GÃ©nomique Ã  grande Ã©chelle | Our Future Health, Genomics England | Risque individuel Ã  partir de la gÃ©nÃ©tique | Usage **encadrÃ©** du signal gÃ©nomique, sans jamais retarder un dÃ©pistage |
-| IA de dÃ©pistage par imagerie ou signal | Qure.ai, CAD4TB, IDx-DR | DÃ©tection automatisÃ©e d'une pathologie | MediBenin n'analyse pas d'image : il orchestre le parcours et la boucle fermÃ©e |
-| Stratification du risque en santÃ© des populations | Innovaccer, Health Catalyst, modules d'Epic | Identification de patients Ã  haut risque dans de grands systÃ¨mes | LÃ©ger, transparent, avec incertitude visible et garde-fous d'Ã©quitÃ© intÃ©grÃ©s |
-| DonnÃ©es de santÃ© publique | DHIS2 | Collecte et agrÃ©gation | Action individuelle et suivi jusqu'Ã  la visite |
+| Dépistage organisé par invitation | Programmes nationaux (sein, col, côlon) | Structure, registres, relances | Repérage multi-domaines au-delà de l'âge et du sexe ; équité mesurée par segment |
+| Génomique à grande échelle | Our Future Health, Genomics England | Risque individuel à partir de la génétique | Usage **encadré** du signal génomique, sans jamais retarder un dépistage |
+| IA de dépistage par imagerie ou signal | Qure.ai, CAD4TB, IDx-DR | Détection automatisée d'une pathologie | MediBenin n'analyse pas d'image : il orchestre le parcours et la boucle fermée |
+| Stratification du risque en santé des populations | Innovaccer, Health Catalyst, modules d'Epic | Identification de patients à haut risque dans de grands systèmes | Léger, transparent, avec incertitude visible et garde-fous d'équité intégrés |
+| Données de santé publique | DHIS2 | Collecte et agrégation | Action individuelle et suivi jusqu'à la visite |
 
-**DiffÃ©renciation dÃ©fendable :** la boucle fermÃ©e jusqu'Ã  la visite confirmÃ©e, l'incertitude visible, l'Ã©quitÃ© mesurÃ©e, le ML limitÃ© au logistique. **Ce n'est pas un avantage de brevet** : les rÃ¨gles cliniques sont publiques (13.2).
+**Différenciation défendable :** la boucle fermée jusqu'à la visite confirmée, l'incertitude visible, l'équité mesurée, le ML limité au logistique. **Ce n'est pas un avantage de brevet** : les règles cliniques sont publiques (13.2).
 
 ### 23.2 Acheteurs et valeur mesurable
 
-Voir 13.1. Pour chaque acheteur, la valeur est exprimÃ©e par un indicateur du pilote : lacunes comblÃ©es et confirmÃ©es, rendez-vous manquÃ©s Ã©vitÃ©s, rendement par invitation, bilans rÃ©alisÃ©s. Les **montants** associÃ©s viennent du partenaire.
+Voir 13.1. Pour chaque acheteur, la valeur est exprimée par un indicateur du pilote : lacunes comblées et confirmées, rendez-vous manqués évités, rendement par invitation, bilans réalisés. Les **montants** associés viennent du partenaire.
 
-### 23.3 Ã‰conomie unitaire (cadre)
+### 23.3 Économie unitaire (cadre)
 
 $$N^{*} = \frac{C_{\text{fixe}}}{R - C_{\text{var}}}$$
 
-oÃ¹ $N^{*}$ est le nombre de personnes couvertes Ã  l'Ã©quilibre, $R$ le revenu par personne couverte, $C_{\text{var}}$ le coÃ»t variable (infrastructure, messages, infÃ©rence ML) et $C_{\text{fixe}}$ les coÃ»ts annuels (Ã©quipe, hÃ©bergement conforme, conformitÃ©, support). Les estimations internes de la v7.0 (H16) restent des hypothÃ¨ses ; **les postes d'hÃ©bergement conforme, de sÃ©curitÃ© et de licences sont Ã  chiffrer avec le partenaire** (13.4).
+où $N^{*}$ est le nombre de personnes couvertes à l'équilibre, $R$ le revenu par personne couverte, $C_{\text{var}}$ le coût variable (infrastructure, messages, inférence ML) et $C_{\text{fixe}}$ les coûts annuels (équipe, hébergement conforme, conformité, support). Les estimations internes de la v7.0 (H16) restent des hypothèses ; **les postes d'hébergement conforme, de sécurité et de licences sont à chiffrer avec le partenaire** (13.4).
 
-### 23.4 Chemin vers le pilote en 4 phases (critÃ¨res fixÃ©s Ã  l'avance)
+### 23.4 Chemin vers le pilote en 4 phases (critères fixés à l'avance)
 
-| Phase | Contenu | DurÃ©e | Sortie attendue |
+| Phase | Contenu | Durée | Sortie attendue |
 | :---: | :--- | :---: | :--- |
-| 0 | Accord du partenaire, Ã©thique, qualification rÃ©glementaire | H21 | Autorisations |
-| 1 | **Mode Â« ombre Â»** : calculs en parallÃ¨le sur donnÃ©es rÃ©elles, sans contact | H21 | QualitÃ© des signalements, Ã©carts par segment |
-| 2 | Pilote limitÃ© : invitations rÃ©elles validÃ©es par humain | H21 | Adoption, ponctualitÃ©, rendement |
-| 3 | Ã‰valuation et dÃ©cision | H21 | Passage Ã  l'Ã©chelle ou arrÃªt selon les critÃ¨res de 8.5 |
+| 0 | Accord du partenaire, éthique, qualification réglementaire | H21 | Autorisations |
+| 1 | **Mode « ombre »** : calculs en parallèle sur données réelles, sans contact | H21 | Qualité des signalements, écarts par segment |
+| 2 | Pilote limité : invitations réelles validées par humain | H21 | Adoption, ponctualité, rendement |
+| 3 | Évaluation et décision | H21 | Passage à l'échelle ou arrêt selon les critères de 8.5 |
 
-### 23.5 Cinq questions Ã  poser Ã  un acheteur ou partenaire potentiel
+### 23.5 Cinq questions à poser à un acheteur ou partenaire potentiel
 
-1. Quel taux de rendez-vous manquÃ©s ou de visites en retard observez-vous aujourd'hui sur ces parcours, et comment le mesurez-vous ?
+1. Quel taux de rendez-vous manqués ou de visites en retard observez-vous aujourd'hui sur ces parcours, et comment le mesurez-vous ?
 2. Qui paie le temps de validation des soignants, et combien de temps est acceptable par jour ?
-3. Quelles donnÃ©es pouvez-vous partager en mode Â« ombre Â», sous quelles conditions ?
-4. Quel indicateur dÃ©clencherait une dÃ©cision de poursuivre ou d'arrÃªter ?
-5. Quel modÃ¨le de paiement serait acceptable : par personne, par Ã©tablissement, au rÃ©sultat ?
+3. Quelles données pouvez-vous partager en mode « ombre », sous quelles conditions ?
+4. Quel indicateur déclencherait une décision de poursuivre ou d'arrêter ?
+5. Quel modèle de paiement serait acceptable : par personne, par établissement, au résultat ?
 
 ### 23.6 Pistes de partenariat
 
-Les co-crÃ©ateurs du dÃ©fi (Microsoft, Inception, MBZUAI) et les autoritÃ©s de santÃ© d'Abu Dhabi sont des interlocuteurs potentiels. **Rien n'est acquis** ; l'Ã©valuation de maturitÃ© annoncÃ©e par le dÃ©fi pour les solutions retenues est une occasion Ã  saisir.
+Les co-créateurs du défi (Microsoft, Inception, MBZUAI) et les autorités de santé d'Abu Dhabi sont des interlocuteurs potentiels. **Rien n'est acquis** ; l'évaluation de maturité annoncée par le défi pour les solutions retenues est une occasion à saisir.
 
 ---
 
-## 24. PÃ©rimÃ¨tre et plan rÃ©visÃ©s (remplacent 11.1, 11.2 et 11.4)
+## 24. Périmètre et plan révisés (remplacent 11.1, 11.2 et 11.4)
 
 ### 24.1 MoSCoW v8
 
-| PrioritÃ© | Contenu |
+| Priorité | Contenu |
 | :--- | :--- |
-| **Indispensable** | Application web unique (AD-1), hÃ©bergÃ©e ; rÃ¨gles retenues (24.2) ; Niveau Gris et badge de certitude ; Ã©crans 1 et 2 sÃ©parÃ©s ; suivi en **5 Ã©tats** (CrÃ©Ã©e, InvitÃ©e, PlanifiÃ©e, RÃ©alisÃ©e, RefusÃ©e) avec code d'orientation ; **M1 entraÃ®nÃ© et Ã©valuÃ©** ; garde-fous (masquage, Wilson, alertes C1, C3, C4) ; cohorte synthÃ©tique rÃ©duite avec comparaison Ã  l'invitation par Ã¢ge et sexe ; registre des dangers, fiche modÃ¨le, tableau RÃ©el / SimulÃ© ; vidÃ©o et README |
-| **Souhaitable** | M2 avec contrÃ´les et repli ; messages et aides Ã  la dÃ©cision en arabe et en anglais ; consentement par finalitÃ© et journal d'usage ; export FHIR d'un exemple ; analyse de sensibilitÃ© de $S_{\text{prio}}$ ; rÃ©sumÃ© exÃ©cutif en anglais |
-| **Facultatif** | Mode hors ligne PWA ; audio ; carte par rÃ©gion |
-| **Hors prototype** | Flutter natif, 3 Ã©tats supplÃ©mentaires (ReportÃ©e, En retard, relances automatiques fines), rÃ¨gles P2, P7, P9, A10, C2, raccordement rÃ©el, envoi rÃ©el de messages, cohorte de 50 000 Ã— 20 graines (remplacÃ©e par 5 000 Ã  10 000 personnes et 3 graines **H22**) |
+| **Indispensable** | Application web unique (AD-1), hébergée ; règles retenues (24.2) ; Niveau Gris et badge de certitude ; écrans 1 et 2 séparés ; suivi en **5 états** (Créée, Invitée, Planifiée, Réalisée, Refusée) avec code d'orientation ; **M1 entraîné et évalué** ; garde-fous (masquage, Wilson, alertes C1, C3, C4) ; cohorte synthétique réduite avec comparaison à l'invitation par âge et sexe ; registre des dangers, fiche modèle, tableau Réel / Simulé ; vidéo et README |
+| **Souhaitable** | M2 avec contrôles et repli ; messages et aides à la décision en arabe et en anglais ; consentement par finalité et journal d'usage ; export FHIR d'un exemple ; analyse de sensibilité de $S_{\text{prio}}$ ; résumé exécutif en anglais |
+| **Facultatif** | Mode hors ligne PWA ; audio ; carte par région |
+| **Hors prototype** | Flutter natif, 3 états supplémentaires (Reportée, En retard, relances automatiques fines), règles P2, P7, P9, A10, C2, raccordement réel, envoi réel de messages, cohorte de 50 000 × 20 graines (remplacée par 5 000 à 10 000 personnes et 3 graines **H22**) |
 
-### 24.2 RÃ¨gles retenues pour le prototype
+### 24.2 Règles retenues pour le prototype
 
-- **Enfant :** P1, P3, P4, P5, P6 (logique seulement, sans items protÃ©gÃ©s), P8, P10, P11.
-- **Adulte :** A1, A2, A3, A4, A5 Ã  A8, A9, A11.
-- **CommunautÃ©s :** C1, C3, C4.
-- **GÃ©nomique :** G1 Ã  G3 **[SIMULÃ‰]**.
+- **Enfant :** P1, P3, P4, P5, P6 (logique seulement, sans items protégés), P8, P10, P11.
+- **Adulte :** A1, A2, A3, A4, A5 à A8, A9, A11.
+- **Communautés :** C1, C3, C4.
+- **Génomique :** G1 à G3 **[SIMULÉ]**.
 
-Les rÃ¨gles dÃ©pendant de V3 et de V4 sont **marquÃ©es Â« Ã  vÃ©rifier Â» dans l'interface** si les textes d'Abu Dhabi ne sont pas obtenus ; dans ce cas, on s'appuie sur les calendriers internationaux de rÃ©fÃ©rence, Ã©tiquetÃ©s comme tels.
+Les règles dépendant de V3 et de V4 sont **marquées « à vérifier » dans l'interface** si les textes d'Abu Dhabi ne sont pas obtenus ; dans ce cas, on s'appuie sur les calendriers internationaux de référence, étiquetés comme tels.
 
 ### 24.3 Plan jour par jour
 
 | Date | Jalon | Responsable |
 | :--- | :--- | :--- |
-| **Mar. 10 nov.** | **VÃ©rifier l'inscription (clÃ´ture le 10 nov.)** ; envoyer les questions au support (V16, V17) ; geler le pÃ©rimÃ¨tre v8 ; rÃ©partir les rÃ´les | Toute l'Ã©quipe, Uriel K. pour le support |
-| Mer. 11 nov. | Tables JSON signables, moteur de rÃ¨gles ; gÃ©nÃ©rateur de cohorte v0 ; tentative V3 et V4 | Orace A., Bienderan E., Sydney K. |
-| **Jeu. 12 nov.** | **ContrÃ´le 1** : rÃ¨gles relues, personas qui passent ; question en direct Ã  la session du jeudi | Sydney K. et relecteur clinique |
-| Ven. 13 nov. | Squelette des Ã©crans 1 et 2 ; suivi en 5 Ã©tats ; code d'orientation | Orace A. |
-| Sam. 14 nov. | Garde-fous (masquage, Wilson) ; M1 de rÃ©fÃ©rence ; V7 licences | Bienderan E., Freud B. |
-| **Dim. 15 nov.** | **ContrÃ´le 2** : dÃ©monstration de bout en bout, mÃªme non finie | Toute l'Ã©quipe |
-| Lun. 16 nov. | Ã‰valuation ML et Ã©quitÃ© ; fiche modÃ¨le ; messages arabe et anglais ; M2 si le temps le permet | Freud B., Bienderan E. |
-| Mar. 17 nov. | Panorama de l'existant, section commerciale ; documentation en anglais ; conteneurisation et dÃ©ploiement | Uriel K., Orace A. |
-| **Mer. 18 nov.** | **Gel du code** ; tous les tests passent (11.3 et 20.5) | Toute l'Ã©quipe |
-| Jeu. 19 nov. | Enregistrement de la vidÃ©o ; test Ã  froid de la dÃ©mo hÃ©bergÃ©e ; session du jeudi | Uriel K., Freud B. |
-| **Ven. 20 nov.** | **DÃ©pÃ´t en dÃ©but de journÃ©e** ; marge de sÃ©curitÃ© | Orace A. |
+| **Mar. 10 nov.** | **Vérifier l'inscription (clôture le 10 nov.)** ; envoyer les questions au support (V16, V17) ; geler le périmètre v8 ; répartir les rôles | Toute l'équipe, Uriel K. pour le support |
+| Mer. 11 nov. | Tables JSON signables, moteur de règles ; générateur de cohorte v0 ; tentative V3 et V4 | Orace A., Bienderan E., Sydney K. |
+| **Jeu. 12 nov.** | **Contrôle 1** : règles relues, personas qui passent ; question en direct à la session du jeudi | Sydney K. et relecteur clinique |
+| Ven. 13 nov. | Squelette des écrans 1 et 2 ; suivi en 5 états ; code d'orientation | Orace A. |
+| Sam. 14 nov. | Garde-fous (masquage, Wilson) ; M1 de référence ; V7 licences | Bienderan E., Freud B. |
+| **Dim. 15 nov.** | **Contrôle 2** : démonstration de bout en bout, même non finie | Toute l'équipe |
+| Lun. 16 nov. | Évaluation ML et équité ; fiche modèle ; messages arabe et anglais ; M2 si le temps le permet | Freud B., Bienderan E. |
+| Mar. 17 nov. | Panorama de l'existant, section commerciale ; documentation en anglais ; conteneurisation et déploiement | Uriel K., Orace A. |
+| **Mer. 18 nov.** | **Gel du code** ; tous les tests passent (11.3 et 20.5) | Toute l'équipe |
+| Jeu. 19 nov. | Enregistrement de la vidéo ; test à froid de la démo hébergée ; session du jeudi | Uriel K., Freud B. |
+| **Ven. 20 nov.** | **Dépôt en début de journée** ; marge de sécurité | Orace A. |
 
-**RÃ¨gle de repli :** si le contrÃ´le 2 (15 nov.) n'est pas atteint, tout le Â« Souhaitable Â» est retirÃ© et M1 devient le seul module ML.
+**Règle de repli :** si le contrôle 2 (15 nov.) n'est pas atteint, tout le « Souhaitable » est retiré et M1 devient le seul module ML.
 
 ---
 
-## 25. Dossier de dÃ©pÃ´t
+## 25. Dossier de dépôt
 
-### 25.1 Liste de contrÃ´le
+### 25.1 Liste de contrôle
 
-| Ã‰lÃ©ment | Statut | Remarque |
+| Élément | Statut | Remarque |
 | :--- | :---: | :--- |
-| Lien de dÃ©mo hÃ©bergÃ©e avec comptes de dÃ©monstration | Ã€ faire | TestÃ© Ã  froid |
-| VidÃ©o de 5 minutes, sous-titres anglais | Ã€ faire | 20.2 |
-| README (dÃ©marrage en moins de 5 minutes) | Ã€ faire | `docker compose up` |
-| Documentation technique | Ã€ faire | Architecture, dÃ©cisions AD-1 et AD-2 |
-| HypothÃ¨ses et limites | RÃ©alisÃ© (v7.0, section 15) | Ã€ mettre Ã  jour |
-| Tableau RÃ©el / SimulÃ© | Ã€ mettre Ã  jour | 2.3 |
-| Fiche modÃ¨le M1 (et M2) | Ã€ faire | 19.7 |
-| Registre des dangers | Ã€ faire | 21.1 |
-| Rapport d'Ã©quitÃ© | Ã€ faire | GÃ©nÃ©rÃ© automatiquement |
-| Panorama de l'existant et plan de pilote | Ã€ faire | Section 23 |
-| RÃ©sumÃ© exÃ©cutif de 1 page | Ã€ faire | 25.2 |
-| **Langue de la documentation** | **Anglais recommandÃ©** | Les Ã©valuateurs sont internationaux ; vÃ©rifier V16 |
-| Format exact demandÃ© par le concours | **Ã€ vÃ©rifier** | V16 |
+| Lien de démo hébergée avec comptes de démonstration | À faire | Testé à froid |
+| Vidéo de 5 minutes, sous-titres anglais | À faire | 20.2 |
+| README (démarrage en moins de 5 minutes) | À faire | `docker compose up` |
+| Documentation technique | À faire | Architecture, décisions AD-1 et AD-2 |
+| Hypothèses et limites | Réalisé (v7.0, section 15) | À mettre à jour |
+| Tableau Réel / Simulé | À mettre à jour | 2.3 |
+| Fiche modèle M1 (et M2) | À faire | 19.7 |
+| Registre des dangers | À faire | 21.1 |
+| Rapport d'équité | À faire | Généré automatiquement |
+| Panorama de l'existant et plan de pilote | À faire | Section 23 |
+| Résumé exécutif de 1 page | À faire | 25.2 |
+| **Langue de la documentation** | **Anglais recommandé** | Les évaluateurs sont internationaux ; vérifier V16 |
+| Format exact demandé par le concours | **À vérifier** | V16 |
 
-### 25.2 RÃ©sumÃ© exÃ©cutif (version anglaise, Ã  ajuster)
+### 25.2 Résumé exécutif (version anglaise, à ajuster)
 
 **MediBenin: closing the loop between an identified risk and a completed preventive visit**
 
@@ -511,27 +511,27 @@ Les rÃ¨gles dÃ©pendant de V3 et de V4 sont **marquÃ©es Â« Ã  vÃ©rifi
 
 ---
 
-## 26. HypothÃ¨ses et vÃ©rifications ajoutÃ©es
+## 26. Hypothèses et vérifications ajoutées
 
-### 26.1 Nouvelles hypothÃ¨ses
+### 26.1 Nouvelles hypothèses
 
-| NÂ° | HypothÃ¨se |
+| N° | Hypothèse |
 | :---: | :--- |
-| H17 | Une part importante des pertes des programmes de prÃ©vention se situe entre l'alerte et la visite effective (Ã  confirmer avec le partenaire) |
-| H18 | Seuils de tolÃ©rance de choix du modÃ¨le M1 et seuils d'alerte d'Ã©quitÃ© sur les Ã©carts de TPR et de TFP |
-| H19 | Budget de contacts humains B par centre et par jour, utilisÃ© pour comparer les stratÃ©gies de ciblage |
-| H20 | Cadence et nombre de relances (maximum 2, espacÃ©es d'au moins 7 jours) |
-| H21 | DurÃ©es de conservation des donnÃ©es et durÃ©es des phases du pilote |
-| H22 | Taille de la cohorte rÃ©duite (5 000 Ã  10 000 personnes, 3 graines) suffisante pour dÃ©montrer la chaÃ®ne |
-| H23 | Valeurs de capacitÃ© des centres et du temps de validation des soignants |
-| H24 | Les facteurs de non-prÃ©sentation du gÃ©nÃ©rateur synthÃ©tique reflÃ¨tent des mÃ©canismes plausibles |
+| H17 | Une part importante des pertes des programmes de prévention se situe entre l'alerte et la visite effective (à confirmer avec le partenaire) |
+| H18 | Seuils de tolérance de choix du modèle M1 et seuils d'alerte d'équité sur les écarts de TPR et de TFP |
+| H19 | Budget de contacts humains B par centre et par jour, utilisé pour comparer les stratégies de ciblage |
+| H20 | Cadence et nombre de relances (maximum 2, espacées d'au moins 7 jours) |
+| H21 | Durées de conservation des données et durées des phases du pilote |
+| H22 | Taille de la cohorte réduite (5 000 à 10 000 personnes, 3 graines) suffisante pour démontrer la chaîne |
+| H23 | Valeurs de capacité des centres et du temps de validation des soignants |
+| H24 | Les facteurs de non-présentation du générateur synthétique reflètent des mécanismes plausibles |
 
-### 26.2 Nouvelles vÃ©rifications
+### 26.2 Nouvelles vérifications
 
-| NÂ° | Point Ã  vÃ©rifier | Section | Responsable | Ã‰chÃ©ance | Si non vÃ©rifiÃ© |
+| N° | Point à vérifier | Section | Responsable | Échéance | Si non vérifié |
 | :---: | :--- | :---: | :--- | :--- | :--- |
-| V16 | Format exact du dÃ©pÃ´t (vidÃ©o, lien, langue, taille), et critÃ¨res dÃ©taillÃ©s de la page des rÃ¨gles | 25 | Uriel K. | 12 nov. | DÃ©pÃ´t en anglais avec vidÃ©o, lien et README |
-| V17 | FAQ et rÃ¨gles : donnÃ©es autorisÃ©es, propriÃ©tÃ© intellectuelle, produit existant (MediBenin), prÃ©sence aux Ã‰mirats | 2.2, 10.2 | Uriel K. | 12 nov. | Mentions de la v7.0 Ã  ne pas citer comme Â« lues Â» |
-| V18 | Options d'hÃ©bergement aux Ã‰mirats et Ã©ventuels crÃ©dits | 22.4 | Orace A. | 16 nov. | HÃ©bergement de dÃ©monstration hors Ã‰mirats, dÃ©clarÃ© comme tel |
-| V19 | Conditions d'usage du modÃ¨le de langage et de tout modÃ¨le prÃ©entraÃ®nÃ© (licence, donnÃ©es envoyÃ©es, rÃ©sidence) | 19.4 | Freud B. | 14 nov. | M2 en variantes prÃ©Ã©crites seulement |
-| V20 | Sources des facteurs de non-prÃ©sentation du gÃ©nÃ©rateur | 19.6 | Bienderan E. | 14 nov. | Facteurs dÃ©clarÃ©s comme hypothÃ©tiques |
+| V16 | Format exact du dépôt (vidéo, lien, langue, taille), et critères détaillés de la page des règles | 25 | Uriel K. | 12 nov. | Dépôt en anglais avec vidéo, lien et README |
+| V17 | FAQ et règles : données autorisées, propriété intellectuelle, produit existant (MediBenin), présence aux Émirats | 2.2, 10.2 | Uriel K. | 12 nov. | Mentions de la v7.0 à ne pas citer comme « lues » |
+| V18 | Options d'hébergement aux Émirats et éventuels crédits | 22.4 | Orace A. | 16 nov. | Hébergement de démonstration hors Émirats, déclaré comme tel |
+| V19 | Conditions d'usage du modèle de langage et de tout modèle préentraîné (licence, données envoyées, résidence) | 19.4 | Freud B. | 14 nov. | M2 en variantes préécrites seulement |
+| V20 | Sources des facteurs de non-présentation du générateur | 19.6 | Bienderan E. | 14 nov. | Facteurs déclarés comme hypothétiques |

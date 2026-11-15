@@ -43,7 +43,7 @@ export function runAllAcceptanceTests(): {
 } {
   const results: AcceptanceTestResult[] = [];
 
-  // TEST-S1: Sync conflict (Â§5.5) â€” offline agent "ReportÃ©e" vs centre "RÃ©alisÃ©e"
+  // TEST-S1: Sync conflict (§5.5) — offline agent "Reportée" vs centre "Réalisée"
   {
     const centreDoneVsPostponed = resolvePathwayConflict(
       { state: 'postponed', eventDate: '2026-11-14T08:30:00.000Z', actor: 'agent' },
@@ -67,7 +67,7 @@ export function runAllAcceptanceTests(): {
     results.push({
       id: 'TEST-S1',
       category: 'Clinical Safety (S)',
-      title: 'Sync conflict: centre-confirmed "RÃ©alisÃ©e" prevails over offline "ReportÃ©e" and is logged; refusal prevails over non-final states; authority order centre > coordinateur > agent',
+      title: 'Sync conflict: centre-confirmed "Réalisée" prevails over offline "Reportée" and is logged; refusal prevails over non-final states; authority order centre > coordinateur > agent',
       passed,
       evidence: `centreDone=${centreDoneVsPostponed.finalState}, refusalWins=${refusalVsScheduled.finalState}, equalDateWinner=${equalDateAuthority.winningActor} (${equalDateAuthority.finalState})`,
     });
@@ -333,7 +333,7 @@ export function runAllAcceptanceTests(): {
     });
   }
 
-  // TEST-G3: Genomic Non-Delay Safeguard (Rule G3 â€” negative/unconsented genomics never delays standard care)
+  // TEST-G3: Genomic Non-Delay Safeguard (Rule G3 — negative/unconsented genomics never delays standard care)
   {
     const withGenomicConsent = evaluatePatientRules(
       {
@@ -414,7 +414,7 @@ export function runAllAcceptanceTests(): {
     });
   }
 
-  // TEST-E6: Observatory integrity â€” real computation, masking, and alert typing
+  // TEST-E6: Observatory integrity — real computation, masking, and alert typing
   {
     const summary = getObservatorySummary(20261120, 'baseline');
     const regionRows = summary.safeguardedSegments.filter((s) => s.dimension === summary.poolingDimension);
@@ -430,7 +430,7 @@ export function runAllAcceptanceTests(): {
     );
     const benchmarkRowsReal = summary.outcomeBenchmark.comparisonRows.length >= 4 &&
       summary.outcomeBenchmark.comparisonRows.every(
-        (r) => Number.isFinite(r.ageSexBaseline) && Number.isFinite(r.MediBeninRulesPlusM1)
+        (r) => Number.isFinite(r.ageSexBaseline) && Number.isFinite(r.mediSenseRulesPlusM1)
       );
     const passed =
       regionSum === summary.cohortTotal &&
@@ -441,14 +441,14 @@ export function runAllAcceptanceTests(): {
     results.push({
       id: 'TEST-E6',
       category: 'Challenge Requirements (E)',
-      title: 'Observatory summary computed from real benchmark cohort (Â§7.1/Â§7.3/Â§8.3): segment sums, masking, alert typing',
+      title: 'Observatory summary computed from real benchmark cohort (§7.1/§7.3/§8.3): segment sums, masking, alert typing',
       passed,
       evidence: `regionSum(${summary.poolingDimension})=${regionSum} === cohortTotal=${summary.cohortTotal}, maskedRowsValid=${maskedRowsValid}, alertsTyped=${alertsTyped} [${summary.communityAlerts.map((a) => a.ruleId).join(',')}], benchmarkRows=${summary.outcomeBenchmark.comparisonRows.length}`,
     });
   }
 
-  // TEST-E1: Transparent Risk & Gap Identification â€” a complete profile produces
-  // the right flag (1â€“3 plain-language factors, rule, badge); an incomplete
+  // TEST-E1: Transparent Risk & Gap Identification — a complete profile produces
+  // the right flag (1–3 plain-language factors, rule, badge); an incomplete
   // record produces Level Grey (never a false Green).
   {
     const evalGrey = evaluatePatientRules(
@@ -500,7 +500,7 @@ export function runAllAcceptanceTests(): {
     results.push({
       id: 'TEST-E1',
       category: 'Challenge Requirements (E)',
-      title: 'Complete profile â†’ flag with 1â€“3 plain-language factors, rule and badge; incomplete record â†’ Level Grey (never false Green)',
+      title: 'Complete profile → flag with 1–3 plain-language factors, rule and badge; incomplete record → Level Grey (never false Green)',
       passed,
       evidence: `grey=${greyOk} (level=${evalGrey.overallLevel}), plainFactors=${factorsOk}, ruleBadge=${ruleBadgeOk} (flags=${evaluated.flags.length})`,
     });
@@ -549,15 +549,15 @@ export function runAllAcceptanceTests(): {
     const arMsg = generateCulturallyAdaptedInvitation({
       language: 'ar',
       recipientType: 'adult',
-      patientDisplayName: 'Ø·Ø§Ø±Ù‚',
-      facilityName: 'Ù…Ø±ÙƒØ² Ø§Ù„Ø¨Ø·ÙŠÙ†',
-      dueDate: 'Ø®Ù„Ø§Ù„ 14 ÙŠÙˆÙ…Ø§Ù‹',
+      patientDisplayName: 'طارق',
+      facilityName: 'مركز البطين',
+      dueDate: 'خلال 14 يوماً',
       preferFemalePractitioner: true,
     });
     const passed =
       arMsg.safetyCheckPassed &&
-      arMsg.bodyText.includes('Ø±ÙØ¶ Ø§Ù„Ø¯Ø¹ÙˆØ© Ø¯ÙˆÙ† Ø£ÙŠ ØªØ£Ø«ÙŠØ±') &&
-      arMsg.decisionAidText.includes('ØªØªÙˆÙ‚Ù Ø§Ù„Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„ØªØ°ÙƒÙŠØ±ÙŠØ© ÙÙˆØ±Ø§Ù‹');
+      arMsg.bodyText.includes('رفض الدعوة دون أي تأثير') &&
+      arMsg.decisionAidText.includes('تتوقف الرسائل التذكيرية فوراً');
     results.push({
       id: 'TEST-E3',
       category: 'Challenge Requirements (E)',
@@ -639,7 +639,7 @@ export function runAllAcceptanceTests(): {
       category: 'Challenge Requirements (E)',
       title: 'Small-cell suppression (n < 10), complementary neighbor masking, and 95% Wilson CI',
       passed,
-      evidence: `tiny=${tiny?.suppressedStatus}, neighbor=${neighbor?.suppressedStatus}, wilson=${wilson.proportion}% [${wilson.lower}â€“${wilson.upper}%]`,
+      evidence: `tiny=${tiny?.suppressedStatus}, neighbor=${neighbor?.suppressedStatus}, wilson=${wilson.proportion}% [${wilson.lower}–${wilson.upper}%]`,
     });
   }
 
@@ -658,7 +658,7 @@ export function runAllAcceptanceTests(): {
     });
   }
 
-  // TEST-G1: Role-Based Access Control + Patient-Scope Enforcement (Â§9.2)
+  // TEST-G1: Role-Based Access Control + Patient-Scope Enforcement (§9.2)
   {
     const denies = [
       { role: 'patient', path: '/api/clinician/patients' },
@@ -705,7 +705,7 @@ export function runAllAcceptanceTests(): {
     });
   }
 
-  // TEST-G2: Versioned threshold documents are the single source of truth (Â§9.2)
+  // TEST-G2: Versioned threshold documents are the single source of truth (§9.2)
   {
     const docsValid =
       THRESHOLD_DOCUMENTS.length === 6 &&

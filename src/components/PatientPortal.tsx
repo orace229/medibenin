@@ -40,7 +40,7 @@ import {
 import { ConsentState } from '../lib/types.ts';
 
 /* ------------------------------------------------------------------
- * Blood pressure visual zones â€” patient-friendly reading.
+ * Blood pressure visual zones — patient-friendly reading.
  * Zones are qualitative bands (target / follow-up / confirm); the
  * numeric boundaries below are never displayed to the patient.
  * ------------------------------------------------------------------ */
@@ -62,7 +62,7 @@ const BP_ZONE_CHIP: Record<BpZoneKey, string> = {
 };
 
 /* ------------------------------------------------------------------
- * BP 3D gauge â€” glass tube with qualitative zones (target / follow-up /
+ * BP 3D gauge — glass tube with qualitative zones (target / follow-up /
  * confirm), a glossy mercury column at the latest reading, a value
  * bubble and a zone-change trend arrow. Zone boundaries are never
  * displayed as numbers; meaning is carried by color + legend.
@@ -91,7 +91,7 @@ const BpGauge: React.FC<{
   if (latest == null) {
     return (
       <div className="flex items-center justify-center h-48 text-xs text-[#64748B]">
-        {title} â€”
+        {title} —
       </div>
     );
   }
@@ -113,7 +113,7 @@ const BpGauge: React.FC<{
   }
   const trendColor =
     trendKey === 'up' ? '#B91C1C' : trendKey === 'down' ? '#15803D' : '#64748B';
-  const trendArrow = trendKey === 'up' ? 'â–²' : trendKey === 'down' ? 'â–¼' : 'â—†';
+  const trendArrow = trendKey === 'up' ? '▲' : trendKey === 'down' ? '▼' : '◆';
 
   const bubbleY = Math.min(Math.max(yLatest - 12, tTop), tBot - 26);
 
@@ -219,7 +219,7 @@ const BpGauge: React.FC<{
           .map((d, i) => (
             <span
               key={i}
-              title={`${d.dateLabel} Â· ${d[dataKey]} mmHg`}
+              title={`${d.dateLabel} · ${d[dataKey]} mmHg`}
               className={`w-2.5 h-2.5 rounded-full ${BP_ZONE_DOT[zoneOf(d[dataKey] as number)]}`}
             />
           ))}
@@ -413,7 +413,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     if (targetId === rootParent.id && role === 'parent' && !linkedIds.includes(targetId)) {
       setFeedbackBanner(
         isFr
-          ? "Ce dossier adulte n'est pas rattachÃ© Ã  votre compte."
+          ? "Ce dossier adulte n'est pas rattaché à votre compte."
           : 'This adult record is not linked to your account.'
       );
       return;
@@ -459,7 +459,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       setActivePatientId(targetChildId);
       setFeedbackBanner(
         isFr
-          ? `AccÃ¨s parental confirmÃ© par SMS OTP. Vous consultez dÃ©sormais le dossier affiliÃ© de ${childName}.`
+          ? `Accès parental confirmé par SMS OTP. Vous consultez désormais le dossier affilié de ${childName}.`
           : `Parental access confirmed via SMS OTP. Now viewing ${childName}'s affiliated record.`
       );
     } catch (err: any) {
@@ -489,16 +489,16 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       setActiveTab('home');
       setFeedbackBanner(
         isAr
-          ? 'ØªÙ… Ø§Ø³ØªÙ„Ø§Ù… Ù‚ÙŠØ§Ø³Ø§ØªÙƒ. Ø³ÙŠØ±Ø§Ø¬Ø¹Ù‡Ø§ ÙØ±ÙŠÙ‚ Ø§Ù„Ø±Ø¹Ø§ÙŠØ© Ø§Ù„Ø®Ø§Øµ Ø¨Ùƒ.'
+          ? 'تم استلام قياساتك. سيراجعها فريق الرعاية الخاص بك.'
           : isFr
-          ? 'Merci. Vos mesures ont bien Ã©tÃ© envoyÃ©es â€” votre Ã©quipe de soin va les examiner.'
+          ? 'Merci. Vos mesures ont bien été envoyées — votre équipe de soin va les examiner.'
           : 'Thank you. Your care team will review it.'
       );
     } catch (err: any) {
       setRiskAnalysisError(
         err?.message ||
           (isFr
-            ? 'Une erreur est survenue. Merci de rÃ©essayer.'
+            ? 'Une erreur est survenue. Merci de réessayer.'
             : 'Something went wrong. Please try again.')
       );
     } finally {
@@ -517,20 +517,20 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       if (choice === 'refuse') {
         setFeedbackBanner(
           isAr
-            ? 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ø¹ØªØ°Ø§Ø±Ùƒ. ØªÙˆÙ‚ÙØª Ø¬Ù…ÙŠØ¹ Ø§Ù„ØªØ°ÙƒÙŠØ±Ø§Øª ÙÙˆØ±Ø§Ù‹ Ø¯ÙˆÙ† Ø£ÙŠ ØªØ£Ø«ÙŠØ± Ø¹Ù„Ù‰ Ø±Ø¹Ø§ÙŠØªÙƒ.'
+            ? 'تم تسجيل اعتذارك. توقفت جميع التذكيرات فوراً دون أي تأثير على رعايتك.'
             : isFr
-            ? 'Refus enregistrÃ©. Relances arrÃªtÃ©es immÃ©diatement, sans impact sur vos soins.'
+            ? 'Refus enregistré. Relances arrêtées immédiatement, sans impact sur vos soins.'
             : 'Declined. All reminders stopped immediately with zero impact on care.'
         );
       } else if (choice === 'confirm') {
         setFeedbackBanner(
           isFr
-            ? 'Rendez-vous confirmÃ©. PrÃ©sentez votre pass 8 caractÃ¨res Ã  lâ€™accueil.'
+            ? 'Rendez-vous confirmé. Présentez votre pass 8 caractères à l’accueil.'
             : 'Appointment confirmed. Present your 8-character pass at reception.'
         );
       } else {
         setFeedbackBanner(
-          isFr ? `ReportÃ© au ${rescheduleDate}.` : `Rescheduled to ${rescheduleDate}.`
+          isFr ? `Reporté au ${rescheduleDate}.` : `Rescheduled to ${rescheduleDate}.`
         );
       }
       await loadProfile(activePatientId);
@@ -548,7 +548,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     await apiClient.updateConsents(activePatientId, nextConsents);
     setFeedbackBanner(
       isFr
-        ? 'Consentement mis Ã  jour et dossier recalculÃ© immÃ©diatement.'
+        ? 'Consentement mis à jour et dossier recalculé immédiatement.'
         : 'Consent updated and preventive profile recalculated immediately.'
     );
     await loadProfile(activePatientId);
@@ -575,7 +575,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             <MediBeninLogo />
             <span className="hidden md:inline text-xs font-semibold text-[#64748B] border-s border-[#E2E8F0] ps-4 truncate">
               {isFr
-                ? 'Portail Patient UnifiÃ© (Dossier Personnel & Enfants AffiliÃ©s)'
+                ? 'Portail Patient Unifié (Dossier Personnel & Enfants Affiliés)'
                 : 'Unified Patient Portal (Personal Record & Affiliated Children)'}
             </span>
           </div>
@@ -598,7 +598,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             >
               <LogOut className="w-3.5 h-3.5 text-[#64748B]" />
               <span className="hidden sm:inline">
-                {isFr ? 'DÃ©connexion' : 'Sign Out'}
+                {isFr ? 'Déconnexion' : 'Sign Out'}
               </span>
             </button>
           </div>
@@ -620,11 +620,11 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 </div>
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
-                    {isFr ? 'SÃ©curitÃ© AccÃ¨s Parental Â· SMS OTP' : 'Parental Access Security Â· SMS OTP'}
+                    {isFr ? 'Sécurité Accès Parental · SMS OTP' : 'Parental Access Security · SMS OTP'}
                   </span>
                   <h3 className="text-base font-extrabold text-[#0B3B3C] font-heading">
                     {isFr
-                      ? `AccÃ©der au dossier de ${pendingOtpChild.childName}`
+                      ? `Accéder au dossier de ${pendingOtpChild.childName}`
                       : `Access ${pendingOtpChild.childName}'s Record`}
                   </h3>
                 </div>
@@ -633,13 +633,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
             <p className="text-xs text-[#334155] leading-relaxed">
               {isFr
-                ? `Un code de confirmation Ã  6 chiffres a Ã©tÃ© envoyÃ© par SMS au numÃ©ro rattachÃ© Ã  votre dossier parent (${pendingOtpChild.maskedPhone}).`
+                ? `Un code de confirmation à 6 chiffres a été envoyé par SMS au numéro rattaché à votre dossier parent (${pendingOtpChild.maskedPhone}).`
                 : `A 6-digit confirmation code was sent via SMS to the mobile number linked to your parent profile (${pendingOtpChild.maskedPhone}).`}
             </p>
 
             <div className="p-3 rounded-2xl bg-[#F0FDFA] border border-[#99F6E4] flex items-center justify-between text-xs">
               <span className="font-semibold text-[#0B3B3C]">
-                {isFr ? 'Code SMS reÃ§u (Simulation DÃ©mo) :' : 'SMS Code received (Demo Simulation):'}
+                {isFr ? 'Code SMS reçu (Simulation Démo) :' : 'SMS Code received (Demo Simulation):'}
               </span>
               <span className="font-mono font-extrabold text-sm text-[#0F6B6B] bg-white px-2.5 py-1 rounded-lg border border-[#99F6E4]">
                 {pendingOtpChild.demoOtpCode}
@@ -688,7 +688,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <span>
                     {verifyingOtp
                       ? isFr
-                        ? 'VÃ©rification...'
+                        ? 'Vérification...'
                         : 'Verifying...'
                       : isFr
                       ? 'Confirmer par SMS & Ouvrir le dossier'
@@ -720,17 +720,17 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             <div className="space-y-2.5 text-xs text-[#334155] leading-relaxed">
               <p>
                 {isFr
-                  ? 'Chaque adulte dispose de son propre dossier. Les enfants de moins de 18 ans apparaissent comme dossiers affiliÃ©s au compte du parent.'
-                  : 'Each adult has their own record. Children under 18 appear as affiliated records on the parentâ€™s account.'}
+                  ? 'Chaque adulte dispose de son propre dossier. Les enfants de moins de 18 ans apparaissent comme dossiers affiliés au compte du parent.'
+                  : 'Each adult has their own record. Children under 18 appear as affiliated records on the parent’s account.'}
               </p>
               <p>
                 {isFr
-                  ? 'Pour consulter le dossier dâ€™un enfant affiliÃ©, une validation par code SMS envoyÃ© au parent est demandÃ©e Ã  chaque session.'
-                  : 'To open an affiliated childâ€™s record, a one-time SMS code sent to the parent is required each session.'}
+                  ? 'Pour consulter le dossier d’un enfant affilié, une validation par code SMS envoyé au parent est demandée à chaque session.'
+                  : 'To open an affiliated child’s record, a one-time SMS code sent to the parent is required each session.'}
               </p>
               <p>
                 {isFr
-                  ? 'Ã€ 18 ans, le jeune peut demander un dossier indÃ©pendant, validÃ© par son Ã©quipe de soin.'
+                  ? 'À 18 ans, le jeune peut demander un dossier indépendant, validé par son équipe de soin.'
                   : 'At 18, the young person can request an independent record, confirmed by their care team.'}
               </p>
             </div>
@@ -755,7 +755,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           <GlassCard interactive={false} className="p-4 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B]">
-                {isAr ? 'Ù…Ù„ÙÙŠ ÙˆØ£Ø·ÙØ§Ù„ÙŠ' : isFr ? 'Mon Dossier & Enfants AffiliÃ©s' : 'My Record & Affiliated Children'}
+                {isAr ? 'ملفي وأطفالي' : isFr ? 'Mon Dossier & Enfants Affiliés' : 'My Record & Affiliated Children'}
               </p>
             </div>
 
@@ -785,7 +785,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     activePatientId === rootParent.id ? 'text-white/85' : 'text-[#64748B]'
                   }`}
                 >
-                  {isFr ? `Mon Dossier Adulte (${rootParent.ageYears} ans Â· IFHAS)` : `My Adult Record (${rootParent.ageYears}y Â· IFHAS)`}
+                  {isFr ? `Mon Dossier Adulte (${rootParent.ageYears} ans · IFHAS)` : `My Adult Record (${rootParent.ageYears}y · IFHAS)`}
                 </p>
               </div>
             </button>
@@ -794,8 +794,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             <div className="pt-1 border-t border-[#E2E8F0] space-y-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
                 {isFr
-                  ? `Enfants rattachÃ©s (${affiliatedChildren.length}) Â· AccÃ¨s SMS`
-                  : `Affiliated Children (${affiliatedChildren.length}) Â· SMS Gate`}
+                  ? `Enfants rattachés (${affiliatedChildren.length}) · Accès SMS`
+                  : `Affiliated Children (${affiliatedChildren.length}) · SMS Gate`}
               </span>
 
               {affiliatedChildren.map((ch) => {
@@ -831,7 +831,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             isSelected ? 'text-white/85' : 'text-[#64748B]'
                           }`}
                         >
-                          {ageDisplay} Â· {ch.ageYears >= 18 ? (isFr ? 'MajoritÃ© 18 ans' : '18y Majority') : 'WCV'}
+                          {ageDisplay} · {ch.ageYears >= 18 ? (isFr ? 'Majorité 18 ans' : '18y Majority') : 'WCV'}
                         </p>
                       </div>
                     </div>
@@ -878,16 +878,16 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
           <nav className="liquid-glass rounded-3xl p-2.5 space-y-1">
             {[
-              { id: 'home', label: isAr ? 'Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©' : isFr ? 'Accueil' : 'Home', Icon: Home },
+              { id: 'home', label: isAr ? 'الرئيسية' : isFr ? 'Accueil' : 'Home', Icon: Home },
               {
                 id: 'checkup',
-                label: isAr ? 'ØªØ­Ø¯ÙŠØ« Ù‚ÙŠØ§Ø³Ø§ØªÙŠ' : isFr ? 'Mon Bilan & Mesures' : 'My Health Check',
+                label: isAr ? 'تحديث قياساتي' : isFr ? 'Mon Bilan & Mesures' : 'My Health Check',
                 Icon: CheckCircle2,
               },
-              { id: 'journey', label: isAr ? 'Ù…Ø³Ø§Ø±ÙŠ' : isFr ? 'Mon parcours' : 'Care Journey', Icon: Calendar },
-              { id: 'notifications', label: isAr ? 'Ø§Ù„Ø±Ø³Ø§Ø¦Ù„' : isFr ? 'Messages' : 'Messages', Icon: Bell },
-              { id: 'profile', label: isAr ? 'ØªÙØ¶ÙŠÙ„Ø§ØªÙŠ' : isFr ? 'PrÃ©fÃ©rences' : 'Preferences', Icon: User },
-              { id: 'privacy', label: isAr ? 'Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø§Øª' : isFr ? 'Consentements' : 'Consents', Icon: Shield },
+              { id: 'journey', label: isAr ? 'مساري' : isFr ? 'Mon parcours' : 'Care Journey', Icon: Calendar },
+              { id: 'notifications', label: isAr ? 'الرسائل' : isFr ? 'Messages' : 'Messages', Icon: Bell },
+              { id: 'profile', label: isAr ? 'تفضيلاتي' : isFr ? 'Préférences' : 'Preferences', Icon: User },
+              { id: 'privacy', label: isAr ? 'الموافقات' : isFr ? 'Consentements' : 'Consents', Icon: Shield },
             ].map((item) => {
               const IconComp = item.Icon;
               const active = activeTab === item.id;
@@ -916,7 +916,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           <div className="lg:hidden liquid-glass p-3 rounded-2xl space-y-2">
             <div className="flex items-center justify-between text-[11px] font-bold text-[#0F6B6B]">
               <span>
-                {isFr ? 'Mon Dossier & Mes Enfants AffiliÃ©s (AccÃ¨s SMS)' : 'My Record & Affiliated Children (SMS Gate)'}
+                {isFr ? 'Mon Dossier & Mes Enfants Affiliés (Accès SMS)' : 'My Record & Affiliated Children (SMS Gate)'}
               </span>
             </div>
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
@@ -995,17 +995,17 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <div className="space-y-1">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
                       {isFr
-                        ? 'Passage Ã  la majoritÃ© (18 ans)'
+                        ? 'Passage à la majorité (18 ans)'
                         : 'Majority Reached (18y+)'}
                     </span>
                     <h3 className="text-sm font-extrabold text-[#0B3B3C] font-heading">
                       {isFr
-                        ? `${profile.displayName} (${profile.ageYears} ans) est Ã©ligible Ã  la reprise autonome de ses donnÃ©es`
+                        ? `${profile.displayName} (${profile.ageYears} ans) est éligible à la reprise autonome de ses données`
                         : `${profile.displayName} (${profile.ageYears}y) is eligible for autonomous record ownership`}
                     </h3>
                     <p className="text-xs text-[#334155]">
                       {isFr
-                        ? 'La demande est validÃ©e par lâ€™Ã©quipe de soin avant lâ€™activation du dossier indÃ©pendant.'
+                        ? 'La demande est validée par l’équipe de soin avant l’activation du dossier indépendant.'
                         : 'The request is confirmed by the care team before the independent record is activated.'}
                     </p>
                   </div>
@@ -1015,7 +1015,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     className="px-4 py-2.5 rounded-xl btn-liquid-primary text-xs font-bold shrink-0 cursor-pointer"
                   >
                     {isFr
-                      ? 'Demander un dossier indÃ©pendant'
+                      ? 'Demander un dossier indépendant'
                       : 'Request independent record'}
                   </button>
                 </GlassCard>
@@ -1025,10 +1025,10 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <p className="text-xs font-medium text-[#64748B]">
-                    {profile.facilityCenter} Â· {profile.preferredLanguage.toUpperCase()} Â·{' '}
+                    {profile.facilityCenter} · {profile.preferredLanguage.toUpperCase()} ·{' '}
                     {isViewingChild
                       ? isFr
-                        ? `Enfant affiliÃ© Ã  ${rootParent.displayName} (AccÃ¨s SMS vÃ©rifiÃ©)`
+                        ? `Enfant affilié à ${rootParent.displayName} (Accès SMS vérifié)`
                         : `Affiliated to ${rootParent.displayName} (SMS OTP verified)`
                       : isFr
                       ? 'Dossier Personnel Adulte (IFHAS)'
@@ -1037,7 +1037,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <h1 className="text-xl sm:text-2xl font-extrabold text-[#0B3B3C] font-heading">
                     {isViewingChild
                       ? isFr
-                        ? `Dossier affiliÃ© : ${profile.displayName}`
+                        ? `Dossier affilié : ${profile.displayName}`
                         : `Affiliated Record: ${profile.displayName}`
                       : isFr
                       ? `Bonjour, ${profile.displayName}`
@@ -1054,7 +1054,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <span>
                     {activeTab === 'checkup'
                       ? isFr
-                        ? 'Retour Ã  lâ€™accueil'
+                        ? 'Retour à l’accueil'
                         : 'Back to Home'
                       : isFr
                       ? '+ Saisir mes mesures / Lancer mon bilan'
@@ -1071,14 +1071,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="space-y-1">
                           <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0F6B6B]">
-                            {isAr ? 'Ø§Ù„Ø®Ø·ÙˆØ© Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©' : isFr ? 'Prochaine Ã©tape' : 'Next Step'}
+                            {isAr ? 'الخطوة القادمة' : isFr ? 'Prochaine étape' : 'Next Step'}
                           </span>
                           <h2 className="text-lg font-bold text-[#0B3B3C] font-heading">
                             {rec.pathwayTitle}
                           </h2>
                           <p className="text-xs text-[#64748B]">
-                            {rec.facilityName} Â· <strong className="text-[#0B3B3C]">{rec.dueDate}</strong>
-                            {rec.scheduledDate ? ` Â· Confirmed: ${rec.scheduledDate}` : ''}
+                            {rec.facilityName} · <strong className="text-[#0B3B3C]">{rec.dueDate}</strong>
+                            {rec.scheduledDate ? ` · Confirmed: ${rec.scheduledDate}` : ''}
                           </p>
                         </div>
                         <StatusChip state={rec.state} />
@@ -1087,7 +1087,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       {/* Grouped Preventive Checks */}
                       <div className="card-3d rounded-2xl p-4 space-y-2">
                         <p className="text-xs font-bold text-[#0B3B3C]">
-                          {isFr ? 'RegroupÃ© en une seule visite :' : 'Combined in one visit:'}
+                          {isFr ? 'Regroupé en une seule visite :' : 'Combined in one visit:'}
                         </p>
                         <ul className="text-xs text-[#334155] space-y-1 list-disc ps-4">
                           {rec.groupedActions.map((act: any, i: number) => (
@@ -1106,7 +1106,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           <HelpCircle className="w-4 h-4" />
                           <span>
                             {isAr
-                              ? 'Ù„Ù…Ø§Ø°Ø§ Ù‡Ø°Ø§ Ø§Ù„Ù…ÙˆØ¹Ø¯ØŸ'
+                              ? 'لماذا هذا الموعد؟'
                               : isFr
                               ? 'Pourquoi cette visite ? (En 4 phrases)'
                               : 'Why this visit? (4-sentence summary)'}
@@ -1120,7 +1120,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         )}
                       </div>
 
-                      {/* 3 Real Choices: Confirm Â· Reschedule Â· Decline */}
+                      {/* 3 Real Choices: Confirm · Reschedule · Decline */}
                       <div className="pt-3 border-t border-[#E2E8F0] flex flex-wrap items-center gap-2.5">
                         <button
                           type="button"
@@ -1182,7 +1182,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     <Ring
                       done={profile.preventionProgressDone}
                       total={profile.preventionProgressTotal}
-                      label={isFr ? 'PrÃ©vention Ã  jour' : 'Up-to-date Prevention'}
+                      label={isFr ? 'Prévention à jour' : 'Up-to-date Prevention'}
                     />
                   </div>
 
@@ -1204,7 +1204,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                   {isFr ? 'Tension au repos' : 'Resting Blood Pressure'}
                                 </h3>
                                 <p className="text-xs text-[#64748B]">
-                                  {isFr ? 'Ã‰volution de vos mesures' : 'Your readings over time'}
+                                  {isFr ? 'Évolution de vos mesures' : 'Your readings over time'}
                                 </p>
                               </div>
                               <span
@@ -1212,24 +1212,24 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               >
                                 {isFr
                                   ? zoneKey === 'above'
-                                    ? 'Au-dessus de la zone cible â€” confirmation prioritaire'
+                                    ? 'Au-dessus de la zone cible — confirmation prioritaire'
                                     : zoneKey === 'borderline'
-                                    ? 'Zone limite â€” conservez votre suivi programmÃ©'
+                                    ? 'Zone limite — conservez votre suivi programmé'
                                     : zoneKey === 'target'
                                     ? 'Dans la zone cible'
-                                    : 'Tension non mesurÃ©e pour le moment'
+                                    : 'Tension non mesurée pour le moment'
                                   : isAr
                                   ? zoneKey === 'above'
-                                    ? 'ÙÙˆÙ‚ Ø§Ù„Ù†Ø·Ø§Ù‚ Ø§Ù„Ù…Ø³ØªÙ‡Ø¯Ù â€” ØªØ£ÙƒÙŠØ¯ Ø¹Ø§Ø¬Ù„'
+                                    ? 'فوق النطاق المستهدف — تأكيد عاجل'
                                     : zoneKey === 'borderline'
-                                    ? 'Ù†Ø·Ø§Ù‚ Ø­Ø¯Ù‘ÙŠ â€” Ø§Ø­ØªÙØ¸ Ø¨Ù…ÙˆØ¹Ø¯ Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø©'
+                                    ? 'نطاق حدّي — احتفظ بموعد المتابعة'
                                     : zoneKey === 'target'
-                                    ? 'Ø¶Ù…Ù† Ø§Ù„Ù†Ø·Ø§Ù‚ Ø§Ù„Ù…Ø³ØªÙ‡Ø¯Ù'
-                                    : 'Ù„Ù… ÙŠØªÙ… Ù‚ÙŠØ§Ø³ Ø§Ù„Ø¶ØºØ· Ø¨Ø¹Ø¯'
+                                    ? 'ضمن النطاق المستهدف'
+                                    : 'لم يتم قياس الضغط بعد'
                                   : zoneKey === 'above'
-                                  ? 'Above target zone â€” priority confirmation'
+                                  ? 'Above target zone — priority confirmation'
                                   : zoneKey === 'borderline'
-                                  ? 'Borderline zone â€” keep your scheduled follow-up'
+                                  ? 'Borderline zone — keep your scheduled follow-up'
                                   : zoneKey === 'target'
                                   ? 'Within your target zone'
                                   : 'Blood pressure not recorded yet'}
@@ -1241,7 +1241,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                 <div className="grid grid-cols-2 gap-3 pt-1">
                                   <BpGauge
                                     clipId="bp-sys"
-                                    title={isFr ? 'Systolique' : isAr ? 'Ø§Ù„Ø§Ù†Ù‚Ø¨Ø§Ø¶ÙŠ' : 'Systolic'}
+                                    title={isFr ? 'Systolique' : isAr ? 'الانقباضي' : 'Systolic'}
                                     data={series}
                                     dataKey="systolic"
                                     min={90}
@@ -1249,14 +1249,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                     target={130}
                                     limit={140}
                                     trendLabels={{
-                                      up: isFr ? 'En hausse' : isAr ? 'Ø§Ø±ØªÙØ§Ø¹' : 'Rising',
-                                      down: isFr ? 'En amÃ©lioration' : isAr ? 'ØªØ­Ø³Ù‘Ù†' : 'Improving',
-                                      stable: isFr ? 'Stable' : isAr ? 'Ù…Ø³ØªÙ‚Ø±' : 'Stable',
+                                      up: isFr ? 'En hausse' : isAr ? 'ارتفاع' : 'Rising',
+                                      down: isFr ? 'En amélioration' : isAr ? 'تحسّن' : 'Improving',
+                                      stable: isFr ? 'Stable' : isAr ? 'مستقر' : 'Stable',
                                     }}
                                   />
                                   <BpGauge
                                     clipId="bp-dia"
-                                    title={isFr ? 'Diastolique' : isAr ? 'Ø§Ù„Ø§Ù†Ø¨Ø³Ø§Ø·ÙŠ' : 'Diastolic'}
+                                    title={isFr ? 'Diastolique' : isAr ? 'الانبساطي' : 'Diastolic'}
                                     data={series}
                                     dataKey="diastolic"
                                     min={50}
@@ -1264,9 +1264,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                     target={85}
                                     limit={90}
                                     trendLabels={{
-                                      up: isFr ? 'En hausse' : isAr ? 'Ø§Ø±ØªÙØ§Ø¹' : 'Rising',
-                                      down: isFr ? 'En amÃ©lioration' : isAr ? 'ØªØ­Ø³Ù‘Ù†' : 'Improving',
-                                      stable: isFr ? 'Stable' : isAr ? 'Ù…Ø³ØªÙ‚Ø±' : 'Stable',
+                                      up: isFr ? 'En hausse' : isAr ? 'ارتفاع' : 'Rising',
+                                      down: isFr ? 'En amélioration' : isAr ? 'تحسّن' : 'Improving',
+                                      stable: isFr ? 'Stable' : isAr ? 'مستقر' : 'Stable',
                                     }}
                                   />
                                 </div>
@@ -1274,24 +1274,24 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                 <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[10px] font-semibold text-[#64748B] pt-2 border-t border-[#E2E8F0]">
                                   <span className="flex items-center gap-1.5">
                                     <span className="w-2.5 h-2.5 rounded-sm bg-[#D1FAE5] border border-[#A7F3D0]" />
-                                    {isFr ? 'Zone cible' : isAr ? 'Ø§Ù„Ù†Ø·Ø§Ù‚ Ø§Ù„Ù…Ø³ØªÙ‡Ø¯Ù' : 'Target zone'}
+                                    {isFr ? 'Zone cible' : isAr ? 'النطاق المستهدف' : 'Target zone'}
                                   </span>
                                   <span className="flex items-center gap-1.5">
                                     <span className="w-2.5 h-2.5 rounded-sm bg-[#FDE68A] border border-[#FCD34D]" />
-                                    {isFr ? 'Ã€ suivre' : isAr ? 'Ù„Ù„Ù…ØªØ§Ø¨Ø¹Ø©' : 'Follow-up'}
+                                    {isFr ? 'À suivre' : isAr ? 'للمتابعة' : 'Follow-up'}
                                   </span>
                                   <span className="flex items-center gap-1.5">
                                     <span className="w-2.5 h-2.5 rounded-sm bg-[#FECACA] border border-[#FCA5A5]" />
-                                    {isFr ? 'Ã€ confirmer' : isAr ? 'Ù„Ù„ØªØ£ÙƒÙŠØ¯' : 'Needs confirmation'}
+                                    {isFr ? 'À confirmer' : isAr ? 'للتأكيد' : 'Needs confirmation'}
                                   </span>
                                 </div>
                               </>
                             ) : (
                               <p className="text-xs text-[#64748B] py-4 text-center">
                                 {isFr
-                                  ? 'Aucune mesure enregistrÃ©e pour le moment.'
+                                  ? 'Aucune mesure enregistrée pour le moment.'
                                   : isAr
-                                  ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ù‚ÙŠØ§Ø³Ø§Øª Ù…Ø³Ø¬Ù„Ø© Ø¨Ø¹Ø¯.'
+                                  ? 'لا توجد قياسات مسجلة بعد.'
                                   : 'No readings recorded yet.'}
                               </p>
                             )}
@@ -1355,21 +1355,21 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
                       {isFr
-                        ? 'Auto-Ã‰valuation GuidÃ©e & Mesures Ã  Domicile'
+                        ? 'Auto-Évaluation Guidée & Mesures à Domicile'
                         : 'Guided Self-Assessment & Home Vitals'}
                     </span>
                     <h2 className="text-lg font-extrabold text-[#0B3B3C] font-heading">
                       {isViewingChild
                         ? isFr
-                          ? `Mettre Ã  jour les indicateurs de ${profile.displayName}`
-                          : `Update ${profile.displayName}â€™s Growth & Wellness Check`
+                          ? `Mettre à jour les indicateurs de ${profile.displayName}`
+                          : `Update ${profile.displayName}’s Growth & Wellness Check`
                         : isFr
-                        ? 'Saisir mes mesures et lancer lâ€™analyse de mon parcours prÃ©ventif'
+                        ? 'Saisir mes mesures et lancer l’analyse de mon parcours préventif'
                         : 'Enter My Home Measurements & Recalculate My Preventive Plan'}
                     </h2>
                     <p className="text-xs text-[#64748B] mt-1">
                       {isFr
-                        ? 'Vos informations mettent Ã  jour vos vÃ©rifications recommandÃ©es en un seul rendez-vous (sans poser de diagnostic mÃ©dical).'
+                        ? 'Vos informations mettent à jour vos vérifications recommandées en un seul rendez-vous (sans poser de diagnostic médical).'
                         : 'Your entries update your recommended checks in a single visit (non-diagnostic guidance).'}
                     </p>
                   </div>
@@ -1386,7 +1386,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
                           <h3 className="font-bold text-[#0B3B3C]">
                             {isFr
-                              ? '1. Tension artÃ©rielle au repos (2 mesures Ã  1 minute dâ€™intervalle)'
+                              ? '1. Tension artérielle au repos (2 mesures à 1 minute d’intervalle)'
                               : '1. Resting Blood Pressure (2 readings, 1 minute apart)'}
                           </h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1505,7 +1505,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               />
                               <span className="font-medium text-[#0B3B3C]">
                                 {isFr
-                                  ? 'Au moins 30 min dâ€™activitÃ© physique par jour'
+                                  ? 'Au moins 30 min d’activité physique par jour'
                                   : 'At least 30 min of daily physical activity'}
                               </span>
                             </label>
@@ -1520,7 +1520,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               />
                               <span className="font-medium text-[#0B3B3C]">
                                 {isFr
-                                  ? 'Consommation quotidienne de fruits et lÃ©gumes'
+                                  ? 'Consommation quotidienne de fruits et légumes'
                                   : 'Fruits & vegetables every day'}
                               </span>
                             </label>
@@ -1551,7 +1551,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               />
                               <span className="font-medium text-[#0B3B3C]">
                                 {isFr
-                                  ? 'Traitement contre lâ€™hypertension en cours'
+                                  ? 'Traitement contre l’hypertension en cours'
                                   : 'Currently taking blood-pressure medication'}
                               </span>
                             </label>
@@ -1569,7 +1569,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               />
                               <span className="font-medium text-[#0B3B3C]">
                                 {isFr
-                                  ? 'GlycÃ©mie dÃ©jÃ  signalÃ©e comme limite lors dâ€™un bilan'
+                                  ? 'Glycémie déjà signalée comme limite lors d’un bilan'
                                   : 'Previously told blood sugar was borderline'}
                               </span>
                             </label>
@@ -1578,7 +1578,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           <div className="pt-1">
                             <label className="block font-semibold text-[#334155] mb-1">
                               {isFr
-                                ? 'Un proche (parent, frÃ¨re, sÅ“ur, grand-parent) est-il suivi pour du diabÃ¨te ?'
+                                ? 'Un proche (parent, frère, sœur, grand-parent) est-il suivi pour du diabète ?'
                                 : 'Family history of diabetes?'}
                             </label>
                             <select
@@ -1591,13 +1591,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               }
                               className="w-full sm:w-80 px-3 py-2 rounded-xl border border-[#CBD5E1] bg-white text-[#0B3B3C]"
                             >
-                              <option value="">{isFr ? 'Non renseignÃ©' : 'Not answered'}</option>
+                              <option value="">{isFr ? 'Non renseigné' : 'Not answered'}</option>
                               <option value="none">{isFr ? 'Non' : 'No'}</option>
                               <option value="second_degree">
                                 {isFr ? 'Oui (Grand-parent, oncle, tante)' : 'Yes (Grandparent, aunt, uncle)'}
                               </option>
                               <option value="first_degree">
-                                {isFr ? 'Oui (Parent, frÃ¨re, sÅ“ur, enfant)' : 'Yes (Parent, sibling, child)'}
+                                {isFr ? 'Oui (Parent, frère, sœur, enfant)' : 'Yes (Parent, sibling, child)'}
                               </option>
                             </select>
                           </div>
@@ -1608,13 +1608,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
                         <h3 className="font-bold text-[#0B3B3C]">
                           {isFr
-                            ? 'Mesures de croissance & Questionnaire dâ€™Ã©veil parent'
+                            ? 'Mesures de croissance & Questionnaire d’éveil parent'
                             : 'Child Growth Measurements & Parent Milestone Check'}
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div>
                             <label className="block font-semibold text-[#334155] mb-1">
-                              {isFr ? 'Poids mesurÃ© (kg)' : 'Weight (kg)'}
+                              {isFr ? 'Poids mesuré (kg)' : 'Weight (kg)'}
                             </label>
                             <input
                               type="number"
@@ -1626,7 +1626,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           </div>
                           <div>
                             <label className="block font-semibold text-[#334155] mb-1">
-                              {isFr ? 'Taille mesurÃ©e (cm)' : 'Height (cm)'}
+                              {isFr ? 'Taille mesurée (cm)' : 'Height (cm)'}
                             </label>
                             <input
                               type="number"
@@ -1639,8 +1639,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           <div>
                             <label className="block font-semibold text-[#334155] mb-1">
                               {isFr
-                                ? 'Points dâ€™attention Ã©veil/communication (0â€“20)'
-                                : 'Milestone / Communication items noted (0â€“20)'}
+                                ? 'Points d’attention éveil/communication (0–20)'
+                                : 'Milestone / Communication items noted (0–20)'}
                             </label>
                             <input
                               type="number"
@@ -1675,7 +1675,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               ? 'Analyse en cours...'
                               : 'Recalculating...'
                             : isFr
-                            ? 'Lancer lâ€™analyse et mettre Ã  jour mon parcours'
+                            ? 'Lancer l’analyse et mettre à jour mon parcours'
                             : 'Analyze & Update My Preventive Plan'}
                         </span>
                       </button>
@@ -1688,21 +1688,21 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               {activeTab === 'journey' && (
                 <GlassCard interactive={false} className="space-y-5">
                   <h2 className="text-base font-bold text-[#0B3B3C] font-heading">
-                    {isFr ? 'Parcours prÃ©ventif' : 'Preventive Care Timeline'}
+                    {isFr ? 'Parcours préventif' : 'Preventive Care Timeline'}
                   </h2>
                   <div className="space-y-5 relative before:absolute before:top-3 before:bottom-3 before:start-3.5 before:w-0.5 before:bg-[#E2E8F0]">
                     {[
                       {
-                        period: isFr ? 'PassÃ©' : 'Completed',
+                        period: isFr ? 'Passé' : 'Completed',
                         title:
                           profile.pathwayType === 'adult'
                             ? 'Initial blood pressure check'
-                            : 'Early childhood visits (0â€“12m)',
+                            : 'Early childhood visits (0–12m)',
                         date: 'May 2026',
                         state: 'done' as const,
                       },
                       {
-                        period: isFr ? 'PrÃ©sent' : 'Current Step',
+                        period: isFr ? 'Présent' : 'Current Step',
                         title: rec?.pathwayTitle || 'Consolidated Preventive Visit',
                         date: profile.nextDueDate,
                         state: (rec?.state || 'invited') as any,
@@ -1739,7 +1739,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 <GlassCard interactive={false} className="space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <h2 className="text-base font-bold text-[#0B3B3C] font-heading">
-                      {isFr ? 'Messages reÃ§us' : 'Outreach Messages'}
+                      {isFr ? 'Messages reçus' : 'Outreach Messages'}
                     </h2>
                     <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl text-xs">
                       {(['all', 'unread', 'action'] as const).map((f) => (
@@ -1762,7 +1762,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       <div key={n.id} className="card-3d p-4 rounded-2xl space-y-1.5">
                         <div className="flex items-center justify-between text-xs text-[#64748B]">
                           <span>
-                            <strong className="text-[#0B3B3C]">{n.channel}</strong> Â· {n.language.toUpperCase()}
+                            <strong className="text-[#0B3B3C]">{n.channel}</strong> · {n.language.toUpperCase()}
                           </span>
                           <span className="font-mono">{n.sentAt}</span>
                         </div>
@@ -1778,7 +1778,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               {activeTab === 'profile' && (
                 <GlassCard interactive={false} className="space-y-5">
                   <h2 className="text-base font-bold text-[#0B3B3C] font-heading">
-                    {isFr ? 'PrÃ©fÃ©rences culturelles & canal' : 'Cultural & Channel Preferences'}
+                    {isFr ? 'Préférences culturelles & canal' : 'Cultural & Channel Preferences'}
                   </h2>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -1795,12 +1795,12 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <ConsentToggle
                     title={
                       isFr
-                        ? 'PrÃ©fÃ©rence pour une praticienne'
+                        ? 'Préférence pour une praticienne'
                         : 'Preference for a female clinician'
                     }
                     description={
                       isFr
-                        ? 'AppliquÃ© automatiquement lors de la prise de rendez-vous.'
+                        ? 'Appliqué automatiquement lors de la prise de rendez-vous.'
                         : 'Applied automatically when scheduling physical visits.'
                     }
                     checked={Boolean(profile.preferFemalePractitioner)}
@@ -1823,11 +1823,11 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
                         <h2 className="text-base font-bold text-[#0B3B3C] font-heading">
-                          {isFr ? '5 consentements indÃ©pendants' : '5 Independent Purpose Consents'}
+                          {isFr ? '5 consentements indépendants' : '5 Independent Purpose Consents'}
                         </h2>
                         <p className="text-xs text-[#64748B]">
                           {isFr
-                            ? 'Retrait immÃ©diat et sans aucune pÃ©nalitÃ©.'
+                            ? 'Retrait immédiat et sans aucune pénalité.'
                             : 'Immediate withdrawal with zero impact on care.'}
                         </p>
                       </div>
@@ -1888,11 +1888,11 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-base font-bold text-[#0B3B3C] font-heading">
-                          {isFr ? 'Journal dâ€™accÃ¨s transparent' : 'Data Usage Log'}
+                          {isFr ? 'Journal d’accès transparent' : 'Data Usage Log'}
                         </h3>
                         <p className="text-xs text-[#64748B]">
                           {isFr
-                            ? 'Chaque accÃ¨s Ã  votre dossier est tracÃ© et expliquÃ©.'
+                            ? 'Chaque accès à votre dossier est tracé et expliqué.'
                             : 'Every access to your record is logged and explained.'}
                         </p>
                       </div>
@@ -1962,11 +1962,11 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 liquid-glass border-t border-white/60 z-30 flex items-center justify-around py-2 px-1 pb-safe">
         {[
-          { id: 'home', label: isAr ? 'Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©' : isFr ? 'Accueil' : 'Home', Icon: Home },
-          { id: 'checkup', label: isAr ? 'ÙØ­ØµÙŠ' : isFr ? 'Bilan' : 'Check', Icon: CheckCircle2 },
-          { id: 'journey', label: isAr ? 'Ù…Ø³Ø§Ø±ÙŠ' : isFr ? 'Parcours' : 'Journey', Icon: Calendar },
-          { id: 'notifications', label: isAr ? 'Ø§Ù„Ø±Ø³Ø§Ø¦Ù„' : isFr ? 'Messages' : 'Messages', Icon: Bell },
-          { id: 'privacy', label: isAr ? 'Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø§Øª' : isFr ? 'AccÃ¨s' : 'Consents', Icon: Shield },
+          { id: 'home', label: isAr ? 'الرئيسية' : isFr ? 'Accueil' : 'Home', Icon: Home },
+          { id: 'checkup', label: isAr ? 'فحصي' : isFr ? 'Bilan' : 'Check', Icon: CheckCircle2 },
+          { id: 'journey', label: isAr ? 'مساري' : isFr ? 'Parcours' : 'Journey', Icon: Calendar },
+          { id: 'notifications', label: isAr ? 'الرسائل' : isFr ? 'Messages' : 'Messages', Icon: Bell },
+          { id: 'privacy', label: isAr ? 'الموافقات' : isFr ? 'Accès' : 'Consents', Icon: Shield },
         ].map((item) => {
           const IconComp = item.Icon;
           const active = activeTab === item.id;
