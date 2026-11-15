@@ -69,34 +69,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     ctaSecondary: isFr ? 'Découvrir l’architecture' : 'Explore the pathway',
   };
 
-  // Grid-based Hero Value GlassCards
-  const heroMetrics = [
-    {
-      kicker: 'COHORT SCALE',
-      val: '6,000',
-      label: isFr ? 'Profils synthétiques' : 'Synthetic profiles',
-      sub: isFr ? 'Reproductibilité totale' : 'Deterministic seed 20261120',
-    },
-    {
-      kicker: 'CLINICAL SAFETY',
-      val: isFr ? 'Validation humaine' : 'Human check',
-      label: isFr ? 'Médecin avant tout envoi' : 'Physician validation before any message',
-      sub: isFr ? 'Zéro décision autonome' : 'Zero autonomous AI routing',
-    },
-    {
-      kicker: 'PATIENT EXPERIENCE',
-      val: '1 Visit',
-      label: isFr ? 'Visite unique regroupée' : 'Consolidated Care',
-      sub: isFr ? 'Zéro parcours dispersé' : 'All checks in one booking',
-    },
-    {
-      kicker: 'TRANSPARENCY',
-      val: isFr ? 'Toujours affichée' : 'Always shown',
-      label: isFr ? 'Incertitude affichée' : 'Uncertainty always shown',
-      sub: isFr ? 'Intervalles de confiance sur chaque indicateur' : 'Confidence intervals on every metric',
-    },
-  ];
-
   // Value Propositions in Section 2
   const valuePillars = [
     {
@@ -534,23 +506,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Right 5 columns left open so the Doctor & Patient 3D background shines with zero obstruction */}
             <div className="hidden lg:block lg:col-span-5" aria-hidden="true" />
-          </div>
-        </div>
-
-        {/* Bottom Hero Grid: 4 Dark GlassCards for Immediate Value Proof */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 pt-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {heroMetrics.map((m, idx) => (
-              <GlassCard
-                key={idx}
-                variant="dark"
-                className="!p-3.5 sm:!p-5"
-                kicker={m.kicker}
-                metric={m.val}
-                title={m.label}
-                description={m.sub}
-              />
-            ))}
           </div>
         </div>
       </section>
