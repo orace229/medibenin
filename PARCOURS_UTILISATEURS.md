@@ -2,17 +2,19 @@
 
 **Plateforme :** Prévention & Dépistage de Précision (Défi 04 · Future Health Digital Innovation Challenge 2026)
 **Version :** 1.0 · Novembre 2026
-**Périmètre :** 5 profils utilisateurs · Données 100 % synthétiques en mode démo
+**Périmètre :** 4 profils utilisateurs · Données 100 % synthétiques en mode démo
 
 ---
 
 ## Table des matières
 
 1. [Vue d'ensemble du système](#1-vue-densemble-du-système)
-2. [Parcours — Patient adulte](#2-parcours--patient-adulte)
-3. [Parcours — Parent / Tuteur](#3-parcours--parent--tuteur)
-4. [Parcours — Médecin / Clinicien](#4-parcours--médecin--clinicien)
-5. [Parcours — Coordinateur de soins](#5-parcours--coordinateur-de-soins)
+2. [Parcours — Patient / Citoyen](#2-parcours--patient--citoyen)
+3. [Parcours — Médecin / Clinicien](#3-parcours--médecin--clinicien)
+4. [Parcours — Coordinateur de soins](#4-parcours--coordinateur-de-soins)
+5. [Parcours — Agent de santé publique](#5-parcours--agent-de-santé-publique)
+6. [Parcours transversaux](#6-parcours-transversaux)
+7. [Règles cliniques embarquées](#7-règles-cliniques-embarquées)
 6. [Parcours — Agent de santé publique](#6-parcours--agent-de-santé-publique)
 7. [Parcours transversaux](#7-parcours-transversaux)
 8. [Règles cliniques embarquées](#8-règles-cliniques-embarquées)
@@ -26,7 +28,7 @@ MediBenin est une plateforme de prévention et de dépistage de précision qui r
 ### Architecture fonctionnelle
 
 ```
-   PATIENT / PARENT                 MÉDECIN                   COORDINATEUR         SANTÉ PUBLIQUE
+   PATIENT / CITOYEN                MÉDECIN                   COORDINATEUR         SANTÉ PUBLIQUE
         │                               │                            │                     │
   [Profil & consentements]    [Liste patients + niveaux]   [File d'attente]    [Observatoire équité]
         │                               │                            │                     │
@@ -67,11 +69,14 @@ created → validated → invited → scheduled → (postponed) → done
 
 ---
 
-## 2. Parcours — Patient adulte
+## 2. Parcours — Patient / Citoyen
 
 **Profil de démonstration :** Tariq Al-Nadim, 36 ans · Dossier personnel + enfants affiliés
-**Rôle système :** `patient`
+**Rôle système :** `patient` (inclut la gestion des enfants affiliés)
 **Accès :** Portail Patient Unifié
+
+> [!NOTE]
+> Il n'existe qu'**un seul portail citoyen**. Qu'il s'agisse d'un adulte seul ou d'un parent avec enfants affiliés, l'interface est identique. Les fonctionnalités liées aux enfants apparaissent automatiquement si des enfants sont rattachés au compte.
 
 ### 2.1 Connexion et première découverte
 
@@ -94,7 +99,7 @@ created → validated → invited → scheduled → (postponed) → done
 - **Résumé de la raison principale** : phrase synthétique expliquant pourquoi ce niveau est attribué
 - **Carte de progression** : X visites préventives accomplies sur Y recommandées
 - **Prochaine action** : date et nature de la prochaine visite à effectuer
-- **Enfants affiliés** (si parent également) : aperçu de l'état de chaque enfant
+- **Enfants affiliés** *(si des enfants sont rattachés au compte)* : aperçu de l'état de chaque enfant
 
 > Le patient ne voit **jamais** de formulation diagnostique — uniquement des niveaux de priorité et des invitations à consulter.
 
@@ -191,9 +196,9 @@ Journal d'accès aux données (audit complet) :
 └── Qui a consulté quoi, quand, dans quel but, avec quelle règle
 ```
 
-### 2.8 Gestion des enfants affiliés
+### 2.8 Accès aux dossiers des enfants affiliés
 
-Le patient (adulte) peut accéder aux dossiers de ses enfants affiliés :
+Si des enfants sont rattachés au compte, le patient peut y accéder directement depuis son portail :
 
 ```
 1. Dans l'onglet Accueil → section "Enfants affiliés"
@@ -203,48 +208,34 @@ Le patient (adulte) peut accéder aux dossiers de ses enfants affiliés :
 5. Retour au dossier personnel via le sélecteur de profil
 ```
 
----
-
-## 3. Parcours — Parent / Tuteur
-
-**Profil de démonstration :** Amira Al-Mansoor · Parent · Enfants affiliés
-**Rôle système :** `parent`
-**Accès :** Portail Parent (même interface que patient, focus enfants)
-
-### 3.1 Spécificités du rôle Parent
-
-Le parent voit **en priorité** les dossiers de ses enfants affiliés. L'interface est identique au portail patient mais centrée sur la gestion multi-enfants.
-
-### 3.2 Affiliation d'un enfant (< 18 ans)
+**Affiliation d'un enfant (faite côté clinicien) :**
 
 ```
 1. Le médecin ou coordinateur crée le dossier enfant dans le système
 2. Il recherche le parent par ID patient (formulaire clinicien)
-3. L'enfant est affilié au parent dans la base de données
-4. Le parent reçoit une notification → peut accéder au dossier enfant
-5. Accès via OTP SMS pour chaque nouvelle session sur le dossier enfant
+3. L'enfant est affilié au compte du parent dans la base de données
+4. Le parent reçoit une notification → peut désormais accéder au dossier enfant
 ```
 
-### 3.3 Passage à la majorité (18 ans)
+**Passage à la majorité (18 ans) :**
 
 ```
 1. Le système détecte que l'enfant atteint 18 ans
 2. Un flag "Détachement à la majorité" apparaît dans le portail clinicien
-3. Le parent ou l'adolescent peut initier la demande de détachement
-4. Le médecin / coordinateur valide le détachement
-5. L'ancien enfant devient un patient adulte autonome avec son propre compte
-6. Le dossier parental n'affiche plus cet enfant
+3. Le patient (ancien enfant) peut initier la demande de détachement
+4. Le médecin / coordinateur valide → le compte devient autonome
+5. Le dossier parental n'affiche plus cet enfant
 ```
 
 ---
 
-## 4. Parcours — Médecin / Clinicien
+## 3. Parcours — Médecin / Clinicien
 
 **Profil de démonstration :** Dr. Sydney Kpegbe · Consultation clinique
 **Rôle système :** `clinician`
 **Accès :** Portail Clinicien
 
-### 4.1 Liste des patients
+### 3.1 Liste des patients
 
 À l'ouverture, le médecin voit :
 
@@ -265,7 +256,7 @@ Liste des patients (triée par niveau de priorité) :
 
 **Filtres :** Niveau (rouge/orange/jaune/vert/gris) · Recherche par nom
 
-### 4.2 Évaluation guidée d'un patient
+### 3.2 Évaluation guidée d'un patient
 
 Le médecin sélectionne un patient → onglets disponibles :
 
@@ -344,7 +335,7 @@ Calculs cliniques (backend) :
 └── Plan de soin consolidé (actions groupées par priorité)
 ```
 
-### 4.3 Génération du résumé IA
+### 3.3 Génération du résumé IA
 
 ```
 1. Médecin clique "Générer résumé automatique"
@@ -354,7 +345,7 @@ Calculs cliniques (backend) :
 5. Le médecin peut modifier le résumé avant de le valider
 ```
 
-### 4.4 Validation et envoi d'invitation
+### 3.4 Validation et envoi d'invitation
 
 ```
 Étape 1 — Décision sur le parcours
@@ -375,7 +366,7 @@ Calculs cliniques (backend) :
 └── Journal d'audit mis à jour (qui, quand, quelle règle)
 ```
 
-### 4.5 Confirmation de visite par code QR
+### 3.5 Confirmation de visite par code QR
 
 ```
 1. Le patient se présente au centre avec son code à 8 caractères
@@ -386,7 +377,7 @@ Calculs cliniques (backend) :
 6. Enregistrement de la date, du praticien, du centre
 ```
 
-### 4.6 Enregistrement de la conclusion
+### 3.6 Enregistrement de la conclusion
 
 Après la visite :
 
@@ -400,7 +391,7 @@ Après la visite :
    → Le conflit est enregistré dans le journal d'audit
 ```
 
-### 4.7 Export FHIR
+### 3.7 Export FHIR
 
 ```
 1. Médecin clique "Exporter FHIR"
@@ -409,7 +400,7 @@ Après la visite :
 4. Téléchargeable pour archivage ou interopérabilité
 ```
 
-### 4.8 Gestion de la majorité
+### 3.8 Gestion de la majorité
 
 ```
 Dans l'onglet "Données" → section "Affiliations"
@@ -421,13 +412,13 @@ Dans l'onglet "Données" → section "Affiliations"
 
 ---
 
-## 5. Parcours — Coordinateur de soins
+## 4. Parcours — Coordinateur de soins
 
 **Profil de démonstration :** Orace A. · Files de relance
 **Rôle système :** `coordinator`
 **Accès :** Portail Coordinateur (via PopulationPortals)
 
-### 5.1 File d'attente priorisée
+### 4.1 File d'attente priorisée
 
 Le coordinateur voit trois vues de sa file :
 
@@ -446,7 +437,7 @@ Onglet 3 — Données insuffisantes (gris)
 └── Action : contacter pour compléter le profil
 ```
 
-### 5.2 Envoi d'invitation (rôle partagé avec clinicien)
+### 4.2 Envoi d'invitation (rôle partagé avec clinicien)
 
 Le coordinateur peut envoyer des invitations validées par le médecin :
 
@@ -458,7 +449,7 @@ Le coordinateur peut envoyer des invitations validées par le médecin :
 5. Compteur de rappels mis à jour automatiquement
 ```
 
-### 5.3 Score logistique ML (simulation)
+### 4.3 Score logistique ML (simulation)
 
 ```
 Pour chaque patient, le coordinateur peut demander :
@@ -475,7 +466,7 @@ Entrées du modèle :
 └── Nombre de visites manquées historiques
 ```
 
-### 5.4 Suivi des détachements à la majorité
+### 4.4 Suivi des détachements à la majorité
 
 ```
 1. Le coordinateur accède à "Détachements en attente"
@@ -486,13 +477,13 @@ Entrées du modèle :
 
 ---
 
-## 6. Parcours — Agent de santé publique
+## 5. Parcours — Agent de santé publique
 
 **Profil de démonstration :** Bienderan E. · Observatoire Population & Équité
 **Rôle système :** `public_health`
 **Accès :** Portail Observatoire (via PopulationPortals)
 
-### 6.1 Tableau de bord population
+### 5.1 Tableau de bord population
 
 ```
 Indicateurs globaux (panel de 53 patients synthétiques) :
@@ -503,7 +494,7 @@ Indicateurs globaux (panel de 53 patients synthétiques) :
 └── Score de stabilité du classement
 ```
 
-### 6.2 Tableau des zones géographiques
+### 5.2 Tableau des zones géographiques
 
 ```
 Pour chaque zone :
@@ -514,7 +505,7 @@ Pour chaque zone :
 └── Comparaison avec la moyenne nationale
 ```
 
-### 6.3 Tableau d'équité — Segments protégés
+### 5.3 Tableau d'équité — Segments protégés
 
 ```
 Règle de protection : n < 10 masquage Wilson (aucune statistique affichée
@@ -534,7 +525,7 @@ Pour chaque segment :
 └── Alerte faux-négatifs de gouvernance (règle C4)
 ```
 
-### 6.4 Alertes de gouvernance automatiques
+### 5.4 Alertes de gouvernance automatiques
 
 ```
 Règle C1 — Zone sous-couverte
@@ -550,16 +541,16 @@ Règle C4 — Faux-négatifs de gouvernance
   Action : alerte médecin référent + audit déclenché
 ```
 
-### 6.5 Ce que l'agent de santé publique ne voit PAS
+### 5.5 Ce que l'agent de santé publique ne voit PAS
 
 > [!IMPORTANT]
 > L'agent de santé publique n'a **jamais accès** aux données individuelles nominatives. Tous les indicateurs sont agrégés. Le masquage Wilson s'applique automatiquement pour tout segment avec n < 10 individus.
 
 ---
 
-## 7. Parcours transversaux
+## 6. Parcours transversaux
 
-### 7.1 Parcours de fermeture de boucle (closed-loop)
+### 6.1 Parcours de fermeture de boucle (closed-loop)
 
 Le cœur du système — tracer chaque risque jusqu'à une visite accomplie :
 
@@ -590,7 +581,7 @@ Le cœur du système — tracer chaque risque jusqu'à une visite accomplie :
 | Visite non confirmée après X jours | `overdue` | Remonte dans la file coordinateur |
 | Conflit agent hors-ligne vs centre | `done` (centre gagne) | Conflit enregistré dans audit |
 
-### 7.2 Parcours de consentement
+### 6.2 Parcours de consentement
 
 ```
 Consentements requis avant tout accès aux données :
@@ -607,7 +598,7 @@ Règles :
 └── Sans consentement "évaluation", aucune recommandation n'est générée
 ```
 
-### 7.3 Parcours d'urgence (Échappée E0)
+### 6.3 Parcours d'urgence (Échappée E0)
 
 ```
 Déclencheur : symptôme d'alerte rouge coché dans le formulaire
@@ -626,7 +617,7 @@ Reprise après urgence :
 3. Un bilan de synthèse post-urgence est généré
 ```
 
-### 7.4 Parcours génomique
+### 6.4 Parcours génomique
 
 ```
 Activation : patient coche "J'ai un résultat génomique existant"
@@ -646,7 +637,7 @@ Règle G3 — Garantie de non-substitution :
 
 ---
 
-## 8. Règles cliniques embarquées
+## 7. Règles cliniques embarquées
 
 Toutes les règles sont auditables, versionnées, et liées à leur source publiée.
 
@@ -697,8 +688,7 @@ Toutes les règles sont auditables, versionnées, et liées à leur source publi
 
 | Rôle | Prénom | Profil | Email démo |
 |---|---|---|---|
-| Patient adulte | Tariq Al-Nadim | 36 ans · dossier personnel + enfants | tariq.nadim@demo.medisense.example |
-| Parent | Amira Al-Mansoor | Parent · enfants affiliés | amira.mansoor@demo.medisense.example |
+| Patient / Citoyen | Tariq Al-Nadim | 36 ans · dossier personnel + enfants affiliés | tariq.nadim@demo.medisense.example |
 | Médecin | Dr. Sydney Kpegbe | Consultation clinique | dr.kpegbe@demo.medisense.example |
 | Coordinateur | Orace A. | Files de relance | orace.coord@demo.medisense.example |
 | Santé publique | Bienderan E. | Observatoire population & équité | bienderan.epi@demo.medisense.example |
