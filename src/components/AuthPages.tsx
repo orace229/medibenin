@@ -108,8 +108,6 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 }) => {
   const { locale } = useI18n();
   const isFr = locale === 'fr';
-  const isAr = locale === 'ar';
-
   const initialPreset =
     ALL_ROLE_PRESETS.find((p) => p.role === initialRole) || CITIZEN_PRESETS[0];
 
@@ -299,7 +297,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               className="inline-flex items-center gap-2 text-xs font-semibold text-white bg-black/30 hover:bg-black/45 backdrop-blur-md px-3.5 py-2 rounded-xl cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
-              <span>{isAr ? 'العودة' : isFr ? 'Accueil' : 'Home'}</span>
+              <span>{isFr ? 'Accueil' : 'Home'}</span>
             </button>
             <MediBeninLogo variant="light" />
           </div>
@@ -307,9 +305,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
           <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-black/30 backdrop-blur-md text-white">
             <span className="w-2 h-2 rounded-full bg-[#2DD4BF]" />
             <span>
-              {isAr
-                ? 'الوقاية والفحص الدقيق · 2026'
-                : isFr
+              {isFr
                 ? 'Démo MediSense · Challenge 2026'
                 : 'MediSense demo · Challenge 2026'}
             </span>
@@ -319,16 +315,12 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
         {/* Bottom Caption Overlay inside Left Full-Height Image Section */}
         <div className="relative z-10 rounded-2xl bg-[#041D1E]/45 backdrop-blur-sm p-6 space-y-2 text-white max-w-xl">
           <p className="text-[11px] font-bold uppercase tracking-wider text-white/85">
-            {isAr
-              ? 'رعاية وقائية متكاملة'
-              : isFr
+            {isFr
               ? 'Parcours Clinique & Logistique Unifié'
               : 'Unified Clinical & Logistics Pathway'}
           </p>
           <h2 className="text-xl xl:text-2xl font-extrabold font-heading leading-snug text-white">
-            {isAr
-              ? 'تحويل الإرشادات الوقائية إلى مواعيد مؤكدة'
-              : isFr
+            {isFr
               ? 'Du dépistage préventif au rendez-vous confirmé en une seule visite.'
               : 'From preventive screening rules to a confirmed single-visit care plan.'}
           </h2>
@@ -348,7 +340,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               className="inline-flex items-center gap-1.5 sm:gap-2 text-xs font-semibold text-white bg-black/35 hover:bg-black/50 backdrop-blur-md px-3 sm:px-3.5 py-2 rounded-xl cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
-              <span>{isAr ? 'العودة' : isFr ? 'Accueil' : 'Home'}</span>
+              <span>{isFr ? 'Accueil' : 'Home'}</span>
             </button>
             <MediBeninLogo variant="light" />
           </div>
@@ -372,9 +364,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       <>
                         <HeartHandshake className="w-3.5 h-3.5 text-[#0F6B6B]" />
                         <span>
-                          {isAr
-                            ? 'بوابة المريض والعائلة'
-                            : isFr
+                          {isFr
                             ? 'Portail Citoyen · Patient & Famille'
                             : 'Citizen Portal · Patient & Family'}
                         </span>
@@ -383,9 +373,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       <>
                         <Stethoscope className="w-3.5 h-3.5 text-[#0F6B6B]" />
                         <span>
-                          {isAr
-                            ? 'بوابة الكوادر الصحية المعتمدة'
-                            : isFr
+                          {isFr
                             ? 'Portail Professionnel · Agents de Santé'
                             : 'Professional Portal · Healthcare Agents'}
                         </span>
@@ -395,13 +383,9 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
                   <h1 className="text-xl sm:text-2xl font-bold text-[#0B3B3C] font-heading">
                     {portalCategory === 'citizen'
-                      ? isAr
-                        ? 'تسجيل الدخول إلى بوابة المريض الموحدة'
-                        : isFr
+                      ? isFr
                         ? 'Connexion au Portail Patient Unifié'
                         : 'Unified Patient Portal Sign In'
-                      : isAr
-                      ? 'تسجيل دخول الكوادر الصحية'
                       : isFr
                       ? 'Connexion Agents de Santé'
                       : 'Healthcare Agent Sign In'}
@@ -415,13 +399,9 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       <UserCheck className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
                       <span>
                         {portalCategory === 'citizen'
-                          ? isAr
-                            ? 'اختر الملف'
-                            : isFr
+                          ? isFr
                             ? 'Choisissez votre profil'
                             : 'Choose your profile'
-                          : isAr
-                          ? 'اختر دورك'
                           : isFr
                           ? 'Choisissez votre rôle'
                           : 'Choose your role'}
@@ -438,9 +418,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   >
                     {activePresets.map((preset) => {
                       const active = selectedRole === preset.role;
-                      const label = isAr
-                        ? preset.labelAr
-                        : isFr
+                      const label = isFr
                         ? preset.labelFr
                         : preset.labelEn;
                       const sub = isFr ? preset.subtitleFr : preset.subtitleEn;
@@ -500,13 +478,9 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                     <div className="flex items-center justify-between">
                       <label htmlFor="login-email" className="block text-xs font-semibold text-[#0B3B3C]">
                         {portalCategory === 'citizen'
-                          ? isAr
-                            ? 'البريد الإلكتروني'
-                            : isFr
+                          ? isFr
                             ? 'Email'
                             : 'Email'
-                          : isAr
-                          ? 'البريد المهني'
                           : isFr
                           ? 'Email professionnel'
                           : 'Work email'}
@@ -526,7 +500,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
                       <label htmlFor="login-password" className="block text-xs font-semibold text-[#0B3B3C]">
-                        {isAr ? 'كلمة المرور' : isFr ? 'Mot de passe' : 'Password'}
+                        {isFr ? 'Mot de passe' : 'Password'}
                       </label>
                       <button
                         type="button"
@@ -567,8 +541,6 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                         ? isFr
                           ? 'Vérification des droits d’accès...'
                           : 'Verifying access...'
-                        : isAr
-                        ? 'تسجيل الدخول'
                         : isFr
                         ? 'Se connecter'
                         : 'Sign In'}
@@ -587,9 +559,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                     >
                       <Stethoscope className="w-3.5 h-3.5" />
                       <span>
-                        {isAr
-                          ? 'الدخول إلى بوابة الكوادر الصحية ←'
-                          : isFr
+                        {isFr
                           ? 'Accéder au portail Agents de Santé →'
                           : 'Access Healthcare Agent Portal →'}
                       </span>
@@ -604,9 +574,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                         >
                           <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" />
                           <span>
-                            {isAr
-                              ? 'العودة إلى بوابة المريض الموحدة'
-                              : isFr
+                            {isFr
                               ? 'Retour au Portail Patient Unifié'
                               : 'Back to Unified Patient Portal'}
                           </span>
@@ -617,9 +585,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                           onClick={() => onSwitchMode('request-access')}
                           className="font-semibold text-[#0B3B3C] hover:underline cursor-pointer"
                         >
-                          {isAr
-                            ? 'طلب صلاحية ممارس صحي'
-                            : isFr
+                          {isFr
                             ? 'Demander un accès professionnel'
                             : 'Request access'}
                         </button>

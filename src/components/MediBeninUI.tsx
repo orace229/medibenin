@@ -54,7 +54,7 @@ export const MediBeninLogo: React.FC<{ variant?: 'dark' | 'light' }> = ({
 export const DemoBanner: React.FC = () => {
   const { locale } = useI18n();
   const text =
-    locale === 'ar'
+    false
       ? 'بيئة تجريبية · بيانات اصطناعية 100%'
       : locale === 'fr'
       ? 'Environnement de démonstration · données 100 % synthétiques'
@@ -74,7 +74,6 @@ export const LanguageSwitch: React.FC = () => {
   const options: Array<{ code: Locale; label: string }> = [
     { code: 'en', label: 'EN' },
     { code: 'fr', label: 'FR' },
-    { code: 'ar', label: 'عربي' },
   ];
 
   return (

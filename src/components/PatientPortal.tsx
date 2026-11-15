@@ -239,8 +239,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 }) => {
   const { locale, t } = useI18n();
   const isFr = locale === 'fr';
-  const isAr = locale === 'ar';
-
   // Unified Patient Portal starts from the records linked to the authenticated
   // account (patient own record, or the parent's affiliated children).
   const [activePatientId, setActivePatientId] = useState<string>('');
@@ -488,9 +486,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       await loadProfile(activePatientId);
       setActiveTab('home');
       setFeedbackBanner(
-        isAr
-          ? 'تم استلام قياساتك. سيراجعها فريق الرعاية الخاص بك.'
-          : isFr
+        isFr
           ? 'Merci. Vos mesures ont bien été envoyées — votre équipe de soin va les examiner.'
           : 'Thank you. Your care team will review it.'
       );
@@ -516,9 +512,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       setShowReschedulePicker(false);
       if (choice === 'refuse') {
         setFeedbackBanner(
-          isAr
-            ? 'تم تسجيل اعتذارك. توقفت جميع التذكيرات فوراً دون أي تأثير على رعايتك.'
-            : isFr
+          isFr
             ? 'Refus enregistré. Relances arrêtées immédiatement, sans impact sur vos soins.'
             : 'Declined. All reminders stopped immediately with zero impact on care.'
         );
@@ -755,7 +749,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           <GlassCard interactive={false} className="p-4 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B]">
-                {isAr ? 'ملفي وأطفالي' : isFr ? 'Mon Dossier & Enfants Affiliés' : 'My Record & Affiliated Children'}
+                {isFr ? 'Mon Dossier & Enfants Affiliés' : 'My Record & Affiliated Children'}
               </p>
             </div>
 
@@ -878,16 +872,16 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
           <nav className="liquid-glass rounded-3xl p-2.5 space-y-1">
             {[
-              { id: 'home', label: isAr ? 'الرئيسية' : isFr ? 'Accueil' : 'Home', Icon: Home },
+              { id: 'home', label: isFr ? 'Accueil' : 'Home', Icon: Home },
               {
                 id: 'checkup',
-                label: isAr ? 'تحديث قياساتي' : isFr ? 'Mon Bilan & Mesures' : 'My Health Check',
+                label: isFr ? 'Mon Bilan & Mesures' : 'My Health Check',
                 Icon: CheckCircle2,
               },
-              { id: 'journey', label: isAr ? 'مساري' : isFr ? 'Mon parcours' : 'Care Journey', Icon: Calendar },
-              { id: 'notifications', label: isAr ? 'الرسائل' : isFr ? 'Messages' : 'Messages', Icon: Bell },
-              { id: 'profile', label: isAr ? 'تفضيلاتي' : isFr ? 'Préférences' : 'Preferences', Icon: User },
-              { id: 'privacy', label: isAr ? 'الموافقات' : isFr ? 'Consentements' : 'Consents', Icon: Shield },
+              { id: 'journey', label: isFr ? 'Mon parcours' : 'Care Journey', Icon: Calendar },
+              { id: 'notifications', label: isFr ? 'Messages' : 'Messages', Icon: Bell },
+              { id: 'profile', label: isFr ? 'Préférences' : 'Preferences', Icon: User },
+              { id: 'privacy', label: isFr ? 'Consentements' : 'Consents', Icon: Shield },
             ].map((item) => {
               const IconComp = item.Icon;
               const active = activeTab === item.id;
@@ -1071,7 +1065,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="space-y-1">
                           <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0F6B6B]">
-                            {isAr ? 'الخطوة القادمة' : isFr ? 'Prochaine étape' : 'Next Step'}
+                            {isFr ? 'Prochaine étape' : 'Next Step'}
                           </span>
                           <h2 className="text-lg font-bold text-[#0B3B3C] font-heading">
                             {rec.pathwayTitle}
@@ -1105,9 +1099,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         >
                           <HelpCircle className="w-4 h-4" />
                           <span>
-                            {isAr
-                              ? 'لماذا هذا الموعد؟'
-                              : isFr
+                            {isFr
                               ? 'Pourquoi cette visite ? (En 4 phrases)'
                               : 'Why this visit? (4-sentence summary)'}
                           </span>
@@ -1241,7 +1233,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                 <div className="grid grid-cols-2 gap-3 pt-1">
                                   <BpGauge
                                     clipId="bp-sys"
-                                    title={isFr ? 'Systolique' : isAr ? 'الانقباضي' : 'Systolic'}
+                                    title={isFr ? 'Systolique' : 'Systolic'}
                                     data={series}
                                     dataKey="systolic"
                                     min={90}
@@ -1249,14 +1241,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                     target={130}
                                     limit={140}
                                     trendLabels={{
-                                      up: isFr ? 'En hausse' : isAr ? 'ارتفاع' : 'Rising',
-                                      down: isFr ? 'En amélioration' : isAr ? 'تحسّن' : 'Improving',
-                                      stable: isFr ? 'Stable' : isAr ? 'مستقر' : 'Stable',
+                                      up: isFr ? 'En hausse' : 'Rising',
+                                      down: isFr ? 'En amélioration' : 'Improving',
+                                      stable: isFr ? 'Stable' : 'Stable',
                                     }}
                                   />
                                   <BpGauge
                                     clipId="bp-dia"
-                                    title={isFr ? 'Diastolique' : isAr ? 'الانبساطي' : 'Diastolic'}
+                                    title={isFr ? 'Diastolique' : 'Diastolic'}
                                     data={series}
                                     dataKey="diastolic"
                                     min={50}
@@ -1264,9 +1256,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                     target={85}
                                     limit={90}
                                     trendLabels={{
-                                      up: isFr ? 'En hausse' : isAr ? 'ارتفاع' : 'Rising',
-                                      down: isFr ? 'En amélioration' : isAr ? 'تحسّن' : 'Improving',
-                                      stable: isFr ? 'Stable' : isAr ? 'مستقر' : 'Stable',
+                                      up: isFr ? 'En hausse' : 'Rising',
+                                      down: isFr ? 'En amélioration' : 'Improving',
+                                      stable: isFr ? 'Stable' : 'Stable',
                                     }}
                                   />
                                 </div>
@@ -1274,15 +1266,15 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                 <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[10px] font-semibold text-[#64748B] pt-2 border-t border-[#E2E8F0]">
                                   <span className="flex items-center gap-1.5">
                                     <span className="w-2.5 h-2.5 rounded-sm bg-[#D1FAE5] border border-[#A7F3D0]" />
-                                    {isFr ? 'Zone cible' : isAr ? 'النطاق المستهدف' : 'Target zone'}
+                                    {isFr ? 'Zone cible' : 'Target zone'}
                                   </span>
                                   <span className="flex items-center gap-1.5">
                                     <span className="w-2.5 h-2.5 rounded-sm bg-[#FDE68A] border border-[#FCD34D]" />
-                                    {isFr ? 'À suivre' : isAr ? 'للمتابعة' : 'Follow-up'}
+                                    {isFr ? 'À suivre' : 'Follow-up'}
                                   </span>
                                   <span className="flex items-center gap-1.5">
                                     <span className="w-2.5 h-2.5 rounded-sm bg-[#FECACA] border border-[#FCA5A5]" />
-                                    {isFr ? 'À confirmer' : isAr ? 'للتأكيد' : 'Needs confirmation'}
+                                    {isFr ? 'À confirmer' : 'Needs confirmation'}
                                   </span>
                                 </div>
                               </>
@@ -1290,8 +1282,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               <p className="text-xs text-[#64748B] py-4 text-center">
                                 {isFr
                                   ? 'Aucune mesure enregistrée pour le moment.'
-                                  : isAr
-                                  ? 'لا توجد قياسات مسجلة بعد.'
                                   : 'No readings recorded yet.'}
                               </p>
                             )}
@@ -1962,11 +1952,11 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 liquid-glass border-t border-white/60 z-30 flex items-center justify-around py-2 px-1 pb-safe">
         {[
-          { id: 'home', label: isAr ? 'الرئيسية' : isFr ? 'Accueil' : 'Home', Icon: Home },
-          { id: 'checkup', label: isAr ? 'فحصي' : isFr ? 'Bilan' : 'Check', Icon: CheckCircle2 },
-          { id: 'journey', label: isAr ? 'مساري' : isFr ? 'Parcours' : 'Journey', Icon: Calendar },
-          { id: 'notifications', label: isAr ? 'الرسائل' : isFr ? 'Messages' : 'Messages', Icon: Bell },
-          { id: 'privacy', label: isAr ? 'الموافقات' : isFr ? 'Accès' : 'Consents', Icon: Shield },
+          { id: 'home', label: isFr ? 'Accueil' : 'Home', Icon: Home },
+          { id: 'checkup', label: isFr ? 'Bilan' : 'Check', Icon: CheckCircle2 },
+          { id: 'journey', label: isFr ? 'Parcours' : 'Journey', Icon: Calendar },
+          { id: 'notifications', label: isFr ? 'Messages' : 'Messages', Icon: Bell },
+          { id: 'privacy', label: isFr ? 'Accès' : 'Consents', Icon: Shield },
         ].map((item) => {
           const IconComp = item.Icon;
           const active = activeTab === item.id;

@@ -1,4 +1,4 @@
-export type Locale = 'en' | 'fr' | 'ar';
+export type Locale = 'en' | 'fr';
 export type UserRole = 'patient' | 'parent' | 'clinician' | 'coordinator' | 'public_health';
 export type Level = 'red' | 'orange' | 'yellow' | 'green' | 'grey';
 export type Certainty = 'high' | 'medium' | 'low';

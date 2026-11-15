@@ -2,9 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Locale } from './types.ts';
 import { en } from './i18n/en.ts';
 import { fr } from './i18n/fr.ts';
-import { ar } from './i18n/ar.ts';
 
-const translations: Record<Locale, Record<string, string>> = { en, fr, ar };
+const translations: Record<Locale, Record<string, string>> = { en, fr };
 
 interface I18nContextValue {
   locale: Locale;
@@ -22,11 +21,11 @@ const I18nContext = createContext<I18nContextValue>({
 
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [locale, setLocale] = useState<Locale>('en');
-  const isRtl = locale === 'ar';
+  const isRtl = false;
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
+    document.documentElement.dir = 'ltr';
   }, [locale, isRtl]);
 
   const t = (key: string) => translations[locale][key] || translations.en[key] || key;

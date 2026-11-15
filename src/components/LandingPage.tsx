@@ -55,8 +55,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isFr = locale === 'fr';
-  const isAr = locale === 'ar';
-
   // Track user scroll to update contextual floating CTA dock and active section
   useEffect(() => {
     const sectionIds: SectionId[] = [
@@ -91,28 +89,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   }, []);
 
   const copy = {
-    heroEyebrow: isAr
-      ? 'صُمم لمسابقة الابتكار الصحي الرقمي للمستقبل 2026'
-      : isFr
+    heroEyebrow: isFr
       ? 'Conçu pour le Future Health Digital Innovation Challenge 2026'
       : 'Built for the Future Health Digital Innovation Challenge 2026',
-    heroTitleLead: isAr
-      ? 'حوّل كل خطر صحي مرصود'
-      : isFr
+    heroTitleLead: isFr
       ? 'Transformez chaque risque détecté'
       : 'Turn every detected health risk',
-    heroTitleAccent: isAr
-      ? 'إلى زيارة وقائية مكتملة.'
-      : isFr
+    heroTitleAccent: isFr
       ? 'en une visite préventive accomplie.'
       : 'into a completed preventive visit.',
-    heroSubtitle: isAr
-      ? 'منصة الوقاية الدقيقة التي توحد القواعد السريرية المعتمدة، ومصادقة الطبيب، وبطاقة المريض الذكية في مسار واحد مغلق الحلقة.'
-      : isFr
+    heroSubtitle: isFr
       ? 'La plateforme de prévention de précision qui relie règles cliniques publiées, validation médicale humaine et Pass QR patient en une seule visite.'
       : 'The precision prevention platform uniting published clinical rules, physician sign-off, and a patient QR pass into one closed loop.',
-    ctaPrimary: isAr ? 'الدخول إلى المنصة' : isFr ? 'Accéder au portail' : t('accessDashboard'),
-    ctaSecondary: isAr ? 'استكشف المسار' : isFr ? 'Découvrir l’architecture' : 'Explore the pathway',
+    ctaPrimary: isFr ? 'Accéder au portail' : t('accessDashboard'),
+    ctaSecondary: isFr ? 'Découvrir l’architecture' : 'Explore the pathway',
   };
 
   // Grid-based Hero Value GlassCards
@@ -120,26 +110,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     {
       kicker: 'COHORT SCALE',
       val: '6,000',
-      label: isAr ? 'ملف صحي اصطناعي' : isFr ? 'Profils synthétiques' : 'Synthetic profiles',
-      sub: isAr ? 'بذرة حتمية ٢٠٢٦١١٢٠' : isFr ? 'Reproductibilité totale' : 'Deterministic seed 20261120',
+      label: isFr ? 'Profils synthétiques' : 'Synthetic profiles',
+      sub: isFr ? 'Reproductibilité totale' : 'Deterministic seed 20261120',
     },
     {
       kicker: 'CLINICAL SAFETY',
-      val: isAr ? 'تدقيق بشري' : isFr ? 'Validation humaine' : 'Human check',
-      label: isAr ? 'مصادقة طبية قبل أي رسالة' : isFr ? 'Médecin avant tout envoi' : 'Physician validation before any message',
-      sub: isAr ? 'لا قرار آلي منفرد' : isFr ? 'Zéro décision autonome' : 'Zero autonomous AI routing',
+      val: isFr ? 'Validation humaine' : 'Human check',
+      label: isFr ? 'Médecin avant tout envoi' : 'Physician validation before any message',
+      sub: isFr ? 'Zéro décision autonome' : 'Zero autonomous AI routing',
     },
     {
       kicker: 'PATIENT EXPERIENCE',
       val: '1 Visit',
-      label: isAr ? 'زيارة وقائية موحدة' : isFr ? 'Visite unique regroupée' : 'Consolidated Care',
-      sub: isAr ? 'بدلاً من مواعيد مبعثرة' : isFr ? 'Zéro parcours dispersé' : 'All checks in one booking',
+      label: isFr ? 'Visite unique regroupée' : 'Consolidated Care',
+      sub: isFr ? 'Zéro parcours dispersé' : 'All checks in one booking',
     },
     {
       kicker: 'TRANSPARENCY',
-      val: isAr ? 'دائماً' : isFr ? 'Toujours affichée' : 'Always shown',
-      label: isAr ? 'إظهار عدم اليقين' : isFr ? 'Incertitude affichée' : 'Uncertainty always shown',
-      sub: isAr ? 'فترات ثقة على كل مؤشر' : isFr ? 'Intervalles de confiance sur chaque indicateur' : 'Confidence intervals on every metric',
+      val: isFr ? 'Toujours affichée' : 'Always shown',
+      label: isFr ? 'Incertitude affichée' : 'Uncertainty always shown',
+      sub: isFr ? 'Intervalles de confiance sur chaque indicateur' : 'Confidence intervals on every metric',
     },
   ];
 
@@ -147,40 +137,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const valuePillars = [
     {
       num: '01 · PRECISION DETECTION',
-      title: isAr
-        ? 'رصد متعدد الأبعاد يتجاوز العمر والجنس'
-        : isFr
+      title: isFr
         ? 'Détection multidimensionnelle au-delà de l’âge'
         : 'Multidimensional detection beyond age & sex',
-      desc: isAr
-        ? 'دمج التاريخ العائلي، ومؤشرات النمو، وعوامل الخطر المكيفة إثنياً في قاعدة سريرية شفافة.'
-        : isFr
+      desc: isFr
         ? 'Croisement des antécédents familiaux, de la pédiatrie et des facteurs de risque adaptés avec traçabilité complète.'
         : 'Combines family history, pediatric milestones, and ethnically adapted risk factors with full rule traceability.',
     },
     {
       num: '02 · PROACTIVE OUTREACH',
-      title: isAr
-        ? 'تواصل استباقي بلغة المريض دون خفض الأولوية'
-        : isFr
+      title: isFr
         ? 'Relance multilingue proactive sans déclassement'
         : 'Proactive native-language outreach',
-      desc: isAr
-        ? 'توقعات اللوجستيات تضيف دعماً (نقل، تذكير هاتفي) ولا تحرم أي مريض من أولويته السريرية.'
-        : isFr
+      desc: isFr
         ? 'L’IA logistique déclenche un accompagnement renforcé (transport, appel) sans jamais réduire la priorité médicale.'
         : 'Logistics prediction adds support (transport, phone outreach) and never downgrades a patient’s clinical priority.',
     },
     {
       num: '03 · UNIFIED VISIT PASS',
-      title: isAr
-        ? 'زيارة واحدة شاملة ببطاقة مرور QR مؤكدة'
-        : isFr
+      title: isFr
         ? 'Une visite unique scellée par Pass QR'
         : 'One consolidated visit with a QR Pass',
-      desc: isAr
-        ? 'بدلاً من ٣ مواعيد منفصلة، يحصل المريض على موعد وقائي واحد يغلق الحلقة عند الحضور.'
-        : isFr
+      desc: isFr
         ? 'Au lieu de 3 convocations dispersées, le patient reçoit un Pass QR unique qui ferme la boucle dès l’admission.'
         : 'Replaces scattered appointments with one unified preventive booking verified at clinic check-in.',
     },
@@ -190,46 +168,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const fiveVerbs = [
     {
       num: 'STEP 01',
-      verb: isAr ? 'الرصد' : isFr ? 'Repérer' : 'Identify',
-      desc: isAr
-        ? 'قواعد سريرية موثقة مع شارة يقين واضحة.'
-        : isFr
+      verb: isFr ? 'Repérer' : 'Identify',
+      desc: isFr
         ? 'Règles cliniques explicites et badge de certitude visible.'
         : 'Published clinical rules with visible certainty badges.',
     },
     {
       num: 'STEP 02',
-      verb: isAr ? 'التوجيه' : isFr ? 'Orienter' : 'Route',
-      desc: isAr
-        ? 'فصل صارم بين اللوجستيات وقرار الطبيب.'
-        : isFr
+      verb: isFr ? 'Orienter' : 'Route',
+      desc: isFr
         ? 'Séparation stricte entre file logistique et écran médecin.'
         : 'Strict separation between logistics and clinical view.',
     },
     {
       num: 'STEP 03',
-      verb: isAr ? 'التفاعل' : isFr ? 'Engager' : 'Engage',
-      desc: isAr
-        ? 'دعوة بلغة المريض مع حرية التأكيد أو الرفض.'
-        : isFr
+      verb: isFr ? 'Engager' : 'Engage',
+      desc: isFr
         ? 'Invitation multilingue et refus libre sans pénalité.'
         : 'Native-language outreach with penalty-free refusal.',
     },
     {
       num: 'STEP 04',
-      verb: isAr ? 'المتابعة' : isFr ? 'Suivre' : 'Track',
-      desc: isAr
-        ? 'بطاقة مرور QR من ٨ خانات لإغلاق الحلقة.'
-        : isFr
+      verb: isFr ? 'Suivre' : 'Track',
+      desc: isFr
         ? 'Pass QR à 8 caractères jusqu’à la visite réalisée.'
         : 'Closed-loop confirmation via 8-character QR pass.',
     },
     {
       num: 'STEP 05',
-      verb: isAr ? 'القياس' : isFr ? 'Mesurer' : 'Measure',
-      desc: isAr
-        ? 'فترات ثقة ويلسون وإخفاء تلقائي للمجموعات الصغيرة.'
-        : isFr
+      verb: isFr ? 'Mesurer' : 'Measure',
+      desc: isFr
         ? 'Intervalles de Wilson et masquage automatique des petits groupes.'
         : 'Wilson confidence intervals and automatic small-group masking.',
     },
@@ -246,83 +214,67 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     {
       role: 'patient',
       kicker: 'UNIFIED PATIENT & FAMILY PORTAL',
-      title: isAr ? 'بوابة المريض والعائلة الموحدة' : isFr ? 'Portail Patient Unifié & Enfants' : 'Unified Patient & Family Portal',
-      benefit: isAr
-        ? 'ملف المريض البالغ (IFHAS) وأطفاله المرتبطون عبر رمز SMS، وبطاقة QR و٥ موافقات مستقلة.'
-        : isFr
+      title: isFr ? 'Portail Patient Unifié & Enfants' : 'Unified Patient & Family Portal',
+      benefit: isFr
         ? 'Dossier adulte (IFHAS) + enfants affiliés (< 18 ans) sécurisés par SMS OTP, Pass QR et 5 consentements.'
         : 'Adult IFHAS record + affiliated children (< 18y) secured via SMS OTP, QR visit pass, and 5 consent toggles.',
-      cta: isAr ? 'فتح بوابة المريض الموحدة' : isFr ? 'Ouvrir le Portail Patient Unifié' : 'Open Unified Patient Portal',
+      cta: isFr ? 'Ouvrir le Portail Patient Unifié' : 'Open Unified Patient Portal',
       Icon: HeartHandshake,
     },
     {
       role: 'clinician',
       kicker: 'CLINICAL WORKBENCH',
-      title: isAr ? 'الأطباء والعيادات' : isFr ? 'Médecins & Cliniciens' : 'Clinicians',
-      benefit: isAr
-        ? 'شاشة سريرية صافية بدون درجات أولوية مع مصادقة بنقرة واحدة.'
-        : isFr
+      title: isFr ? 'Médecins & Cliniciens' : 'Clinicians',
+      benefit: isFr
         ? 'Écran clinique pur (zéro score logistique) avec validation médicale en un clic.'
         : 'Pure clinical screen (zero priority scores) with one-click sign-off.',
-      cta: isAr ? 'فتح شاشة الطبيب' : isFr ? 'Ouvrir l’Écran Médecin' : 'Open Clinician View',
+      cta: isFr ? 'Ouvrir l’Écran Médecin' : 'Open Clinician View',
       Icon: Stethoscope,
     },
     {
       role: 'coordinator',
       kicker: 'CARE OPERATIONS',
-      title: isAr ? 'منسقو الرعاية' : isFr ? 'Coordinateurs de Soins' : 'Care Coordinators',
-      benefit: isAr
-        ? 'قوائم يومية ذكية لتعزيز المرافقة دون خفض أولوية أي مريض.'
-        : isFr
+      title: isFr ? 'Coordinateurs de Soins' : 'Care Coordinators',
+      benefit: isFr
         ? 'File opérationnelle dédiée pour accompagner chaque patient sans jamais le déclasser.'
         : 'Operational outreach queue that adds support without ever downgrading priority.',
-      cta: isAr ? 'فتح قائمة المنسق' : isFr ? 'Ouvrir la File Coordinateur' : 'Open Coordinator Queue',
+      cta: isFr ? 'Ouvrir la File Coordinateur' : 'Open Coordinator Queue',
       Icon: Users,
     },
     {
       role: 'public_health',
       kicker: 'POPULATION & EQUITY',
-      title: isAr ? 'الصحة العامة' : isFr ? 'Observatoire Santé Publique' : 'Public Health',
-      benefit: isAr
-        ? 'مراقبة العدالة السكانية مع إخفاء الأعداد الصغيرة في الوقت الفعلي.'
-        : isFr
+      title: isFr ? 'Observatoire Santé Publique' : 'Public Health',
+      benefit: isFr
         ? 'Audit d’équité démographique avec masquage automatique des petits effectifs.'
         : 'Live demographic equity audit with automatic small-count masking.',
-      cta: isAr ? 'فتح المرصد السكاني' : isFr ? 'Ouvrir l’Observatoire' : 'Open Observatory',
+      cta: isFr ? 'Ouvrir l’Observatoire' : 'Open Observatory',
       Icon: BarChart3,
     },
   ];
 
   const faqs = [
     {
-      q: isAr ? 'هل MediSense أداة تشخيص طبي؟' : isFr ? 'MediSense pose-t-il un diagnostic médical ?' : 'Is MediSense an autonomous diagnostic tool?',
-      a: isAr
-        ? 'لا. إنه نظام لتنسيق الوقاية مبني على الإرشادات المعتمدة؛ الطبيب يراجع ويقرر دائماً.'
-        : isFr
+      q: isFr ? 'MediSense pose-t-il un diagnostic médical ?' : 'Is MediSense an autonomous diagnostic tool?',
+      a: isFr
         ? 'Non. Chaque recommandation requiert la validation explicite d’un clinicien.'
         : 'No. Every recommendation requires explicit clinician validation.',
     },
     {
-      q: isAr ? 'لماذا تفصلون بين شاشة المنسق وشاشة الطبيب؟' : isFr ? 'Pourquoi séparer l’espace Coordinateur de l’espace Médecin ?' : 'Why separate Coordinator and Clinician views?',
-      a: isAr
-        ? 'لمنع أي تحيز لوجستي من التأثير على الحكم السريري للطبيب أثناء الاستشارة.'
-        : isFr
+      q: isFr ? 'Pourquoi séparer l’espace Coordinateur de l’espace Médecin ?' : 'Why separate Coordinator and Clinician views?',
+      a: isFr
         ? 'Les repères logistiques n’apparaissent jamais devant le médecin.'
         : 'Operational indicators never appear on the physician’s clinical screen.',
     },
     {
-      q: isAr ? 'من يتحكم في البيانات والموافقات؟' : isFr ? 'Comment le patient garde-t-il le contrôle de ses données ?' : 'How do patients control their personal health data?',
-      a: isAr
-        ? 'يتحكم المريض في ٥ موافقات مستقلة قابلة للإلغاء الفوري مع سجل شفاف لكل وصول.'
-        : isFr
+      q: isFr ? 'Comment le patient garde-t-il le contrôle de ses données ?' : 'How do patients control their personal health data?',
+      a: isFr
         ? 'Chaque patient dispose de 5 interrupteurs de consentement indépendants, révocables instantanément, et d’un journal d’accès horodaté.'
         : 'Patients control 5 independent consent toggles with instant revocation and a real-time, timestamped Data Usage Log.',
     },
     {
-      q: isAr ? 'هل يمكن تجربة البوابات الأربع الآن؟' : isFr ? 'Puis-je tester les 4 portails dédiés immédiatement ?' : 'Can I test all 4 dedicated portals right now?',
-      a: isAr
-        ? 'نعم. البوابات الأربع (بوابة المريض الموحدة مع أطفاله المرتبطين + ٣ بوابات للكوادر الصحية) جاهزة ببيانات اصطناعية كاملة.'
-        : isFr
+      q: isFr ? 'Puis-je tester les 4 portails dédiés immédiatement ?' : 'Can I test all 4 dedicated portals right now?',
+      a: isFr
         ? 'Oui. Les 4 espaces sont préconfigurés avec un panel de 53 dossiers issu d’une cohorte synthétique de 6 000 profils.'
         : 'Yes. All 4 workspaces are pre-loaded with a 53-record demo panel from a 6,000-profile synthetic cohort.',
     },
@@ -426,12 +378,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const activeDock = contextualCtaMap[activeSection];
 
   const navLinks: Array<{ id: SectionId; label: string }> = [
-    { id: 'problem', label: isAr ? 'القيمة المضافة' : isFr ? 'Valeur Clinique' : 'Value Proposition' },
-    { id: 'how-it-works', label: isAr ? 'المسار المتكامل' : isFr ? 'Boucle Fermée' : 'Closed-Loop' },
-    { id: 'live-preview', label: isAr ? 'العرض التفاعلي' : isFr ? 'Démonstrateur' : 'Live Preview' },
-    { id: 'for-whom', label: isAr ? 'البوابات الأربع' : isFr ? 'Les 4 Portails' : 'Workspaces' },
-    { id: 'responsibility', label: isAr ? 'الحوكمة والعدالة' : isFr ? 'Gouvernance' : 'Governance' },
-    { id: 'faq', label: isAr ? 'الأسئلة' : isFr ? 'FAQ' : 'FAQ' },
+    { id: 'problem', label: isFr ? 'Valeur Clinique' : 'Value Proposition' },
+    { id: 'how-it-works', label: isFr ? 'Boucle Fermée' : 'Closed-Loop' },
+    { id: 'live-preview', label: isFr ? 'Démonstrateur' : 'Live Preview' },
+    { id: 'for-whom', label: isFr ? 'Les 4 Portails' : 'Workspaces' },
+    { id: 'responsibility', label: isFr ? 'Gouvernance' : 'Governance' },
+    { id: 'faq', label: isFr ? 'FAQ' : 'FAQ' },
   ];
 
   return (
@@ -512,9 +464,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                 <div className="pt-2 border-t border-[#E2E8F0] space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
-                    {isAr
-                      ? 'دخول سريع إلى البوابات الأربع:'
-                      : isFr
+                    {isFr
                       ? 'Accès rapide aux 4 portails :'
                       : 'Instant 4-portal access:'}
                   </p>
@@ -523,11 +473,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       [
                         {
                           role: 'patient',
-                          label: isAr ? 'المريض وأطفاله' : isFr ? 'Patient & Enfants' : 'Patient & Children',
+                          label: isFr ? 'Patient & Enfants' : 'Patient & Children',
                         },
-                        { role: 'clinician', label: isAr ? 'طبيب' : isFr ? 'Médecin' : 'Clinician' },
-                        { role: 'coordinator', label: isAr ? 'منسق' : isFr ? 'Coordinateur' : 'Coordinator' },
-                        { role: 'public_health', label: isAr ? 'الصحة العامة' : isFr ? 'Santé Publique' : 'Public Health' },
+                        { role: 'clinician', label: isFr ? 'Médecin' : 'Clinician' },
+                        { role: 'coordinator', label: isFr ? 'Coordinateur' : 'Coordinator' },
+                        { role: 'public_health', label: isFr ? 'Santé Publique' : 'Public Health' },
                       ] as Array<{ role: UserRole; label: string }>
                     ).map((r) => (
                       <button
@@ -674,9 +624,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Direct 1-Click Role Entry Strip (4 Unified Portals) */}
               <div className="pt-2 space-y-2">
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-white/90">
-                  {isAr
-                    ? 'دخول مباشر إلى البوابات الأربع المعتمدة:'
-                    : isFr
+                  {isFr
                     ? 'Accès par profil aux 4 portails dédiés :'
                     : 'Direct access to the 4 dedicated portals:'}
                 </p>
@@ -685,23 +633,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     [
                       {
                         role: 'patient',
-                        label: isAr
-                          ? 'المريض وأطفاله (SMS)'
-                          : isFr
+                        label: isFr
                           ? 'Portail Patient & Enfants'
                           : 'Patient & Children Portal',
                       },
                       {
                         role: 'clinician',
-                        label: isAr ? 'طبيب' : isFr ? 'Médecin' : 'Clinician',
+                        label: isFr ? 'Médecin' : 'Clinician',
                       },
                       {
                         role: 'coordinator',
-                        label: isAr ? 'منسق' : isFr ? 'Coordinateur' : 'Coordinator',
+                        label: isFr ? 'Coordinateur' : 'Coordinator',
                       },
                       {
                         role: 'public_health',
-                        label: isAr ? 'الصحة العامة' : isFr ? 'Santé Publique' : 'Public Health',
+                        label: isFr ? 'Santé Publique' : 'Public Health',
                       },
                     ] as Array<{ role: UserRole; label: string }>
                   ).map((item) => (
@@ -749,12 +695,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="max-w-2xl space-y-2.5">
             <p className="text-xs font-bold text-[#0F6B6B] uppercase tracking-widest">
-              {isAr ? '٠١ · القيمة السريرية المضافة' : isFr ? '01 · Proposition de Valeur' : '01 · Core Value Proposition'}
+              {isFr ? '01 · Proposition de Valeur' : '01 · Core Value Proposition'}
             </p>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0B3B3C] font-heading leading-tight">
-              {isAr ? (
-                'لماذا يتفوق المسار المغلق على الفحص التقليدي؟'
-              ) : isFr ? (
+              {isFr ? (
                 <>
                   Trois ruptures décisives pour{' '}
                   <span className="font-editorial italic font-normal text-[#0F6B6B]">
@@ -780,9 +724,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl btn-liquid-primary text-xs sm:text-sm font-semibold flex items-center gap-2 cursor-pointer"
             >
               <span>
-                {isAr
-                  ? 'جرب مسار المريض الآن'
-                  : isFr
+                {isFr
                   ? 'Tester l’expérience Patient en 1 clic'
                   : 'Experience the Patient Journey (1-Click)'}
               </span>
@@ -819,12 +761,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             <div className="lg:col-span-5 space-y-4 sm:space-y-5">
               <p className="text-xs font-bold text-[#0F6B6B] uppercase tracking-widest">
-                {isAr ? '٠٢ · المسار المغلق' : isFr ? '02 · Architecture en Boucle Fermée' : '02 · Closed-Loop Architecture'}
+                {isFr ? '02 · Architecture en Boucle Fermée' : '02 · Closed-Loop Architecture'}
               </p>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0B3B3C] font-heading leading-tight">
-                {isAr ? (
-                  'خمس خطوات مترابطة من التنبيه السريري إلى الزيارة المؤكدة'
-                ) : isFr ? (
+                {isFr ? (
                   <>
                     Du drapeau clinique jusqu’au{' '}
                     <span className="font-editorial italic font-normal text-[#0F6B6B]">
@@ -841,9 +781,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 )}
               </h2>
               <p className="text-sm sm:text-base text-[#475569] leading-relaxed">
-                {isAr
-                  ? 'كل توصية تنطلق من قاعدة طبية منشورة، يصادق عليها الطبيب، وتصل للمريض كبطاقة زيارة موحدة.'
-                  : isFr
+                {isFr
                   ? 'Chaque règle déclenchée est vérifiée par un médecin avant de générer un Pass de visite unifié et vérifiable.'
                   : 'Every triggered rule is physician-verified before generating a unified, verifiable visit pass for the patient.'}
               </p>
@@ -856,9 +794,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   className="px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl btn-liquid-primary text-xs sm:text-sm font-semibold inline-flex items-center gap-2 cursor-pointer"
                 >
                   <span>
-                    {isAr
-                      ? 'افتح قائمة المنسق'
-                      : isFr
+                    {isFr
                       ? 'Ouvrir la File Coordinateur'
                       : 'Launch Coordinator Queue'}
                   </span>
@@ -902,12 +838,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="lg:col-span-5 space-y-5 sm:space-y-6">
             <div className="space-y-3">
               <p className="text-xs font-bold text-[#0F6B6B] uppercase tracking-widest">
-                {isAr ? '٠٣ · معاينة حية للنظام' : isFr ? '03 · Preuve Produit Interactive' : '03 · Interactive Product Proof'}
+                {isFr ? '03 · Preuve Produit Interactive' : '03 · Interactive Product Proof'}
               </p>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0B3B3C] font-heading leading-tight">
-                {isAr ? (
-                  'شفافية كاملة في كل شاشة، مصممة لكل دور.'
-                ) : isFr ? (
+                {isFr ? (
                   <>
                     Inspectez l’interface réelle{' '}
                     <span className="font-editorial italic font-normal text-[#0F6B6B]">
@@ -924,9 +858,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 )}
               </h2>
               <p className="text-sm sm:text-base text-[#475569] leading-relaxed">
-                {isAr
-                  ? 'بدّل بين شاشة الطبيب الخالية من التحيز، وبطاقة المريض الذكية، ومرصد العدالة السكانية.'
-                  : isFr
+                {isFr
                   ? 'Basculez entre l’écran clinique du médecin (garanti sans score logistique), le Pass QR familial et la table d’équité démographique.'
                   : 'Switch between the clinician’s bias-free screen, the family QR visit pass, and the demographic equity table.'}
               </p>
@@ -937,15 +869,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 [
                   {
                     id: 'clinician',
-                    label: isAr ? '١. شاشة الطبيب' : isFr ? '1. Espace Médecin' : '1. Clinician',
+                    label: isFr ? '1. Espace Médecin' : '1. Clinician',
                   },
                   {
                     id: 'patient',
-                    label: isAr ? '٢. بطاقة المريض QR' : isFr ? '2. Pass QR Patient' : '2. Patient QR Pass',
+                    label: isFr ? '2. Pass QR Patient' : '2. Patient QR Pass',
                   },
                   {
                     id: 'equity',
-                    label: isAr ? '٣. مرصد العدالة' : isFr ? '3. Équité & Confidentialité' : '3. Equity Safeguards',
+                    label: isFr ? '3. Équité & Confidentialité' : '3. Equity Safeguards',
                   },
                 ] as const
               ).map((tab) => (
@@ -1141,12 +1073,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="max-w-2xl space-y-2.5">
               <p className="text-xs font-bold text-[#0F6B6B] uppercase tracking-widest">
-                {isAr ? '٠٤ · بوابات متخصصة' : isFr ? '04 · Les Espaces Métier' : '04 · Role-Specific Workspaces'}
+                {isFr ? '04 · Les Espaces Métier' : '04 · Role-Specific Workspaces'}
               </p>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0B3B3C] font-heading leading-tight">
-                {isAr ? (
-                  'أربع تجارب مصممة بدقة، كلٌّ حسب مسؤوليته'
-                ) : isFr ? (
+                {isFr ? (
                   <>
                     Quatre portails dédiés,{' '}
                     <span className="font-editorial italic font-normal text-[#0F6B6B]">
@@ -1208,12 +1138,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 lg:gap-8">
             <div className="space-y-2.5 max-w-2xl">
               <p className="text-xs font-bold text-white/90 bg-white/10 border border-white/20 px-3 py-1 rounded-full inline-block uppercase tracking-widest">
-                {isAr ? '٠٥ · الحوكمة والأخلاقيات' : isFr ? '05 · Gouvernance & Sécurité Clinique' : '05 · Clinical Governance & Safeguards'}
+                {isFr ? '05 · Gouvernance & Sécurité Clinique' : '05 · Clinical Governance & Safeguards'}
               </p>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white font-heading leading-tight">
-                {isAr ? (
-                  'القواعد الطبية تقرر السريري. الذكاء الاصطناعي يخدم اللوجستي فقط.'
-                ) : isFr ? (
+                {isFr ? (
                   <>
                     Les règles décident du clinique.{' '}
                     <span className="font-editorial italic font-normal text-white underline decoration-white/45 decoration-2 underline-offset-8">
@@ -1238,9 +1166,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl btn-liquid-primary text-xs sm:text-sm font-semibold inline-flex items-center gap-2 self-start lg:self-auto shrink-0 cursor-pointer"
             >
               <span>
-                {isAr
-                  ? 'الأدلة والحوكمة'
-                  : isFr
+                {isFr
                   ? 'Preuves & gouvernance'
                   : 'Evidence & governance'}
               </span>
@@ -1300,7 +1226,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {t('navFaq')}
           </p>
           <h2 className="text-2xl sm:text-3xl font-bold text-[#0B3B3C] font-heading">
-            {isAr ? 'إجابات واضحة ومباشرة' : isFr ? 'Questions essentielles' : 'Essential Questions'}
+            {isFr ? 'Questions essentielles' : 'Essential Questions'}
           </h2>
         </div>
 
@@ -1341,19 +1267,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <GlassCard glow interactive={false} className="!p-6 sm:!p-12 flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8">
             <div className="space-y-2 text-center lg:text-start max-w-xl">
               <p className="text-xs font-bold text-[#0F6B6B] uppercase tracking-widest">
-                {isAr ? 'ابدأ التجربة الآن' : isFr ? 'Prêt pour l’évaluation en direct' : 'Ready for Live Evaluation'}
+                {isFr ? 'Prêt pour l’évaluation en direct' : 'Ready for Live Evaluation'}
               </p>
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#0B3B3C] font-heading">
-                {isAr
-                  ? 'استكشف البوابات الأربع المعتمدة ببيانات كاملة.'
-                  : isFr
+                {isFr
                   ? 'Testez les 4 portails dédiés en conditions réelles.'
                   : 'Experience all 4 dedicated portals in real conditions.'}
               </h2>
               <p className="text-xs sm:text-sm text-[#475569]">
-                {isAr
-                  ? 'بيانات اصطناعية بالكامل، قواعد سريرية موثقة، وصفحة أدلة مفتوحة.'
-                  : isFr
+                {isFr
                   ? 'Données 100 % synthétiques, règles cliniques publiées et page de preuves ouverte.'
                   : '100% synthetic data, published clinical rules, and an open evidence page.'}
               </p>
