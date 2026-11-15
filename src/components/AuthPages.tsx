@@ -43,23 +43,12 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     role: 'patient',
     category: 'citizen',
     token: 'demo-token-patient',
-    labelEn: 'Patient Portal',
-    labelFr: 'Portail Patient Unifié',
+    labelEn: 'Patient & Family',
+    labelFr: 'Patient & Famille',
     labelAr: 'بوابة المريض الموحدة',
     email: 'tariq.nadim@demo.medisense.example',
-    subtitleEn: 'Tariq Al-Nadim (36y · Personal Record + Affiliated Children)',
-    subtitleFr: 'Tariq Al-Nadim (36 ans · Dossier personnel + Enfants affiliés)',
-  },
-  {
-    role: 'parent',
-    category: 'citizen',
-    token: 'demo-token-parent',
-    labelEn: 'Parent Portal',
-    labelFr: 'Portail Parent',
-    labelAr: 'بوابة الوالدين',
-    email: 'amira.mansoor@demo.medisense.example',
-    subtitleEn: 'Amira Al-Mansoor (Parent · Affiliated children)',
-    subtitleFr: 'Amira Al-Mansoor (Parent · Enfants affiliés)',
+    subtitleEn: 'Tariq Al-Nadim · 36y · Personal record + children',
+    subtitleFr: 'Tariq Al-Nadim · 36 ans · Dossier + enfants',
   },
   {
     role: 'clinician',
@@ -69,8 +58,8 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     labelFr: 'Médecin / Clinicien',
     labelAr: 'طبيب سريري',
     email: 'dr.kpegbe@demo.medisense.example',
-    subtitleEn: 'Dr. Sydney Kpegbe (Clinical consultation)',
-    subtitleFr: 'Dr. Sydney Kpegbe (Consultation clinique)',
+    subtitleEn: 'Dr. Sydney Kpegbe · Clinical consultation',
+    subtitleFr: 'Dr. Sydney Kpegbe · Consultation clinique',
   },
   {
     role: 'coordinator',
@@ -80,8 +69,8 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     labelFr: 'Coordinateur de Soins',
     labelAr: 'منسق الرعاية',
     email: 'orace.coord@demo.medisense.example',
-    subtitleEn: 'Orace A. (Outreach queues)',
-    subtitleFr: 'Orace A. (Files de relance)',
+    subtitleEn: 'Orace A. · Outreach queues',
+    subtitleFr: 'Orace A. · Files de relance',
   },
   {
     role: 'public_health',
@@ -91,8 +80,8 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     labelFr: 'Santé Publique',
     labelAr: 'الصحة العامة',
     email: 'bienderan.epi@demo.medisense.example',
-    subtitleEn: 'Bienderan E. (Population Observatory & Equity)',
-    subtitleFr: 'Bienderan E. (Observatoire Population & Équité)',
+    subtitleEn: 'Bienderan E. · Population Observatory',
+    subtitleFr: 'Bienderan E. · Observatoire Population',
   },
 ];
 
@@ -313,16 +302,14 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
         </div>
 
         {/* Bottom Caption Overlay inside Left Full-Height Image Section */}
-        <div className="relative z-10 rounded-2xl bg-[#041D1E]/45 backdrop-blur-sm p-6 space-y-2 text-white max-w-xl">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-white/85">
-            {isFr
-              ? 'Parcours Clinique & Logistique Unifié'
-              : 'Unified Clinical & Logistics Pathway'}
+        <div className="relative z-10 rounded-2xl bg-[#041D1E]/45 backdrop-blur-sm p-5 space-y-1.5 text-white max-w-xl">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">
+            {isFr ? 'Plateforme de prévention de précision' : 'Precision prevention platform'}
           </p>
           <h2 className="text-xl xl:text-2xl font-extrabold font-heading leading-snug text-white">
             {isFr
-              ? 'Du dépistage préventif au rendez-vous confirmé en une seule visite.'
-              : 'From preventive screening rules to a confirmed single-visit care plan.'}
+              ? 'Règles cliniques · Validation médicale · Pass QR patient.'
+              : 'Clinical rules · Physician sign-off · Patient QR pass.'}
           </h2>
         </div>
       </div>
@@ -693,12 +680,8 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
           </motion.div>
         </main>
 
-        <footer className="text-center text-[11px] text-white/85 lg:text-[#64748B] px-4">
-          <p>
-            {isFr
-              ? 'Prototype indépendant réalisé par l’équipe CareX. Sans affiliation avec, ni approbation d’une autorité de santé. Données 100 % synthétiques.'
-              : 'Independent prototype built by team CareX. Not affiliated with, or endorsed by, any health authority. 100% synthetic data.'}
-          </p>
+        <footer className="text-center text-[11px] text-white/70 lg:text-[#94A3B8] px-4">
+          <p>{isFr ? 'Données 100 % synthétiques · Prototype indépendant.' : '100% synthetic data · Independent prototype.'}</p>
         </footer>
       </div>
     </div>
