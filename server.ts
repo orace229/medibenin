@@ -2740,6 +2740,27 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`MediBenin Full-Stack Server listening on http://0.0.0.0:${PORT}`);
+
+    // == Keep-alive self-ping (Render Free Tier) ==
+    // Render free services sleep after 15 min of inactivity.
+    // Ping our own /api/health every 10 min to stay warm.
+    // Pair with an external monitor (e.g. UptimeRobot) for full protection.
+    const KEEP_ALIVE_URL = process.env.APP_URL || process.env.RENDER_EXTERNAL_URL;
+    if (KEEP_ALIVE_URL && process.env.NODE_ENV === 'production') {
+      const PING_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+      setInterval(async () => {
+        try {
+          const url = `${KEEP_ALIVE_URL}/api/health`;
+          const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+          console.log(`[keep-alive] ping ${url} -> ${res.status}`);
+        } catch (err) {
+          console.warn('[keep-alive] ping failed:', (err as Error).message);
+        }
+      }, PING_INTERVAL_MS);
+      console.log(`[keep-alive] self-ping active every 10 min -> ${KEEP_ALIVE_URL}/api/health`);
+    } else {
+      console.log('[keep-alive] disabled (APP_URL/RENDER_EXTERNAL_URL not set or not in production)');
+    }
   });
 }
 
