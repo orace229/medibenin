@@ -51,6 +51,17 @@ const ALL_ROLE_PRESETS: RolePreset[] = [
     subtitleFr: 'Tariq Al-Nadim (36 ans · Dossier personnel + Enfants affiliés)',
   },
   {
+    role: 'parent',
+    category: 'citizen',
+    token: 'demo-token-parent',
+    labelEn: 'Parent Portal',
+    labelFr: 'Portail Parent',
+    labelAr: 'بوابة الوالدين',
+    email: 'amira.mansoor@demo.medisense.example',
+    subtitleEn: 'Amira Al-Mansoor (Parent · Affiliated children)',
+    subtitleFr: 'Amira Al-Mansoor (Parent · Enfants affiliés)',
+  },
+  {
     role: 'clinician',
     category: 'health_agent',
     token: 'demo-token-clinician',

@@ -234,14 +234,17 @@ interface PatientPortalProps {
 }
 
 export const PatientPortal: React.FC<PatientPortalProps> = ({
+  role,
   onLogout,
 }) => {
   const { locale, t } = useI18n();
   const isFr = locale === 'fr';
   const isAr = locale === 'ar';
 
-  // Unified Patient Portal defaults to adult patient Tariq Al-Nadim (PT-36Y-TARIQ)
-  const [activePatientId, setActivePatientId] = useState<string>('PT-36Y-TARIQ');
+  // Unified Patient Portal starts from the records linked to the authenticated
+  // account (patient own record, or the parent's affiliated children).
+  const [activePatientId, setActivePatientId] = useState<string>('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<
     'home' | 'checkup' | 'journey' | 'notifications' | 'profile' | 'privacy'
   >('home');
@@ -270,24 +273,44 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [otpError, setOtpError] = useState<string | null>(null);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
 
-  // Guided Self-Assessment & Home Vitals Form
-  const [selfForm, setSelfForm] = useState({
+  // Guided Self-Assessment & Home Vitals Form.
+  // Prevention answers start as UNKNOWN (null / empty) rather than "healthy":
+  // an unanswered FINDRISC item must never add zero points by default.
+  const [selfForm, setSelfForm] = useState<{
+    systolicBp1: string;
+    diastolicBp1: string;
+    systolicBp2: string;
+    diastolicBp2: string;
+    weightKg: string;
+    heightCm: string;
+    waistCm: string;
+    dailyPhysicalActivity: boolean | null;
+    dailyFruitsVeg: boolean | null;
+    smokingStatus: boolean | null;
+    antihypertensiveMedHistory: boolean | null;
+    highBloodGlucoseHistory: boolean | null;
+    familyHistoryDiabetesLevel: string;
+    familyPrematureCvd: boolean;
+    isPregnant: boolean;
+    mchatScore: string;
+    redFlagWarningSymptom: boolean;
+  }>({
     systolicBp1: '128',
     diastolicBp1: '82',
     systolicBp2: '126',
     diastolicBp2: '80',
     weightKg: '78',
     heightCm: '175',
-    waistCm: '94',
-    dailyPhysicalActivity: true,
-    dailyFruitsVeg: true,
-    smokingStatus: false,
-    antihypertensiveMedHistory: false,
-    highBloodGlucoseHistory: false,
-    familyHistoryDiabetesLevel: 'none',
+    waistCm: '',
+    dailyPhysicalActivity: null,
+    dailyFruitsVeg: null,
+    smokingStatus: null,
+    antihypertensiveMedHistory: null,
+    highBloodGlucoseHistory: null,
+    familyHistoryDiabetesLevel: '',
     familyPrematureCvd: false,
     isPregnant: false,
-    mchatScore: '1',
+    mchatScore: '',
     redFlagWarningSymptom: false,
   });
 
@@ -297,25 +320,39 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       const res = await apiClient.getPatientPortalProfile(pid);
       setData(res);
       const cp = res?.profile?.clinicalProfile || {};
-      const isChildProfile = res?.profile?.pathwayType !== 'adult';
       setSelfForm({
-        systolicBp1: cp.systolicBp1 ? String(cp.systolicBp1) : '128',
-        diastolicBp1: cp.diastolicBp1 ? String(cp.diastolicBp1) : '82',
-        systolicBp2: cp.systolicBp2 ? String(cp.systolicBp2) : '126',
-        diastolicBp2: cp.diastolicBp2 ? String(cp.diastolicBp2) : '80',
-        weightKg: cp.weightKg ? String(cp.weightKg) : isChildProfile ? '10.8' : '78',
-        heightCm: cp.heightCm ? String(cp.heightCm) : isChildProfile ? '81' : '175',
-        waistCm: cp.waistCm ? String(cp.waistCm) : '92',
+        systolicBp1: cp.systolicBp1 ? String(cp.systolicBp1) : '',
+        diastolicBp1: cp.diastolicBp1 ? String(cp.diastolicBp1) : '',
+        systolicBp2: cp.systolicBp2 ? String(cp.systolicBp2) : '',
+        diastolicBp2: cp.diastolicBp2 ? String(cp.diastolicBp2) : '',
+        weightKg: cp.weightKg ? String(cp.weightKg) : '',
+        heightCm: cp.heightCm ? String(cp.heightCm) : '',
+        waistCm: cp.waistCm ? String(cp.waistCm) : '',
         dailyPhysicalActivity:
-          cp.dailyPhysicalActivity !== undefined ? Boolean(cp.dailyPhysicalActivity) : true,
-        dailyFruitsVeg: cp.dailyFruitsVeg !== undefined ? Boolean(cp.dailyFruitsVeg) : true,
-        smokingStatus: Boolean(cp.smokingStatus),
-        antihypertensiveMedHistory: Boolean(cp.antihypertensiveMedHistory),
-        highBloodGlucoseHistory: Boolean(cp.highBloodGlucoseHistory),
-        familyHistoryDiabetesLevel: cp.familyHistoryDiabetesLevel || 'none',
-        familyPrematureCvd: Boolean(cp.familyPrematureCvd),
+          cp.dailyPhysicalActivity !== undefined && cp.dailyPhysicalActivity !== null
+            ? Boolean(cp.dailyPhysicalActivity)
+            : null,
+        dailyFruitsVeg:
+          cp.dailyFruitsVeg !== undefined && cp.dailyFruitsVeg !== null
+            ? Boolean(cp.dailyFruitsVeg)
+            : null,
+        smokingStatus:
+          cp.smokingStatus !== undefined && cp.smokingStatus !== null
+            ? cp.smokingStatus !== 'never'
+            : null,
+        antihypertensiveMedHistory:
+          cp.antihypertensiveMed !== undefined && cp.antihypertensiveMed !== null
+            ? Boolean(cp.antihypertensiveMed)
+            : null,
+        highBloodGlucoseHistory:
+          cp.historyHighGlucose !== undefined && cp.historyHighGlucose !== null
+            ? Boolean(cp.historyHighGlucose)
+            : null,
+        familyHistoryDiabetesLevel: cp.familyHistoryDiabetes || '',
+        familyPrematureCvd: Boolean(cp.familyHistoryFhOrEarlyCvd),
         isPregnant: Boolean(cp.isPregnant),
-        mchatScore: cp.mchatScore !== undefined ? String(cp.mchatScore) : '1',
+        mchatScore:
+          cp.mchatScore !== undefined && cp.mchatScore !== null ? String(cp.mchatScore) : '',
         redFlagWarningSymptom: Boolean(cp.redFlagWarningSymptom),
       });
     } catch (err) {
@@ -326,7 +363,27 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   };
 
   useEffect(() => {
-    loadProfile(activePatientId);
+    let active = true;
+    apiClient
+      .getMe()
+      .then((res) => {
+        if (!active) return;
+        setCurrentUser(res.user);
+        const linked = Array.isArray(res.user?.linkedPatientIds)
+          ? (res.user.linkedPatientIds as string[])
+          : [];
+        setActivePatientId(linked[0] || 'PT-36Y-TARIQ');
+      })
+      .catch(() => {
+        if (active) setActivePatientId('PT-36Y-TARIQ');
+      });
+    return () => {
+      active = false;
+    };
+  }, [role]);
+
+  useEffect(() => {
+    if (activePatientId) loadProfile(activePatientId);
   }, [activePatientId]);
 
   const rootParent = data?.familyContext?.rootParent || {
@@ -350,6 +407,17 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
   const handleSelectFamilyMember = async (targetId: string) => {
     if (targetId === activePatientId) return;
+    const linkedIds: string[] = Array.isArray(currentUser?.linkedPatientIds)
+      ? currentUser.linkedPatientIds
+      : [];
+    if (targetId === rootParent.id && role === 'parent' && !linkedIds.includes(targetId)) {
+      setFeedbackBanner(
+        isFr
+          ? "Ce dossier adulte n'est pas rattaché à votre compte."
+          : 'This adult record is not linked to your account.'
+      );
+      return;
+    }
     if (targetId === rootParent.id || verifiedChildIds.includes(targetId)) {
       setActivePatientId(targetId);
       return;
@@ -517,8 +585,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               <Shield className="w-3.5 h-3.5 text-[#0F6B6B]" />
               <span>
                 {isFr
-                  ? `Titulaire : ${rootParent.displayName}`
-                  : `Account Holder: ${rootParent.displayName}`}
+                  ? `Titulaire : ${currentUser?.displayName || rootParent.displayName}`
+                  : `Account Holder: ${currentUser?.displayName || rootParent.displayName}`}
               </span>
             </span>
             <LanguageSwitch />
@@ -1427,7 +1495,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             <label className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-[#E2E8F0] cursor-pointer">
                               <input
                                 type="checkbox"
-                                checked={selfForm.dailyPhysicalActivity}
+                                checked={selfForm.dailyPhysicalActivity === true}
                                 onChange={(e) =>
                                   setSelfForm({
                                     ...selfForm,
@@ -1445,7 +1513,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             <label className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-[#E2E8F0] cursor-pointer">
                               <input
                                 type="checkbox"
-                                checked={selfForm.dailyFruitsVeg}
+                                checked={selfForm.dailyFruitsVeg === true}
                                 onChange={(e) =>
                                   setSelfForm({ ...selfForm, dailyFruitsVeg: e.target.checked })
                                 }
@@ -1460,7 +1528,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             <label className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-[#E2E8F0] cursor-pointer">
                               <input
                                 type="checkbox"
-                                checked={selfForm.smokingStatus}
+                                checked={selfForm.smokingStatus === true}
                                 onChange={(e) =>
                                   setSelfForm({ ...selfForm, smokingStatus: e.target.checked })
                                 }
@@ -1473,7 +1541,25 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             <label className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-[#E2E8F0] cursor-pointer">
                               <input
                                 type="checkbox"
-                                checked={selfForm.highBloodGlucoseHistory}
+                                checked={selfForm.antihypertensiveMedHistory === true}
+                                onChange={(e) =>
+                                  setSelfForm({
+                                    ...selfForm,
+                                    antihypertensiveMedHistory: e.target.checked,
+                                  })
+                                }
+                              />
+                              <span className="font-medium text-[#0B3B3C]">
+                                {isFr
+                                  ? 'Traitement contre l’hypertension en cours'
+                                  : 'Currently taking blood-pressure medication'}
+                              </span>
+                            </label>
+
+                            <label className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-[#E2E8F0] cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={selfForm.highBloodGlucoseHistory === true}
                                 onChange={(e) =>
                                   setSelfForm({
                                     ...selfForm,
@@ -1505,6 +1591,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               }
                               className="w-full sm:w-80 px-3 py-2 rounded-xl border border-[#CBD5E1] bg-white text-[#0B3B3C]"
                             >
+                              <option value="">{isFr ? 'Non renseigné' : 'Not answered'}</option>
                               <option value="none">{isFr ? 'Non' : 'No'}</option>
                               <option value="second_degree">
                                 {isFr ? 'Oui (Grand-parent, oncle, tante)' : 'Yes (Grandparent, aunt, uncle)'}

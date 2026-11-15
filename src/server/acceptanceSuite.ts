@@ -14,10 +14,21 @@ import {
   computeWilson95,
 } from './safeguardsEngine.ts';
 import { createSeededRng } from './seedCohort.ts';
+import { getObservatorySummary, generatePopulationForDiagnostics, COHORT_SIZE_PER_SEED } from './benchmarkEngine.ts';
+import { isRouteAllowed, patientScopeAllows, type PatientScope } from '../middleware/rbac.ts';
+import { resolvePathwayConflict } from './syncConflicts.ts';
+import fs from 'fs';
+import path from 'path';
+import {
+  THRESHOLD_DOCUMENTS,
+  verifyThresholdDocumentIntegrity,
+  WHO_CVD_THRESHOLDS,
+  PRIVACY_THRESHOLDS,
+} from './thresholds.ts';
 
 export interface AcceptanceTestResult {
   id: string;
-  category: 'Clinical Safety (S)' | 'Responsible ML (M)' | 'Challenge Requirements (E)';
+  category: 'Clinical Safety (S)' | 'Responsible ML (M)' | 'Challenge Requirements (E)' | 'Access & Governance (G)';
   title: string;
   passed: boolean;
   evidence: string;
@@ -32,30 +43,33 @@ export function runAllAcceptanceTests(): {
 } {
   const results: AcceptanceTestResult[] = [];
 
-  // TEST-S1: Level Grey on incomplete baseline data (never false Green)
+  // TEST-S1: Sync conflict (§5.5) — offline agent "Reportée" vs centre "Réalisée"
   {
-    const evalGrey = evaluatePatientRules(
-      {
-        id: 'TEST-PT-GREY',
-        ageYears: 45,
-        ageMonths: 540,
-        sex: 'male',
-        pathwayType: 'adult',
-        nationalityGroup: 'South Asia',
-        clinicalProfile: {},
-      },
-      false
+    const centreDoneVsPostponed = resolvePathwayConflict(
+      { state: 'postponed', eventDate: '2026-11-14T08:30:00.000Z', actor: 'agent' },
+      { state: 'done', eventDate: '2026-11-14T10:00:00.000Z', actor: 'center' }
+    );
+    const refusalVsScheduled = resolvePathwayConflict(
+      { state: 'refused', eventDate: '2026-11-14T09:00:00.000Z', actor: 'agent' },
+      { state: 'scheduled', eventDate: '2026-11-14T09:30:00.000Z', actor: 'coordinator' }
+    );
+    const equalDateAuthority = resolvePathwayConflict(
+      { state: 'postponed', eventDate: '2026-11-14T09:00:00.000Z', actor: 'agent' },
+      { state: 'scheduled', eventDate: '2026-11-14T09:00:00.000Z', actor: 'center' }
     );
     const passed =
-      evalGrey.overallLevel === 'grey' &&
-      evalGrey.overallCertainty === 'low' &&
-      evalGrey.flags.some((f) => f.missingData.length >= 2);
+      centreDoneVsPostponed.finalState === 'done' &&
+      centreDoneVsPostponed.conflictDetected &&
+      refusalVsScheduled.finalState === 'refused' &&
+      refusalVsScheduled.conflictDetected &&
+      equalDateAuthority.finalState === 'scheduled' &&
+      equalDateAuthority.winningActor === 'center';
     results.push({
       id: 'TEST-S1',
       category: 'Clinical Safety (S)',
-      title: 'Incomplete record triggers Level Grey (never false Green)',
+      title: 'Sync conflict: centre-confirmed "Réalisée" prevails over offline "Reportée" and is logged; refusal prevails over non-final states; authority order centre > coordinateur > agent',
       passed,
-      evidence: `overallLevel=${evalGrey.overallLevel}, certainty=${evalGrey.overallCertainty}, missingItems=${evalGrey.flags[0]?.missingData.length}`,
+      evidence: `centreDone=${centreDoneVsPostponed.finalState}, refusalWins=${refusalVsScheduled.finalState}, equalDateWinner=${equalDateAuthority.winningActor} (${equalDateAuthority.finalState})`,
     });
   }
 
@@ -283,7 +297,42 @@ export function runAllAcceptanceTests(): {
     });
   }
 
-  // TEST-M4: Genomic Non-Delay Safeguard (Rule G3 — negative/unconsented genomics never delays standard care)
+  // TEST-M4: Cold start on a clean machine following the README
+  {
+    // Automated drift guard for the documented manual test: the README must
+    // exist and describe every step of a cold start, and every command it
+    // references must exist in package.json scripts.
+    const readmePath = path.resolve(process.cwd(), 'README.md');
+    const pkgPath = path.resolve(process.cwd(), 'package.json');
+    let readmeOk = false;
+    let scriptsOk = false;
+    let detail = '';
+    try {
+      const readme = fs.readFileSync(readmePath, 'utf8');
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8')) as { scripts: Record<string, string> };
+      const hasInstall = readme.includes('npm install');
+      const hasRun = readme.includes('npm run dev') || readme.includes('npm start');
+      const hasDbSetup = readme.includes('SQL_') && readme.includes('.env');
+      const tokensListed = readme.includes('demo-token-clinician') && readme.includes('demo-token-public-health');
+      readmeOk = hasInstall && hasRun && hasDbSetup && tokensListed;
+      // every `npm run X` / `npm X` command mentioned in the README must exist
+      const referenced = [...readme.matchAll(/npm(?: run)? (dev|start|build|preview|lint|install)/g)].map((m) => m[1]);
+      scriptsOk = referenced.every((cmd) => cmd === 'install' || Boolean(pkg.scripts[cmd]));
+      detail = `install=${hasInstall}, run=${hasRun}, dbEnv=${hasDbSetup}, tokens=${tokensListed}, commandsValid=${scriptsOk}`;
+    } catch (err) {
+      detail = `README/package.json unreadable: ${(err as Error).message}`;
+    }
+    const passed = readmeOk && scriptsOk;
+    results.push({
+      id: 'TEST-M4',
+      category: 'Responsible ML (M)',
+      title: 'Cold start on a clean machine is documented and reproducible via the README',
+      passed,
+      evidence: detail,
+    });
+  }
+
+  // TEST-G3: Genomic Non-Delay Safeguard (Rule G3 — negative/unconsented genomics never delays standard care)
   {
     const withGenomicConsent = evaluatePatientRules(
       {
@@ -328,8 +377,8 @@ export function runAllAcceptanceTests(): {
     const passed =
       withGenomicConsent.flags.some((f) => f.ruleId === 'G1') && clinicalFlagsPreserved;
     results.push({
-      id: 'TEST-M4',
-      category: 'Responsible ML (M)',
+      id: 'TEST-G3',
+      category: 'Access & Governance (G)',
       title: 'Rule G3: Withdrawing genomic consent removes G1 but never delays clinical flags (A1/A3)',
       passed,
       evidence: `withConsentG1=true, withoutConsentClinicalPreserved=${clinicalFlagsPreserved}`,
@@ -342,18 +391,82 @@ export function runAllAcceptanceTests(): {
     const rngB = createSeededRng(20261120);
     const seqA = [rngA(), rngA(), rngA(), rngA(), rngA()];
     const seqB = [rngB(), rngB(), rngB(), rngB(), rngB()];
-    const passed = JSON.stringify(seqA) === JSON.stringify(seqB);
+    const prngMatches = JSON.stringify(seqA) === JSON.stringify(seqB);
+
+    // Real re-execution (cache-independent): two independent generation+evaluation
+    // runs of the benchmark cohort for the same seed must aggregate identically.
+    const runA = generatePopulationForDiagnostics(20261120, 'baseline');
+    const runB = generatePopulationForDiagnostics(20261120, 'baseline');
+    const digest = (people: typeof runA) => {
+      const counts = new Map<string, number>();
+      for (const p of people) counts.set(p.overallLevel ?? 'none', (counts.get(p.overallLevel ?? 'none') ?? 0) + 1);
+      return [...counts.entries()].sort().toString();
+    };
+    const cohortMatches = digest(runA) === digest(runB) && runA.length === runB.length;
+    const passed = prngMatches && cohortMatches;
     results.push({
       id: 'TEST-M5',
       category: 'Responsible ML (M)',
       title: 'Deterministic PRNG (seed = 20261120) reproduces identical cohort & benchmark',
       passed,
-      evidence: `seqMatch=${passed} (${seqA[0].toFixed(6)} === ${seqB[0].toFixed(6)})`,
+      evidence: `seqMatch=${prngMatches} (${seqA[0].toFixed(6)} === ${seqB[0].toFixed(6)}), independent cohort re-run identical=${cohortMatches} (n=${runA.length}, levels [${digest(runA)}])`,
     });
   }
 
-  // TEST-E1: Transparent Risk & Gap Identification (1-3 plain-language factors, source, certainty, zero formulas)
+  // TEST-E6: Observatory integrity — real computation, masking, and alert typing
   {
+    const summary = getObservatorySummary(20261120, 'baseline');
+    const regionRows = summary.safeguardedSegments.filter((s) => s.dimension === summary.poolingDimension);
+    const regionSum = regionRows.reduce((acc, s) => acc + Math.max(0, s.totalEligible), 0);
+    const maskedRowsValid = summary.safeguardedSegments
+      .filter((s) => s.suppressedStatus === 'primary_suppressed' || s.suppressedStatus === 'secondary_suppressed')
+      .every((s) => s.totalEligible === -1 && s.confirmedVisitsCount === -1 && Boolean(s.displayNote));
+    const alertsTyped = summary.communityAlerts.every((a) =>
+      ['C1', 'C3', 'C4'].includes(a.ruleId) &&
+      ['orange', 'yellow', 'red'].includes(a.level) &&
+      Boolean(a.zoneOrSegment) &&
+      Boolean(a.description)
+    );
+    const benchmarkRowsReal = summary.outcomeBenchmark.comparisonRows.length >= 4 &&
+      summary.outcomeBenchmark.comparisonRows.every(
+        (r) => Number.isFinite(r.ageSexBaseline) && Number.isFinite(r.mediSenseRulesPlusM1)
+      );
+    const passed =
+      regionSum === summary.cohortTotal &&
+      summary.cohortTotal === COHORT_SIZE_PER_SEED &&
+      maskedRowsValid &&
+      alertsTyped &&
+      benchmarkRowsReal;
+    results.push({
+      id: 'TEST-E6',
+      category: 'Challenge Requirements (E)',
+      title: 'Observatory summary computed from real benchmark cohort (§7.1/§7.3/§8.3): segment sums, masking, alert typing',
+      passed,
+      evidence: `regionSum(${summary.poolingDimension})=${regionSum} === cohortTotal=${summary.cohortTotal}, maskedRowsValid=${maskedRowsValid}, alertsTyped=${alertsTyped} [${summary.communityAlerts.map((a) => a.ruleId).join(',')}], benchmarkRows=${summary.outcomeBenchmark.comparisonRows.length}`,
+    });
+  }
+
+  // TEST-E1: Transparent Risk & Gap Identification — a complete profile produces
+  // the right flag (1–3 plain-language factors, rule, badge); an incomplete
+  // record produces Level Grey (never a false Green).
+  {
+    const evalGrey = evaluatePatientRules(
+      {
+        id: 'TEST-PT-GREY',
+        ageYears: 45,
+        ageMonths: 540,
+        sex: 'male',
+        pathwayType: 'adult',
+        nationalityGroup: 'South Asia',
+        clinicalProfile: {},
+      },
+      false
+    );
+    const greyOk =
+      evalGrey.overallLevel === 'grey' &&
+      evalGrey.overallCertainty === 'low' &&
+      evalGrey.flags.some((f) => f.missingData.length >= 2);
+
     const evaluated = evaluatePatientRules(
       {
         id: 'TEST-PT-E1',
@@ -371,7 +484,7 @@ export function runAllAcceptanceTests(): {
       },
       false
     );
-    const passed = evaluated.flags.every(
+    const factorsOk = evaluated.flags.every(
       (f) =>
         f.factors.length >= 1 &&
         f.factors.length <= 3 &&
@@ -379,12 +492,16 @@ export function runAllAcceptanceTests(): {
         Boolean(f.certainty) &&
         !f.factors.some((s) => s.includes('>=') || s.includes('<=') || s.includes('S_prio'))
     );
+    const ruleBadgeOk =
+      evaluated.flags.length > 0 &&
+      evaluated.flags.every((f) => Boolean(f.ruleId) && Boolean(f.dueDate));
+    const passed = greyOk && factorsOk && ruleBadgeOk;
     results.push({
       id: 'TEST-E1',
       category: 'Challenge Requirements (E)',
-      title: 'Every flag provides 1–3 plain-language factors, source, and certainty without formulas',
+      title: 'Complete profile → flag with 1–3 plain-language factors, rule and badge; incomplete record → Level Grey (never false Green)',
       passed,
-      evidence: `flagsChecked=${evaluated.flags.length}, plainLanguageVerified=${passed}`,
+      evidence: `grey=${greyOk} (level=${evalGrey.overallLevel}), plainFactors=${factorsOk}, ruleBadge=${ruleBadgeOk} (flags=${evaluated.flags.length})`,
     });
   }
 
@@ -537,6 +654,80 @@ export function runAllAcceptanceTests(): {
       title: 'Closed-loop visit confirmation requires valid 8-character HMAC orientation pass',
       passed,
       evidence: `validPassVerified=${expectedHmac === matchingHmac}, invalidPassRejected=${expectedHmac !== wrongHmac}`,
+    });
+  }
+
+  // TEST-G1: Role-Based Access Control + Patient-Scope Enforcement (§9.2)
+  {
+    const denies = [
+      { role: 'patient', path: '/api/clinician/patients' },
+      { role: 'patient', path: '/api/coordinator/queue' },
+      { role: 'clinician', path: '/api/observatory/summary' },
+      { role: 'public_health', path: '/api/patient/profile/PT-36Y-TARIQ' },
+      { role: 'public_health', path: '/api/clinician/patients/PT-36Y-TARIQ' },
+      { role: 'unknown_role', path: '/api/patient/profile/PT-36Y-TARIQ' },
+    ];
+    const allows = [
+      { role: 'patient', path: '/api/patient/profile/PT-36Y-TARIQ' },
+      { role: 'parent', path: '/api/patient/profile/PT-18M-ZAYED' },
+      { role: 'patient', path: '/api/patient/family/request-sms-otp' },
+      { role: 'patient', path: '/api/coordinator/simulate-logistics' },
+      { role: 'clinician', path: '/api/clinician/patients/PT-36Y-TARIQ' },
+      { role: 'clinician', path: '/api/family/approve-majority-detachment' },
+      { role: 'coordinator', path: '/api/coordinator/queue' },
+      { role: 'coordinator', path: '/api/clinician/analyze-patient' },
+      { role: 'coordinator', path: '/api/clinician/patients/PT-36Y-TARIQ/invitation' },
+      { role: 'coordinator', path: '/api/family/pending-detachments' },
+      { role: 'public_health', path: '/api/observatory/summary' },
+    ];
+    const deniesOk = denies.every(({ role, path }) => !isRouteAllowed(role, path));
+    const allowsOk = allows.every(({ role, path }) => isRouteAllowed(role, path));
+    // Property scoping: personal roles may only reach their linked records +
+    // family members affiliated to them; professional scope is facility-wide.
+    const linkedScope: PatientScope = {
+      mode: 'linked',
+      linkedPatientIds: ['PT-36Y-TARIQ', 'PT-18M-ZAYED', 'PT-14Y-LAYLA'],
+    };
+    const professionalScope: PatientScope = { mode: 'professional', linkedPatientIds: [] };
+    const scopeOk =
+      patientScopeAllows(linkedScope, 'PT-36Y-TARIQ') && // own record
+      patientScopeAllows(linkedScope, 'PT-18M-ZAYED') && // affiliated child
+      !patientScopeAllows(linkedScope, 'PT-55Y-UNLINKED') && // unlinked record refused
+      patientScopeAllows(professionalScope, 'PT-36Y-TARIQ');
+    const passed = deniesOk && allowsOk && scopeOk;
+    results.push({
+      id: 'TEST-G1',
+      category: 'Access & Governance (G)',
+      title: 'Deny-by-default role matrix + property scoping (own record + affiliated family only)',
+      passed,
+      evidence: `denies=${deniesOk}, allows=${allowsOk}, scope=${scopeOk}`,
+    });
+  }
+
+  // TEST-G2: Versioned threshold documents are the single source of truth (§9.2)
+  {
+    const docsValid =
+      THRESHOLD_DOCUMENTS.length === 6 &&
+      THRESHOLD_DOCUMENTS.every((d) => d.version === '1.0.0' && d.effectiveDate.length === 10 && d.sha256.length === 16);
+    // Re-hash proves the recorded hash matches the document content (no tampering)
+    const rehashOk = verifyThresholdDocumentIntegrity();
+    // Engine wiring spot-checks: the privacy safeguards and the WHO bands must
+    // read their values from the documents (not from code literals).
+    const wiringOk =
+      PRIVACY_THRESHOLDS.minCellSize === 10 &&
+      PRIVACY_THRESHOLDS.wilsonZ === 1.96 &&
+      PRIVACY_THRESHOLDS.insufficientEventsThreshold === 5 &&
+      WHO_CVD_THRESHOLDS.riskYellowPercent === 5 &&
+      WHO_CVD_THRESHOLDS.riskOrangePercent === 10 &&
+      WHO_CVD_THRESHOLDS.domainAgeMinYears === 40 &&
+      WHO_CVD_THRESHOLDS.domainAgeMaxYears === 80;
+    const passed = docsValid && rehashOk && wiringOk;
+    results.push({
+      id: 'TEST-G2',
+      category: 'Access & Governance (G)',
+      title: 'Versioned threshold documents (6 docs, v1.0.0, SHA-256 stable) govern engine values',
+      passed,
+      evidence: `docs=${THRESHOLD_DOCUMENTS.length}, integrity=${rehashOk}, wiring=${wiringOk}, hashSample=${THRESHOLD_DOCUMENTS[0]?.sha256}`,
     });
   }
 

@@ -9,9 +9,9 @@ const AUTH_TOKEN_STORAGE_KEY = 'medisense.authToken';
 
 function restoreStoredAuthToken(): string {
   try {
-    return sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || 'demo-token-clinician';
+    return sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || '';
   } catch {
-    return 'demo-token-clinician';
+    return '';
   }
 }
 

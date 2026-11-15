@@ -119,7 +119,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const heroMetrics = [
     {
       kicker: 'COHORT SCALE',
-      val: '5,240',
+      val: '6,000',
       label: isAr ? 'ملف صحي اصطناعي' : isFr ? 'Profils synthétiques' : 'Synthetic profiles',
       sub: isAr ? 'بذرة حتمية ٢٠٢٦١١٢٠' : isFr ? 'Reproductibilité totale' : 'Deterministic seed 20261120',
     },
@@ -323,8 +323,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       a: isAr
         ? 'نعم. البوابات الأربع (بوابة المريض الموحدة مع أطفاله المرتبطين + ٣ بوابات للكوادر الصحية) جاهزة ببيانات اصطناعية كاملة.'
         : isFr
-        ? 'Oui. Les 4 espaces sont préconfigurés avec un panel de 52 dossiers issu d’une cohorte synthétique de 5 240 profils.'
-        : 'Yes. All 4 workspaces are pre-loaded with a 52-record demo panel from a 5,240-profile synthetic cohort.',
+        ? 'Oui. Les 4 espaces sont préconfigurés avec un panel de 53 dossiers issu d’une cohorte synthétique de 6 000 profils.'
+        : 'Yes. All 4 workspaces are pre-loaded with a 53-record demo panel from a 6,000-profile synthetic cohort.',
     },
   ];
 
@@ -392,8 +392,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     'for-whom': {
       badge: '04 · 4 DEDICATED PORTALS',
       message: isFr
-        ? '1 Portail Patient Unifié + 3 Espaces Agents de Santé (panel de 52 dossiers).'
-        : '1 Unified Patient Portal + 3 Health Agent Workspaces (52-record demo panel).',
+        ? '1 Portail Patient Unifié + 3 Espaces Agents de Santé (panel de 53 dossiers).'
+        : '1 Unified Patient Portal + 3 Health Agent Workspaces (53-record demo panel).',
       primaryLabel: copy.ctaPrimary,
       primaryAction: onNavigateToLogin,
       secondaryLabel: isFr ? 'Vue Médecin directe →' : 'Direct Clinician View →',

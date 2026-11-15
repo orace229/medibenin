@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "documentId": "adult-screening-thresholds",
+  "version": "1.0.0",
+  "effectiveDate": "2026-11-15",
+  "source": "IFHAS / national screening eligibility age bands (cervical 25-65, mammography 40-69, colorectal 40+ or first-degree family history), WHO PEN continuity gap (rule A9), and CDC STEADI fall-screening age (65+).",
+  "thresholds": {
+    "cervicalScreeningAgeMinYears": 25,
+    "cervicalScreeningAgeMaxYears": 65,
+    "mammographyAgeMinYears": 40,
+    "mammographyAgeMaxYears": 69,
+    "colorectalAgeMinYears": 40,
+    "chronicVisitGapMonths": 6,
+    "fallScreeningAgeMinYears": 65
+  }
+}

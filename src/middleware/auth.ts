@@ -4,7 +4,7 @@ import { DecodedIdToken } from 'firebase-admin/auth';
 import { getOrCreateUser } from '../db/users.ts';
 
 export interface AuthRequest extends Request {
-  user?: DecodedIdToken | { uid: string; email: string; role: string; displayName: string; isDemo: boolean };
+  user?: DecodedIdToken | { uid: string; email: string; role: string; displayName: string; isDemo: boolean; linkedPatientIds: string[] };
 }
 
 const DEMO_ACCOUNTS: Record<string, { uid: string; email: string; role: string; displayName: string; preferredLanguage: string; linkedPatientIds: string[] }> = {
@@ -50,6 +50,18 @@ const DEMO_ACCOUNTS: Record<string, { uid: string; email: string; role: string; 
   },
 };
 
+/**
+ * Demo bearer tokens are a deliberate demo-only capability. They are enabled
+ * automatically outside production, and must be explicitly enabled in
+ * production with DEMO_MODE=true (the hosted jury demo does this). This avoids
+ * shipping a production deployment that accepts the public demo tokens.
+ */
+function demoModeEnabled(): boolean {
+  if (process.env.DEMO_MODE === 'true') return true;
+  if (process.env.DEMO_MODE === 'false') return false;
+  return process.env.NODE_ENV !== 'production';
+}
+
 export const requireAuth = async (
   req: AuthRequest,
   res: Response,
@@ -63,7 +75,13 @@ export const requireAuth = async (
   const token = authHeader.split('Bearer ')[1];
 
   // 1. Check if token matches a pre-configured Demo Sandbox Role token
-  if (DEMO_ACCOUNTS[token]) {
+  if (DEMO_ACCOUNTS[token] && !demoModeEnabled()) {
+    return res.status(401).json({
+      error: 'Unauthorized: demo tokens are disabled on this deployment. Set DEMO_MODE=true only for the documented demo environment.',
+    });
+  }
+
+  if (DEMO_ACCOUNTS[token] && demoModeEnabled()) {
     const demoAccount = DEMO_ACCOUNTS[token];
     try {
       await getOrCreateUser(
@@ -79,6 +97,7 @@ export const requireAuth = async (
         role: demoAccount.role,
         displayName: demoAccount.displayName,
         isDemo: true,
+        linkedPatientIds: demoAccount.linkedPatientIds,
       };
       return next();
     } catch (err) {
@@ -94,14 +113,17 @@ export const requireAuth = async (
       decodedToken.uid,
       decodedToken.email || 'user@medisense.ae',
       decodedToken.name || decodedToken.email?.split('@')[0] || 'Authenticated User',
-      'clinician',
-      ['PT-36Y-TARIQ']
+      // New Firebase accounts are unprivileged by default. Clinical roles are
+      // provisioned explicitly after credential/licence verification.
+      'patient',
+      []
     );
     req.user = {
       ...decodedToken,
       role: dbUser.role,
       displayName: dbUser.displayName,
       isDemo: false,
+      linkedPatientIds: dbUser.linkedPatientIds ?? [],
     };
     next();
   } catch (error) {

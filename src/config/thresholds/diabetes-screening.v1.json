@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "documentId": "diabetes-screening-thresholds",
+  "version": "1.0.0",
+  "effectiveDate": "2026-11-15",
+  "source": "FINDRISC score bands (rule A3), ADA glycemic categories (HbA1c 5.7% prediabetes / 6.5% diabetes), and WHO Asian BMI adaptation 2004 (>=23 kg/m2, rule A4).",
+  "thresholds": {
+    "findriscScreeningScore": 12,
+    "findriscHighRiskScore": 15,
+    "hba1cPrediabetesPercent": 5.7,
+    "hba1cDiabetesPercent": 6.5,
+    "asianAdaptedBmiThresholdKgM2": 23
+  }
+}

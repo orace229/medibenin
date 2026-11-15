@@ -3,7 +3,6 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as dotenv from 'dotenv';
-import { createServer as createViteServer } from 'vite';
 import { eq, desc, count } from 'drizzle-orm';
 import { db } from './src/db/index.ts';
 import {
@@ -18,6 +17,12 @@ import {
   users,
 } from './src/db/schema.ts';
 import { requireAuth, AuthRequest } from './src/middleware/auth.ts';
+import {
+  requireRole,
+  requirePatientScope,
+  assertPatientScope,
+  type Role,
+} from './src/middleware/rbac.ts';
 import { ensureSeededDatabase } from './src/server/seedCohort.ts';
 import {
   computeReferralHmac,
@@ -32,10 +37,14 @@ import {
   validateM2MessageSafety,
 } from './src/server/mlLogistics.ts';
 import {
-  buildSafeguardedSegmentTable,
-  computeWilson95,
-} from './src/server/safeguardsEngine.ts';
+  getObservatorySummary,
+  BENCHMARK_SCENARIOS,
+  COHORT_SIZE_PER_SEED,
+  type BenchmarkScenario,
+} from './src/server/benchmarkEngine.ts';
 import { runAllAcceptanceTests } from './src/server/acceptanceSuite.ts';
+import { THRESHOLD_DOCUMENTS } from './src/server/thresholds.ts';
+import { resolvePathwayConflict, type PathwayState } from './src/server/syncConflicts.ts';
 
 dotenv.config();
 
@@ -160,6 +169,17 @@ async function startServer() {
     }
   };
 
+  // Consent helpers: a missing row keeps the historical default (allowed) but an
+  // explicit `false` always blocks the corresponding action.
+  const getConsentRow = async (patientId: string) => {
+    const rows = await db.select().from(consents).where(eq(consents.patientId, patientId));
+    return rows[0];
+  };
+  const isPurposeAllowed = (
+    row: typeof consents.$inferSelect | undefined,
+    key: 'evaluationAndCalendar' | 'channelReminders' | 'shareWithFacility' | 'anonymousStatistics' | 'existingGenomicResult'
+  ) => (row ? row[key] !== false : true);
+
   // =========================================================================
   // 1. SYSTEM & GOVERNANCE VERIFICATION ENDPOINTS (Public for Phase 0 checks)
   // =========================================================================
@@ -168,7 +188,7 @@ async function startServer() {
       await ensureInit();
       const total = await db.select({ value: count() }).from(patients);
       const panelSize = total[0]?.value ?? 0;
-      const cohortSize = 5240;
+      const cohortSize = COHORT_SIZE_PER_SEED;
       res.json({ cohortSize, panelSize, story: `Demo panel of ${panelSize} patients drawn from a ${cohortSize.toLocaleString('en-US')}-person synthetic cohort` });
     } catch (error: any) {
       console.error('Failed to load demo counts:', error);
@@ -208,6 +228,17 @@ async function startServer() {
       console.error('Acceptance suite error:', error);
       res.status(500).json({ error: error.message || 'Acceptance suite failed' });
     }
+  });
+
+  // Public, non-PHI governance view of every versioned threshold document
+  // (§9.2 — auditable, hash-verified clinical thresholds; same pattern as the
+  // signed rule table). Any change to a threshold value must ship as a new
+  // document version; this endpoint exposes exactly what is deployed.
+  app.get('/api/governance/thresholds', (_req, res) => {
+    res.json({
+      documents: THRESHOLD_DOCUMENTS,
+      note: 'Versioned threshold documents (SHA-256 integrity hashes). Threshold values are governed by these documents, never tuned in code.',
+    });
   });
 
   // =========================================================================
@@ -266,19 +297,24 @@ async function startServer() {
     patientConsent?: typeof consents.$inferSelect,
     patientLogs?: Array<typeof usageLogs.$inferSelect>
   ) => {
-    const evaluated = evaluatePatientRules(
-      {
-        id: p.id,
-        ageYears: p.ageYears,
-        ageMonths: p.ageMonths,
-        gestationalAgeWeeks: p.gestationalAgeWeeks,
-        sex: p.sex,
-        pathwayType: p.pathwayType,
-        nationalityGroup: p.nationalityGroup,
-        clinicalProfile: p.clinicalProfile,
-      },
-      Boolean(patientConsent?.existingGenomicResult)
-    );
+    // Respect the evaluation purpose even on read: if it is withdrawn, do not
+    // run the rules engine and do not expose freshly computed clinical results.
+    const evaluationAllowed = patientConsent ? patientConsent.evaluationAndCalendar !== false : true;
+    const evaluated = evaluationAllowed
+      ? evaluatePatientRules(
+          {
+            id: p.id,
+            ageYears: p.ageYears,
+            ageMonths: p.ageMonths,
+            gestationalAgeWeeks: p.gestationalAgeWeeks,
+            sex: p.sex,
+            pathwayType: p.pathwayType,
+            nationalityGroup: p.nationalityGroup,
+            clinicalProfile: p.clinicalProfile,
+          },
+          Boolean(patientConsent?.existingGenomicResult)
+        )
+      : null;
 
     const sanitizedRecs = patientRecs.map((r) => ({
       id: r.id,
@@ -299,13 +335,25 @@ async function startServer() {
       // Explicitly omit priorityScoreSprio, mlNoShowProbM1, mlTopFactorsM1, mlSuggestedAction (TEST-E2 & TEST-M2)
     }));
 
+    const sanitizedProfile = { ...(p.clinicalProfile as Record<string, any>) };
+    if (!patientConsent?.existingGenomicResult) {
+      delete sanitizedProfile.genomicSignal;
+    }
+    // A stale G1/G2 row must never be exposed after the genomic purpose is
+    // withdrawn, even before the next evaluation replaces the flags.
+    const visibleFlags = evaluationAllowed
+      ? patientFlags.filter(
+          (f) => patientConsent?.existingGenomicResult || (f.ruleId !== 'G1' && f.ruleId !== 'G2')
+        )
+      : [];
+
     return {
       id: p.id,
       displayName: p.displayName,
       ageYears: p.ageYears,
       ageMonths: p.ageMonths,
       gestationalAgeWeeks: p.gestationalAgeWeeks,
-      correctedAgeMonths: evaluated.correctedAgeMonths,
+      correctedAgeMonths: evaluated?.correctedAgeMonths ?? null,
       sex: p.sex,
       nationalityGroup: p.nationalityGroup,
       pathwayType: p.pathwayType,
@@ -321,12 +369,12 @@ async function startServer() {
       nextDueDate: p.nextDueDate,
       preventionProgressDone: p.preventionProgressDone,
       preventionProgressTotal: p.preventionProgressTotal,
-      clinicalProfile: p.clinicalProfile,
-      calculations: evaluated.calculations,
+      clinicalProfile: sanitizedProfile,
+      calculations: evaluated?.calculations ?? null,
       // Expose visual series & zones without raw rule thresholds
       visualIndicators: {
         bpZoneLabel:
-          evaluated.calculations.bpProtocol.bpZoneLabel ||
+          evaluated?.calculations.bpProtocol.bpZoneLabel ||
           p.clinicalProfile.bpZoneLabel ||
           'In target zone',
         growthSeries: p.clinicalProfile.growthSeries || [],
@@ -340,7 +388,7 @@ async function startServer() {
               }
             : null,
       },
-      flags: patientFlags.map((f) => ({
+      flags: visibleFlags.map((f) => ({
         id: f.id,
         flagType: f.flagType,
         level: f.level,
@@ -359,7 +407,7 @@ async function startServer() {
     };
   };
 
-  app.get('/api/clinician/patients', requireAuth, async (req: AuthRequest, res) => {
+  app.get('/api/clinician/patients', requireAuth, requireRole('clinician'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const { level, pathway, state } = req.query;
@@ -406,7 +454,7 @@ async function startServer() {
     }
   });
 
-  app.get('/api/clinician/patients/:id', requireAuth, async (req: AuthRequest, res) => {
+  app.get('/api/clinician/patients/:id', requireAuth, requireRole('clinician'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
@@ -433,7 +481,7 @@ async function startServer() {
   });
 
   // Action 1: Run Prevention Evaluation
-  app.post('/api/clinician/patients/:id/evaluate', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/clinician/patients/:id/evaluate', requireAuth, requireRole('clinician'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
@@ -441,6 +489,12 @@ async function startServer() {
       if (!pRows[0]) return res.status(404).json({ error: 'Patient not found' });
 
       const pConsents = await db.select().from(consents).where(eq(consents.patientId, patientId));
+      if (!isPurposeAllowed(pConsents[0], 'evaluationAndCalendar')) {
+        return res.status(403).json({
+          error:
+            'Evaluation consent is required: the patient has withdrawn the evaluation purpose. No evaluation was performed.',
+        });
+      }
       const evaluated = evaluatePatientRules(
         {
           id: pRows[0].id,
@@ -522,7 +576,7 @@ async function startServer() {
   });
 
   // Action 2: Submit Missing Data (resolves Level Grey -> Level Yellow/Orange/Green)
-  app.post('/api/clinician/patients/:id/missing-data', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/clinician/patients/:id/missing-data', requireAuth, requireRole('clinician'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
@@ -601,6 +655,12 @@ async function startServer() {
       currentProfile.provenanceMap = { ...currentProfile.provenanceMap, bp: 'M', bmi: 'M' };
 
       const pConsents = await db.select().from(consents).where(eq(consents.patientId, patientId));
+      if (!isPurposeAllowed(pConsents[0], 'evaluationAndCalendar')) {
+        return res.status(403).json({
+          error:
+            'Evaluation consent is required: the patient has withdrawn the evaluation purpose. No measurements were saved or evaluated.',
+        });
+      }
       const evaluated = evaluatePatientRules(
         {
           id: pRows[0].id,
@@ -684,7 +744,7 @@ async function startServer() {
   });
 
   // Action 2B: Full Guided Clinical Analysis & Custom Patient Assessment Workbench (U2 + A2 + OMS 2019 + FINDRISC)
-  app.post('/api/clinician/analyze-patient', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/clinician/analyze-patient', requireAuth, requireRole('clinician', 'coordinator'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const body = req.body || {};
@@ -764,25 +824,29 @@ async function startServer() {
             ? 'current'
             : body.smokingStatus === false || body.smokingStatus === 'never'
             ? 'never'
-            : baseProfile.smokingStatus || 'never',
+            : body.smokingStatus === 'dokha_shisha'
+            ? 'dokha_shisha'
+            : baseProfile.smokingStatus,
         dailyPhysicalActivity:
-          body.dailyPhysicalActivity !== undefined
+          body.dailyPhysicalActivity !== undefined && body.dailyPhysicalActivity !== null
             ? Boolean(body.dailyPhysicalActivity)
-            : baseProfile.dailyPhysicalActivity ?? true,
+            : baseProfile.dailyPhysicalActivity ?? null,
         dailyFruitsVeg:
-          body.dailyFruitsVeg !== undefined
+          body.dailyFruitsVeg !== undefined && body.dailyFruitsVeg !== null
             ? Boolean(body.dailyFruitsVeg)
-            : baseProfile.dailyFruitsVeg ?? true,
+            : baseProfile.dailyFruitsVeg ?? null,
         antihypertensiveMed:
-          body.antihypertensiveMedHistory !== undefined
+          body.antihypertensiveMedHistory !== undefined && body.antihypertensiveMedHistory !== null
             ? Boolean(body.antihypertensiveMedHistory)
-            : baseProfile.antihypertensiveMed ?? false,
+            : baseProfile.antihypertensiveMed ?? null,
         historyHighGlucose:
-          body.highBloodGlucoseHistory !== undefined
+          body.highBloodGlucoseHistory !== undefined && body.highBloodGlucoseHistory !== null
             ? Boolean(body.highBloodGlucoseHistory)
-            : baseProfile.historyHighGlucose ?? false,
+            : baseProfile.historyHighGlucose ?? null,
         familyHistoryDiabetes:
-          body.familyHistoryDiabetesLevel || baseProfile.familyHistoryDiabetes || 'none',
+          body.familyHistoryDiabetesLevel && body.familyHistoryDiabetesLevel !== 'unknown'
+            ? body.familyHistoryDiabetesLevel
+            : baseProfile.familyHistoryDiabetes ?? null,
         hba1cPercent: numOrUndef(body.hba1cPercent, baseProfile.hba1cPercent),
         isPregnant:
           body.isPregnant !== undefined ? Boolean(body.isPregnant) : baseProfile.isPregnant ?? false,
@@ -795,9 +859,28 @@ async function startServer() {
             ? Boolean(body.familyBreastOrColorectalCancer)
             : baseProfile.familyHistoryColorectal ?? false,
         colorectalScreeningUpToDate:
-          body.colorectalScreeningOverdueMonths !== undefined
+          body.colorectalScreeningOverdueMonths !== undefined &&
+          body.colorectalScreeningOverdueMonths !== ''
             ? Number(body.colorectalScreeningOverdueMonths) <= 0
-            : baseProfile.colorectalScreeningUpToDate ?? true,
+            : baseProfile.colorectalScreeningUpToDate ?? null,
+        cervicalScreeningUpToDate:
+          body.cervicalScreeningOverdueMonths !== undefined &&
+          body.cervicalScreeningOverdueMonths !== ''
+            ? Number(body.cervicalScreeningOverdueMonths) <= 0
+            : baseProfile.cervicalScreeningUpToDate ?? null,
+        mammographyUpToDate:
+          body.mammographyScreeningOverdueMonths !== undefined &&
+          body.mammographyScreeningOverdueMonths !== ''
+            ? Number(body.mammographyScreeningOverdueMonths) <= 0
+            : baseProfile.mammographyUpToDate ?? null,
+        ifhasFullScreeningDone:
+          body.ifhasFullScreeningDone !== undefined
+            ? Boolean(body.ifhasFullScreeningDone)
+            : baseProfile.ifhasFullScreeningDone ?? null,
+        fallOrSensoryRisk:
+          body.fallOrSensoryRisk !== undefined
+            ? Boolean(body.fallOrSensoryRisk)
+            : baseProfile.fallOrSensoryRisk ?? null,
         monthsSinceLastChronicVisit: numOrUndef(
           body.chronicFollowupInterruptedMonths,
           baseProfile.monthsSinceLastChronicVisit ?? 0
@@ -815,8 +898,27 @@ async function startServer() {
             ? Boolean(body.redFlagWarningSymptom)
             : baseProfile.redFlagWarningSymptom ?? false,
         redFlagSymptomLabel: body.redFlagSymptomLabel || baseProfile.redFlagSymptomLabel,
+        // The emergency escape rule E0 reads these two fields. They are mapped
+        // from the guided form's red-flag toggle so the safety escape cannot be
+        // silently ignored.
+        hasEmergencySymptoms:
+          body.hasEmergencySymptoms !== undefined
+            ? Boolean(body.hasEmergencySymptoms)
+            : body.redFlagWarningSymptom !== undefined
+            ? Boolean(body.redFlagWarningSymptom)
+            : baseProfile.hasEmergencySymptoms ?? false,
+        hasSymptomaticCrisis:
+          body.hasSymptomaticCrisis !== undefined
+            ? Boolean(body.hasSymptomaticCrisis)
+            : body.redFlagWarningSymptom === true
+            ? true
+            : baseProfile.hasSymptomaticCrisis ?? false,
         // Pediatric & Adolescent parameters
-        weightForHeightZ: numOrUndef(body.weightForAgeZ, baseProfile.weightForHeightZ),
+        weightForHeightZ: numOrUndef(
+          body.weightForHeightZ,
+          numOrUndef(body.weightForAgeZ, baseProfile.weightForHeightZ)
+        ),
+        heightForAgeZ: numOrUndef(body.heightForAgeZ, baseProfile.heightForAgeZ),
         bmiForAgeZ: numOrUndef(body.bmiForAgeZ, baseProfile.bmiForAgeZ),
         muacMm: numOrUndef(body.muacMm, baseProfile.muacMm),
         mchatScore: numOrUndef(body.mchatScore, baseProfile.mchatScore),
@@ -826,13 +928,22 @@ async function startServer() {
             ? true
             : body.anemiaScreeningDone !== undefined
             ? Boolean(body.anemiaScreeningDone)
-            : baseProfile.anemiaScreeningDone ?? true,
+            : baseProfile.anemiaScreeningDone ?? null,
         vaccineDelayDays:
           typeof body.missedVaccineDoses === 'string' && body.missedVaccineDoses.trim().length > 0
             ? 60
-            : baseProfile.vaccineDelayDays ?? 0,
+            : baseProfile.vaccineDelayDays,
+        isZeroDoseChild:
+          body.isZeroDoseChild !== undefined
+            ? Boolean(body.isZeroDoseChild)
+            : baseProfile.isZeroDoseChild ?? null,
+        adolescentVaccinesUpToDate:
+          body.adolescentVaccinesUpToDate !== undefined
+            ? Boolean(body.adolescentVaccinesUpToDate)
+            : baseProfile.adolescentVaccinesUpToDate ?? null,
         missedWcvConsecutive:
           Number(body.overdueMonthsWcv || 0) >= 3 ? 1 : baseProfile.missedWcvConsecutive ?? 0,
+        pregnancyWeeks: numOrUndef(body.pregnancyWeeks, baseProfile.pregnancyWeeks),
         oldestMeasureMonths: numOrUndef(body.oldestMeasureMonths, 0),
         provenanceMap: {
           ...(baseProfile.provenanceMap || {}),
@@ -857,10 +968,21 @@ async function startServer() {
         };
       }
 
-      const existingGenomicConsent =
-        body.existingGenomicResult !== undefined
-          ? Boolean(body.existingGenomicResult)
-          : Boolean(body.genomicDomain && body.genomicDomain !== 'none');
+      // Consent is patient-owned. A clinician may record a clinical profile but
+      // may not grant or revoke the patient's genomic purpose (purpose 5). The
+      // existing consent row is the only source of truth for G1/G2 eligibility.
+      const existingConsents = await db
+        .select()
+        .from(consents)
+        .where(eq(consents.patientId, patientId));
+      const evaluationConsent = existingConsents[0]?.evaluationAndCalendar !== false;
+      if (!evaluationConsent) {
+        return res.status(403).json({
+          error:
+            'Evaluation consent is required: the patient has withdrawn the evaluation purpose. No clinical evaluation was performed.',
+        });
+      }
+      const existingGenomicConsent = Boolean(existingConsents[0]?.existingGenomicResult);
 
       const evaluated = evaluatePatientRules(
         {
@@ -980,11 +1102,8 @@ async function startServer() {
         });
       }
 
-      // Upsert consent record
-      const existingConsents = await db
-        .select()
-        .from(consents)
-        .where(eq(consents.patientId, patientId));
+      // Upsert consent record (the genomic purpose is never granted by a clinician;
+      // it is only preserved from the existing patient-owned consent row).
       if (existingConsents[0]) {
         await db
           .update(consents)
@@ -1131,7 +1250,7 @@ async function startServer() {
   });
 
   // Action 3: Generate AI Record Summary (Requires human validation: Validate / Edit / Ignore)
-  app.post('/api/clinician/patients/:id/summary', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/clinician/patients/:id/summary', requireAuth, requireRole('clinician'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
@@ -1163,11 +1282,14 @@ async function startServer() {
   });
 
   // Action 4: Validate / Adapt / Defer Recommended Care Plan (Mandatory reason for Adapt & Defer)
-  app.post('/api/clinician/patients/:id/pathway-action', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/clinician/patients/:id/pathway-action', requireAuth, requireRole('clinician'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
       const { action, reason } = req.body; // action: 'validate' | 'adapt' | 'defer'
+      if (!['validate', 'adapt', 'defer'].includes(action)) {
+        return res.status(400).json({ error: 'action must be validate, adapt or defer.' });
+      }
       if ((action === 'adapt' || action === 'defer') && (!reason || reason.trim().length < 3)) {
         return res.status(400).json({
           error: 'A clinical reason is mandatory when adapting or deferring a preventive pathway.',
@@ -1203,14 +1325,56 @@ async function startServer() {
   });
 
   // Action 5: Preview & Send Culturally Adapted Invitation (M2 Guardrails + Mandatory Human Validation)
-  app.post('/api/clinician/patients/:id/invitation', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/clinician/patients/:id/invitation', requireAuth, requireRole('clinician', 'coordinator'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
       const { mode, language, customBodyText } = req.body; // mode: 'preview' | 'send'
+      if (mode !== 'preview' && mode !== 'send') {
+        return res.status(400).json({ error: 'mode must be "preview" or "send".' });
+      }
       const pRows = await db.select().from(patients).where(eq(patients.id, patientId));
       if (!pRows[0]) return res.status(404).json({ error: 'Patient not found' });
       const p = pRows[0];
+      const recRows = await db
+        .select()
+        .from(recommendations)
+        .where(eq(recommendations.patientId, patientId));
+      const rec = recRows[0];
+      if (!rec) return res.status(404).json({ error: 'No care pathway found for this patient' });
+
+      const consentRow = await getConsentRow(patientId);
+      if (!isPurposeAllowed(consentRow, 'channelReminders')) {
+        return res.status(403).json({
+          error:
+            'Reminder consent is required: the patient has withdrawn the reminders purpose. No message was generated or sent.',
+        });
+      }
+
+      // Sending is a closed-loop action: never for a Red (immediate clinical
+      // review) or a Grey (complete the missing data), never after a refusal,
+      // and only once the pathway has been human-validated.
+      if (mode === 'send') {
+        if (rec.level === 'red' || rec.level === 'grey') {
+          return res.status(403).json({
+            error:
+              rec.level === 'red'
+                ? 'A Red pathway cannot be invited: it requires same-day clinical review.'
+                : 'A Grey pathway cannot be invited: complete the missing data first.',
+          });
+        }
+        if (rec.state === 'refused') {
+          return res.status(403).json({
+            error:
+              'This invitation was refused by the person. Reminders are stopped; a new invitation requires an explicit patient decision.',
+          });
+        }
+        if (rec.state !== 'validated' && rec.state !== 'invited') {
+          return res.status(409).json({
+            error: `The pathway must be validated by a clinician before invitation (current state: ${rec.state}).`,
+          });
+        }
+      }
 
       const lang = (language || p.preferredLanguage || 'en') as 'en' | 'fr' | 'ar';
       const generated = generateCulturallyAdaptedInvitation({
@@ -1276,7 +1440,7 @@ async function startServer() {
   });
 
   // Action 6: Confirm Visit via 8-Character Referral Code (TEST-E5 & Section 5.6 HMAC verification)
-  app.post('/api/clinician/patients/:id/confirm-visit', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/clinician/patients/:id/confirm-visit', requireAuth, requireRole('clinician'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
@@ -1298,6 +1462,18 @@ async function startServer() {
         });
       }
 
+      // §5.5 — Sync conflict: a centre-confirmed "done" prevails over any other
+      // recorded state (e.g. an offline agent's "postponed"); the conflict is
+      // resolved by the documented rules and logged for the coordinator.
+      const previousState = recs[0].state as PathwayState | undefined;
+      const resolution =
+        previousState && previousState !== 'done'
+          ? resolvePathwayConflict(
+              { state: 'done', eventDate: new Date().toISOString(), actor: 'center' },
+              { state: previousState, eventDate: (recs[0].updatedAt ?? new Date()).toISOString(), actor: 'agent' }
+            )
+          : null;
+
       await db
         .update(recommendations)
         .set({
@@ -1310,12 +1486,16 @@ async function startServer() {
         patientId,
         actorName: req.user?.displayName || 'Health Centre Desk',
         actorRole: 'Clinician / Centre',
-        dataCategory: 'HMAC Referral Pass Verification',
-        purposeDescription: 'Confirmed completed preventive visit at health centre (Closed-loop state: Done)',
+        dataCategory: resolution?.conflictDetected
+          ? 'Sync Conflict Resolution (§5.5) — centre-confirmed visit prevails'
+          : 'HMAC Referral Pass Verification',
+        purposeDescription: resolution?.conflictDetected
+          ? `Conflict logged: previous state "${previousState}" (agent) vs centre-confirmed "Réalisée" — final state: done (${resolution.reason})`
+          : 'Confirmed completed preventive visit at health centre (Closed-loop state: Done)',
         ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
       });
 
-      res.json({ status: 'confirmed', state: 'done' });
+      res.json({ status: 'confirmed', state: 'done', conflictResolved: resolution?.conflictDetected ? resolution.reason : null });
     } catch (error: any) {
       console.error('Error confirming visit:', error);
       res.status(500).json({ error: 'Failed to confirm visit' });
@@ -1323,7 +1503,7 @@ async function startServer() {
   });
 
   // Action 7: Record Visit Conclusion
-  app.post('/api/clinician/patients/:id/conclusion', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/clinician/patients/:id/conclusion', requireAuth, requireRole('clinician'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
@@ -1346,7 +1526,7 @@ async function startServer() {
   });
 
   // Action 8: Export FHIR R4 Bundle (Downloaded as file, never displayed raw in UI)
-  app.get('/api/clinician/patients/:id/export-fhir', requireAuth, async (req: AuthRequest, res) => {
+  app.get('/api/clinician/patients/:id/export-fhir', requireAuth, requireRole('clinician'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
@@ -1355,6 +1535,12 @@ async function startServer() {
       const pFlags = await db.select().from(flags).where(eq(flags.patientId, patientId));
       const pRecs = await db.select().from(recommendations).where(eq(recommendations.patientId, patientId));
       const pConsents = await db.select().from(consents).where(eq(consents.patientId, patientId));
+      if (!isPurposeAllowed(pConsents[0], 'shareWithFacility')) {
+        return res.status(403).json({
+          error:
+            'Transmission consent is required: the patient has withdrawn the facility-sharing purpose. No FHIR export was generated.',
+        });
+      }
 
       const p = pRows[0];
       const fhirBundle = {
@@ -1421,7 +1607,7 @@ async function startServer() {
   // =========================================================================
   // 4. PATIENT & PARENT PORTAL ENDPOINTS
   // =========================================================================
-  app.get('/api/patient/profile/:id', requireAuth, async (req: AuthRequest, res) => {
+  app.get('/api/patient/profile/:id', requireAuth, requireRole('patient', 'parent'), requirePatientScope(), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
@@ -1443,19 +1629,26 @@ async function startServer() {
         .orderBy(desc(usageLogs.id));
 
       const p = pRows[0];
-      const evaluated = evaluatePatientRules(
-        {
-          id: p.id,
-          ageYears: p.ageYears,
-          ageMonths: p.ageMonths,
-          gestationalAgeWeeks: p.gestationalAgeWeeks,
-          sex: p.sex,
-          pathwayType: p.pathwayType,
-          nationalityGroup: p.nationalityGroup,
-          clinicalProfile: p.clinicalProfile,
-        },
-        Boolean(pConsents[0]?.existingGenomicResult)
-      );
+      const evaluationAllowed = isPurposeAllowed(pConsents[0], 'evaluationAndCalendar');
+      const evaluated = evaluationAllowed
+        ? evaluatePatientRules(
+            {
+              id: p.id,
+              ageYears: p.ageYears,
+              ageMonths: p.ageMonths,
+              gestationalAgeWeeks: p.gestationalAgeWeeks,
+              sex: p.sex,
+              pathwayType: p.pathwayType,
+              nationalityGroup: p.nationalityGroup,
+              clinicalProfile: p.clinicalProfile,
+            },
+            Boolean(pConsents[0]?.existingGenomicResult)
+          )
+        : null;
+      const sanitizedProfile = { ...(p.clinicalProfile as Record<string, any>) };
+      if (!pConsents[0]?.existingGenomicResult) {
+        delete sanitizedProfile.genomicSignal;
+      }
 
       // Fetch family affiliation context (children affiliated to this adult OR parent + siblings if viewing an affiliated child)
       const rootParentId = p.parentUserId || p.id;
@@ -1491,7 +1684,7 @@ async function startServer() {
           ageYears: p.ageYears,
           ageMonths: p.ageMonths,
           gestationalAgeWeeks: p.gestationalAgeWeeks,
-          correctedAgeMonths: evaluated.correctedAgeMonths,
+          correctedAgeMonths: evaluated?.correctedAgeMonths ?? null,
           sex: p.sex,
           nationalityGroup: p.nationalityGroup,
           pathwayType: p.pathwayType,
@@ -1508,14 +1701,15 @@ async function startServer() {
           preventionProgressDone: p.preventionProgressDone,
           preventionProgressTotal: p.preventionProgressTotal,
           bpZoneLabel:
-            evaluated.calculations.bpProtocol.bpZoneLabel ||
+            evaluated?.calculations.bpProtocol.bpZoneLabel ||
             p.clinicalProfile.bpZoneLabel ||
             'In target zone',
           growthSeries: p.clinicalProfile.growthSeries || [],
           bpSeries: p.clinicalProfile.bpSeries || [],
           vaccinesList: p.clinicalProfile.vaccinesList || [],
-          clinicalProfile: p.clinicalProfile,
-          calculations: evaluated.calculations,
+          clinicalProfile: sanitizedProfile,
+          calculations: evaluated?.calculations ?? null,
+          evaluationPaused: !evaluationAllowed,
         },
         familyContext: {
           rootParent: parentRecord
@@ -1556,7 +1750,7 @@ async function startServer() {
   // =========================================================================
 
   // Search Adult Patients (>= 18y) in Database by ID or Name to affiliate a minor (< 18y)
-  app.get('/api/family/search-parents', requireAuth, async (req: AuthRequest, res) => {
+  app.get('/api/family/search-parents', requireAuth, requireRole('clinician', 'coordinator'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const query = String(req.query.q || '').trim().toLowerCase();
@@ -1591,7 +1785,7 @@ async function startServer() {
   });
 
   // Request 6-digit SMS OTP to confirm parent access to an affiliated child's portal data
-  app.post('/api/patient/family/request-sms-otp', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/patient/family/request-sms-otp', requireAuth, requireRole('patient', 'parent'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const { parentId, childId } = req.body || {};
@@ -1604,6 +1798,10 @@ async function startServer() {
         return res.status(403).json({
           error: 'This minor record is not affiliated with your patient account.',
         });
+      }
+      const scopeCheck = await assertPatientScope(req, childId);
+      if (!scopeCheck.ok) {
+        return res.status(scopeCheck.status ?? 403).json({ error: scopeCheck.error });
       }
 
       // Generate deterministic-looking 6-digit SMS OTP code
@@ -1628,10 +1826,17 @@ async function startServer() {
   });
 
   // Verify 6-digit SMS OTP and unlock child's data in the unified Patient Portal
-  app.post('/api/patient/family/verify-sms-otp', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/patient/family/verify-sms-otp', requireAuth, requireRole('patient', 'parent'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const { parentId, childId, otpCode } = req.body || {};
+      if (!parentId || !childId) {
+        return res.status(400).json({ error: 'parentId and childId are required.' });
+      }
+      const scopeCheck = await assertPatientScope(req, String(childId));
+      if (!scopeCheck.ok) {
+        return res.status(scopeCheck.status ?? 403).json({ error: scopeCheck.error });
+      }
       const key = `${parentId}:${childId}`;
       const record = familySmsOtpStore.get(key);
 
@@ -1663,10 +1868,14 @@ async function startServer() {
   });
 
   // Request Majority Detachment (18y+) — Submitted for validation by the Competent Service
-  app.post('/api/patient/family/request-majority-detachment', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/patient/family/request-majority-detachment', requireAuth, requireRole('patient', 'parent'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const { childId } = req.body || {};
+      const scopeCheck = await assertPatientScope(req, String(childId || ''));
+      if (!scopeCheck.ok) {
+        return res.status(scopeCheck.status ?? 403).json({ error: scopeCheck.error });
+      }
       const rows = await db.select().from(patients).where(eq(patients.id, childId));
       const child = rows[0];
       if (!child) return res.status(404).json({ error: 'Patient not found' });
@@ -1702,7 +1911,7 @@ async function startServer() {
   });
 
   // Competent Service (Coordinator / Clinician): List affiliated records eligible for 18y Majority Detachment & all family affiliations
-  app.get('/api/family/pending-detachments', requireAuth, async (_req: AuthRequest, res) => {
+  app.get('/api/family/pending-detachments', requireAuth, requireRole('clinician', 'coordinator'), async (_req: AuthRequest, res) => {
     try {
       await ensureInit();
       const allRows = await db.select().from(patients);
@@ -1738,7 +1947,7 @@ async function startServer() {
   });
 
   // Competent Service (Coordinator / Clinician): Definitively validate Majority Detachment (18y+)
-  app.post('/api/family/approve-majority-detachment', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/family/approve-majority-detachment', requireAuth, requireRole('clinician', 'coordinator'), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const { childId } = req.body || {};
@@ -1793,7 +2002,7 @@ async function startServer() {
   });
 
   // Patient / Parent Guided Self-Assessment & Home Measurements (Triggers live backend recalculation)
-  app.post('/api/patient/profile/:id/self-assessment', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/patient/profile/:id/self-assessment', requireAuth, requireRole('patient', 'parent'), requirePatientScope(), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
@@ -1802,6 +2011,13 @@ async function startServer() {
       const pRows = await db.select().from(patients).where(eq(patients.id, patientId));
       if (!pRows[0]) return res.status(404).json({ error: 'Profile not found' });
       const p = pRows[0];
+      const consentRow = await getConsentRow(patientId);
+      if (!isPurposeAllowed(consentRow, 'evaluationAndCalendar')) {
+        return res.status(403).json({
+          error:
+            'Evaluation consent is required: the patient has withdrawn the evaluation purpose. The self-assessment was not evaluated or saved.',
+        });
+      }
 
       // Validate BP readings if provided
       const bpPairs = [
@@ -1845,19 +2061,19 @@ async function startServer() {
       if (body.waistCm !== undefined && body.waistCm !== '') {
         currentProfile.waistCm = Number(body.waistCm);
       }
-      if (body.smokingStatus !== undefined) {
+      if (body.smokingStatus !== undefined && body.smokingStatus !== null) {
         currentProfile.smokingStatus = body.smokingStatus ? 'current' : 'never';
       }
-      if (body.dailyPhysicalActivity !== undefined) {
+      if (body.dailyPhysicalActivity !== undefined && body.dailyPhysicalActivity !== null) {
         currentProfile.dailyPhysicalActivity = Boolean(body.dailyPhysicalActivity);
       }
-      if (body.dailyFruitsVeg !== undefined) {
+      if (body.dailyFruitsVeg !== undefined && body.dailyFruitsVeg !== null) {
         currentProfile.dailyFruitsVeg = Boolean(body.dailyFruitsVeg);
       }
-      if (body.antihypertensiveMedHistory !== undefined) {
+      if (body.antihypertensiveMedHistory !== undefined && body.antihypertensiveMedHistory !== null) {
         currentProfile.antihypertensiveMed = Boolean(body.antihypertensiveMedHistory);
       }
-      if (body.highBloodGlucoseHistory !== undefined) {
+      if (body.highBloodGlucoseHistory !== undefined && body.highBloodGlucoseHistory !== null) {
         currentProfile.historyHighGlucose = Boolean(body.highBloodGlucoseHistory);
       }
       if (body.familyHistoryDiabetesLevel) {
@@ -1875,6 +2091,10 @@ async function startServer() {
       if (body.redFlagWarningSymptom !== undefined) {
         currentProfile.redFlagWarningSymptom = Boolean(body.redFlagWarningSymptom);
         currentProfile.redFlagSymptomLabel = body.redFlagSymptomLabel || 'Patient-reported warning symptom';
+        // Wire the safety escape E0 as well: a reported danger sign must not be
+        // stored as a decorative checkbox.
+        currentProfile.hasEmergencySymptoms = Boolean(body.redFlagWarningSymptom);
+        currentProfile.hasSymptomaticCrisis = Boolean(body.redFlagWarningSymptom);
       }
 
       // Self-reported / home-measured provenance ('D')
@@ -1990,11 +2210,14 @@ async function startServer() {
   });
 
   // Patient Choice: Confirm / Postpone / Refuse (Rule 8 & TEST-E3: Refusal stops reminders immediately)
-  app.post('/api/patient/profile/:id/respond', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/patient/profile/:id/respond', requireAuth, requireRole('patient', 'parent'), requirePatientScope(), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
       const { responseType, newDate } = req.body; // 'confirm' | 'postpone' | 'refuse'
+      if (!['confirm', 'postpone', 'refuse'].includes(responseType)) {
+        return res.status(400).json({ error: 'responseType must be confirm, postpone or refuse.' });
+      }
 
       const nextState =
         responseType === 'confirm'
@@ -2042,7 +2265,7 @@ async function startServer() {
   });
 
   // Patient Granular Consents Update (5 toggles — immediate recalculation & reminder halt)
-  app.put('/api/patient/profile/:id/consents', requireAuth, async (req: AuthRequest, res) => {
+  app.put('/api/patient/profile/:id/consents', requireAuth, requireRole('patient', 'parent'), requirePatientScope(), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
@@ -2054,42 +2277,128 @@ async function startServer() {
         existingGenomicResult,
       } = req.body;
 
-      const updated = await db
+      const currentConsent = await getConsentRow(patientId);
+      const nextConsents = {
+        evaluationAndCalendar:
+          evaluationAndCalendar !== undefined
+            ? Boolean(evaluationAndCalendar)
+            : currentConsent?.evaluationAndCalendar ?? true,
+        channelReminders:
+          channelReminders !== undefined
+            ? Boolean(channelReminders)
+            : currentConsent?.channelReminders ?? true,
+        shareWithFacility:
+          shareWithFacility !== undefined
+            ? Boolean(shareWithFacility)
+            : currentConsent?.shareWithFacility ?? true,
+        anonymousStatistics:
+          anonymousStatistics !== undefined
+            ? Boolean(anonymousStatistics)
+            : currentConsent?.anonymousStatistics ?? true,
+        existingGenomicResult:
+          existingGenomicResult !== undefined
+            ? Boolean(existingGenomicResult)
+            : currentConsent?.existingGenomicResult ?? false,
+        updatedAt: new Date(),
+      };
+      let updated = await db
         .update(consents)
-        .set({
-          evaluationAndCalendar: Boolean(evaluationAndCalendar),
-          channelReminders: Boolean(channelReminders),
-          shareWithFacility: Boolean(shareWithFacility),
-          anonymousStatistics: Boolean(anonymousStatistics),
-          existingGenomicResult: Boolean(existingGenomicResult),
-          updatedAt: new Date(),
-        })
+        .set(nextConsents)
         .where(eq(consents.patientId, patientId))
         .returning();
+      if (!updated[0]) {
+        updated = await db
+          .insert(consents)
+          .values({ patientId, ...nextConsents })
+          .returning();
+      }
 
-      // Re-evaluate patient without genomic data if purpose 5 was withdrawn
+      // Apply the consent change to the stored pathway immediately. Withdrawing
+      // evaluation consent clears the active flags; withdrawing genomic consent
+      // re-evaluates and removes G1/G2. Reminder withdrawal resets the counter.
       const pRows = await db.select().from(patients).where(eq(patients.id, patientId));
-      if (pRows[0]) {
+      const p = pRows[0];
+
+      if (!updated[0]?.channelReminders) {
+        await db
+          .update(recommendations)
+          .set({ remindersSentCount: 0, updatedAt: new Date() })
+          .where(eq(recommendations.patientId, patientId));
+      }
+
+      if (p && !updated[0]?.evaluationAndCalendar) {
+        await db.delete(flags).where(eq(flags.patientId, patientId));
+        await db
+          .update(patients)
+          .set({
+            overallLevel: 'grey',
+            overallCertainty: 'low',
+            primaryReasonSummary:
+              'Evaluation paused — the patient withdrew the evaluation and prevention-calendar purpose',
+          })
+          .where(eq(patients.id, patientId));
+        await db
+          .update(recommendations)
+          .set({ level: 'grey', updatedAt: new Date() })
+          .where(eq(recommendations.patientId, patientId));
+      } else if (p) {
         const evaluated = evaluatePatientRules(
           {
-            id: pRows[0].id,
-            ageYears: pRows[0].ageYears,
-            ageMonths: pRows[0].ageMonths,
-            gestationalAgeWeeks: pRows[0].gestationalAgeWeeks,
-            sex: pRows[0].sex,
-            pathwayType: pRows[0].pathwayType,
-            nationalityGroup: pRows[0].nationalityGroup,
-            clinicalProfile: pRows[0].clinicalProfile,
+            id: p.id,
+            ageYears: p.ageYears,
+            ageMonths: p.ageMonths,
+            gestationalAgeWeeks: p.gestationalAgeWeeks,
+            sex: p.sex,
+            pathwayType: p.pathwayType,
+            nationalityGroup: p.nationalityGroup,
+            clinicalProfile: p.clinicalProfile,
           },
-          Boolean(existingGenomicResult)
+          Boolean(updated[0]?.existingGenomicResult)
         );
+
         await db
           .update(patients)
           .set({
             overallLevel: evaluated.overallLevel,
             overallCertainty: evaluated.overallCertainty,
+            primaryReasonSummary:
+              evaluated.flags[0]?.title || 'All recommended preventive screenings are up to date',
           })
           .where(eq(patients.id, patientId));
+
+        await db.delete(flags).where(eq(flags.patientId, patientId));
+        for (let idx = 0; idx < evaluated.flags.length; idx++) {
+          const f = evaluated.flags[idx];
+          await db.insert(flags).values({
+            id: `FLG-${patientId}-${Date.now()}-${idx}`,
+            patientId,
+            ruleId: f.ruleId,
+            flagType: f.flagType,
+            level: f.level,
+            title: f.title,
+            factors: f.factors,
+            sourceLabel: f.sourceLabel,
+            missingData: f.missingData,
+            dueDate: f.dueDate,
+            certainty: f.certainty,
+            certaintyReason: f.certaintyReason,
+            isEclipseSuspended: f.isEclipseSuspended,
+          });
+        }
+
+        await db
+          .update(recommendations)
+          .set({
+            pathwayTitle: evaluated.calculations.consolidatedCarePlan.pathwayTitle,
+            groupedActions: evaluated.calculations.consolidatedCarePlan.groupedActions.map((a) => ({
+              actionTitle: a.actionTitle,
+              directiveSource: a.directiveSource,
+              category: a.category,
+            })),
+            level: evaluated.overallLevel,
+            updatedAt: new Date(),
+          })
+          .where(eq(recommendations.patientId, patientId));
       }
 
       await db.insert(usageLogs).values({
@@ -2097,7 +2406,7 @@ async function startServer() {
         actorName: req.user?.displayName || 'Patient / Parent',
         actorRole: 'Patient / Family',
         dataCategory: 'Consent Preferences (5 Purposes)',
-        purposeDescription: !channelReminders
+        purposeDescription: !nextConsents.channelReminders
           ? 'Withdrew reminder consent — all outreach immediately stopped'
           : 'Updated granular data use authorizations',
         ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
@@ -2110,7 +2419,7 @@ async function startServer() {
     }
   });
 
-  app.put('/api/patient/profile/:id/preferences', requireAuth, async (req: AuthRequest, res) => {
+  app.put('/api/patient/profile/:id/preferences', requireAuth, requireRole('patient', 'parent'), requirePatientScope(), async (req: AuthRequest, res) => {
     try {
       await ensureInit();
       const patientId = req.params.id;
@@ -2134,7 +2443,7 @@ async function startServer() {
   // =========================================================================
   // 5. COORDINATOR PORTAL ENDPOINT (Screen 1: Population Queue + S_prio + M1)
   // =========================================================================
-  app.get('/api/coordinator/queue', requireAuth, async (_req: AuthRequest, res) => {
+  app.get('/api/coordinator/queue', requireAuth, requireRole('coordinator'), async (_req: AuthRequest, res) => {
     try {
       await ensureInit();
       const allPatients = await db.select().from(patients);
@@ -2175,17 +2484,21 @@ async function startServer() {
         .filter((i) => (i.overallLevel === 'orange' || i.overallLevel === 'yellow') && i.recommendationState !== 'refused')
         .sort((a, b) => b.priorityScoreSprio - a.priorityScoreSprio);
 
-      // Sensitivity analysis of S_prio weights (±0.10 perturbation -> top-K overlap)
-      const topKReference = prioritizedInvitationQueue.slice(0, 15).map((i) => i.patientId);
-      const perturbedOverlapPercent = 93.3; // 14 / 15 overlap under ±0.10 weight perturbation
+      // Sensitivity analysis of S_prio weights (§5.3): computed on the benchmark
+      // cohort (same seed as the observatory) via the REAL ±0.10 perturbation and
+      // top-K overlap — no hardcoded percentage.
+      const benchmarkSensitivity = getObservatorySummary(20261120, 'baseline').sensitivityAnalysis;
+      const stable = benchmarkSensitivity.topKOverlapPercent >= 80;
 
       res.json({
         dailyCapacityLimit: 25,
         humanContactBudgetB: 8,
         sensitivityAnalysis: {
-          weightPerturbationDelta: 0.1,
-          topKOverlapPercent: perturbedOverlapPercent,
-          status: 'Stable under weight perturbation',
+          weightPerturbationDelta: benchmarkSensitivity.weightPerturbationDelta,
+          topKOverlapPercent: benchmarkSensitivity.topKOverlapPercent,
+          status: stable
+            ? 'Stable under weight perturbation (top-K overlap >= 80%)'
+            : `Unstable under weight perturbation (top-K overlap ${benchmarkSensitivity.topKOverlapPercent}%) — flagged for clinical governance review (§5.3)`,
         },
         redImmediateQueue,
         greyCompletionQueue,
@@ -2198,7 +2511,7 @@ async function startServer() {
   });
 
   // Coordinator Interactive S_prio & M1 Logistics Simulator (Screen 1 ONLY)
-  app.post('/api/coordinator/simulate-logistics', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/coordinator/simulate-logistics', requireAuth, requireRole('patient', 'parent', 'clinician', 'coordinator', 'public_health'), async (req: AuthRequest, res) => {
     try {
       const body = req.body || {};
       const result = computeLogisticsAndM1({
@@ -2242,214 +2555,21 @@ async function startServer() {
   // =========================================================================
   // 6. PUBLIC HEALTH OBSERVATORY ENDPOINT (Exigence 4 & 5: Wilson, n<10 Masking, Benchmark)
   // =========================================================================
-  app.get('/api/observatory/summary', requireAuth, async (req: AuthRequest, res) => {
+  app.get('/api/observatory/summary', requireAuth, requireRole('public_health'), async (req: AuthRequest, res) => {
     try {
-      await ensureInit();
+      // NOTE: everything returned here is COMPUTED LIVE by the benchmark engine
+      // (src/server/benchmarkEngine.ts): synthetic cohort with hidden ground truth
+      // generated independently of the rules engine, real rule evaluation, real
+      // Wilson intervals and masking via the safeguard engine, real benchmark arms
+      // at equal invitation capacity, real calibration metrics. No hardcoded figures.
       const seedParam = Number(req.query.seed) || 20261120;
+      const scenarioParam = String(req.query.scenario || 'baseline');
+      const scenario = (BENCHMARK_SCENARIOS as string[]).includes(scenarioParam)
+        ? (scenarioParam as BenchmarkScenario)
+        : 'baseline';
 
-      // Build Abu Dhabi local segments with an intentionally small segment (n = 7) to demonstrate TEST-E4
-      const rawSegments = [
-        {
-          segmentId: 'REG-ABU-DHABI',
-          dimension: 'Region',
-          segmentLabel: 'Abu Dhabi Region',
-          totalEligible: 3120,
-          evaluatedComplete: 2790,
-          levelGreyCount: 330,
-          recommendedCount: 1180,
-          invitedCount: 1120,
-          confirmedVisitsCount: 842,
-          falsePositives: 64,
-          trueNegatives: 1546,
-          falseNegatives: 29,
-          truePositives: 1116,
-          genomicAccCount: 145,
-          familyAccCount: 210,
-        },
-        {
-          segmentId: 'REG-AL-AIN',
-          dimension: 'Region',
-          segmentLabel: 'Al Ain Region',
-          totalEligible: 1480,
-          evaluatedComplete: 1290,
-          levelGreyCount: 190,
-          recommendedCount: 540,
-          invitedCount: 510,
-          confirmedVisitsCount: 378,
-          falsePositives: 28,
-          trueNegatives: 722,
-          falseNegatives: 14,
-          truePositives: 512,
-          genomicAccCount: 92,
-          familyAccCount: 118,
-        },
-        {
-          segmentId: 'REG-AL-DHAFRA',
-          dimension: 'Region',
-          segmentLabel: 'Al Dhafra Region (C1 Alert Zone)',
-          totalEligible: 640,
-          evaluatedComplete: 438,
-          levelGreyCount: 202,
-          recommendedCount: 235,
-          invitedCount: 220,
-          confirmedVisitsCount: 124,
-          falsePositives: 12,
-          trueNegatives: 191,
-          falseNegatives: 9,
-          truePositives: 223,
-          genomicAccCount: 24,
-          familyAccCount: 68,
-        },
-        {
-          segmentId: 'NAT-EMIRATI',
-          dimension: 'Nationality Group',
-          segmentLabel: 'Emirati Citizens',
-          totalEligible: 1950,
-          evaluatedComplete: 1760,
-          levelGreyCount: 190,
-          recommendedCount: 740,
-          invitedCount: 710,
-          confirmedVisitsCount: 548,
-          falsePositives: 38,
-          trueNegatives: 982,
-          falseNegatives: 18,
-          truePositives: 702,
-          genomicAccCount: 215,
-          familyAccCount: 140,
-        },
-        {
-          segmentId: 'NAT-SOUTH-ASIA',
-          dimension: 'Nationality Group',
-          segmentLabel: 'South Asia Residents',
-          totalEligible: 2140,
-          evaluatedComplete: 1820,
-          levelGreyCount: 320,
-          recommendedCount: 810,
-          invitedCount: 765,
-          confirmedVisitsCount: 512,
-          falsePositives: 42,
-          trueNegatives: 968,
-          falseNegatives: 22,
-          truePositives: 768,
-          genomicAccCount: 18,
-          familyAccCount: 265,
-        },
-        {
-          segmentId: 'NAT-ARAB-NON-UAE',
-          dimension: 'Nationality Group',
-          segmentLabel: 'Arab World (Non-UAE)',
-          totalEligible: 820,
-          evaluatedComplete: 710,
-          levelGreyCount: 110,
-          recommendedCount: 295,
-          invitedCount: 280,
-          confirmedVisitsCount: 214,
-          falsePositives: 16,
-          trueNegatives: 399,
-          falseNegatives: 8,
-          truePositives: 279,
-          genomicAccCount: 12,
-          familyAccCount: 88,
-        },
-        {
-          segmentId: 'NAT-SMALL-SAMPLE',
-          dimension: 'Nationality Group',
-          segmentLabel: 'Southeast Asia (Shift Workers Cohort)',
-          totalEligible: 24, // 10 <= n <= 29 -> Small sample warning
-          evaluatedComplete: 21,
-          levelGreyCount: 3,
-          recommendedCount: 11,
-          invitedCount: 10,
-          confirmedVisitsCount: 6,
-          falsePositives: 2, // < 5 events -> "Insufficient events"
-          trueNegatives: 8,
-          falseNegatives: 1, // < 5 events -> "Insufficient events"
-          truePositives: 9,
-          genomicAccCount: 0,
-          familyAccCount: 4,
-        },
-        {
-          segmentId: 'NAT-OTHER-TINY',
-          dimension: 'Nationality Group',
-          segmentLabel: 'Other Minor Segment (Sub-group)',
-          totalEligible: 7, // n < 10 -> Triggers Primary Suppression + Secondary Suppression on neighbor (TEST-E4)
-          evaluatedComplete: 6,
-          levelGreyCount: 1,
-          recommendedCount: 3,
-          invitedCount: 3,
-          confirmedVisitsCount: 2,
-          falsePositives: 0,
-          trueNegatives: 3,
-          falseNegatives: 0,
-          truePositives: 3,
-          genomicAccCount: 0,
-          familyAccCount: 1,
-        },
-      ];
-
-      // Deterministic demo benchmark figures (fixed; no per-seed variation)
-      const safeguardedSegments = buildSafeguardedSegmentTable(rawSegments);
-
-      res.json({
-        seed: seedParam,
-        cohortTotal: 5240,
-        safeguardedSegments,
-        communityAlerts: [
-          {
-            ruleId: 'C1',
-            level: 'orange',
-            zoneOrSegment: 'Al Dhafra Region',
-            title: 'Under-covered geographic zone',
-            description:
-              'Upper bound of the 95% Wilson confidence interval for complete preventive coverage is below program target. Proposed action: mobile screening unit & evening clinic slots.',
-          },
-          {
-            ruleId: 'C3',
-            level: 'yellow',
-            zoneOrSegment: 'Al Dhafra / Shift Workers',
-            title: 'Segment adoption gap alert',
-            description:
-              'Confirmed visit adoption is more than 10 percentage points below the network average with non-overlapping confidence intervals despite comparable invitation rates.',
-          },
-        ],
-        outcomeBenchmark: {
-          equalCapacityInvitationsK: 1000,
-          disclaimer:
-            'Synthetic benchmark on 5,240 simulated profiles. Validates pipeline mechanics and equity safeguards; does NOT prove real-world clinical efficacy.',
-          comparisonRows: [
-            {
-              metric: 'Well-Child Visit gaps closed & confirmed (per 1,000 invitations)',
-              ageSexBaseline: 412,
-              mediSenseRulesPlusM1: 638,
-              unit: 'confirmed visits',
-            },
-            {
-              metric: 'Adult screening yield (newly confirmed conditions per 100 invitations)',
-              ageSexBaseline: 11.4,
-              mediSenseRulesPlusM1: 21.8,
-              unit: 'per 100 invited',
-            },
-            {
-              metric: 'Closed-loop completion rate (Confirmed visits + Informed refusals)',
-              ageSexBaseline: 54.0,
-              mediSenseRulesPlusM1: 81.5,
-              unit: '%',
-            },
-            {
-              metric: 'Median time from orange flag to confirmed visit',
-              ageSexBaseline: 29,
-              mediSenseRulesPlusM1: 11,
-              unit: 'days',
-            },
-          ],
-          m1CalibrationMetrics: {
-            brierScore: 0.118,
-            expectedCalibrationErrorEce: 0.031,
-            maxSegmentTprGap: 0.038,
-            status: 'Calibrated within H18 equity tolerance (< 0.05)',
-          },
-        },
-      });
+      const summary = getObservatorySummary(seedParam, scenario);
+      res.json(summary);
     } catch (error: any) {
       console.error('Error building observatory summary:', error);
       res.status(500).json({ error: 'Failed to load observatory data' });
@@ -2458,6 +2578,9 @@ async function startServer() {
 
   // Mount Vite Dev Server or Static Dist
   if (process.env.NODE_ENV !== 'production') {
+    // Load Vite only in development. Production must not import the dev server
+    // (and must not require Vite/rolldown to be installed at runtime).
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
@@ -2470,7 +2593,7 @@ async function startServer() {
   } else {
     const distPath = path.join(__dirname, 'dist');
     app.use(express.static(distPath));
-    app.get('*all', (_req, res) => {
+    app.get('*', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

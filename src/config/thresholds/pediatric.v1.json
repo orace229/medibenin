@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "documentId": "pediatric-thresholds",
+  "version": "1.0.0",
+  "effectiveDate": "2026-11-15",
+  "source": "WHO Child Growth Standards 2006 (WHZ/MUAC severe malnutrition), UAE National Immunization Schedule delays, WHO hemoglobin reference for early childhood, M-CHAT-R/F published screening bands, WHO Growth Reference 2007 BMI-for-age bands, and the 12-24 month anemia screening window.",
+  "thresholds": {
+    "severeMalnutritionWhzBelow": -3,
+    "severeMalnutritionMuacBelowMm": 115,
+    "vaccineDelayFollowupDays": 30,
+    "vaccineDelayPriorityDays": 60,
+    "anemiaScreeningWindowMonths": [12, 24],
+    "anemiaHbThresholdGdl": 11.0,
+    "mchatFollowUpScore": 3,
+    "mchatHighScore": 8,
+    "bmiForAgeZWatchAbove": 1,
+    "bmiForAgeZWatchBelow": -2,
+    "bmiForAgeZOrangeAbove": 2,
+    "bmiForAgeZOrangeBelow": -3,
+    "adolescentVaccinesAgeMinYears": 10
+  }
+}

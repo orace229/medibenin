@@ -146,6 +146,8 @@ export interface BackendClinicalCalculations {
     suspendedByPregnancy: boolean;
     asianBmiRuleA4Triggered: boolean;
     itemBreakdown: Array<{ item: string; points: number }>;
+    questionnaireComplete: boolean;
+    missingItems: string[];
   };
   certaintyAudit: {
     completenessPercent: number;

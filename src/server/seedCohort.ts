@@ -32,6 +32,75 @@ export function createSeededRng(seed: number) {
   };
 }
 
+// ============================================================================
+// Hidden ground truth (§7 & §8.4) — DECOUPLED from the visible panel design.
+// The visible panel (isGrey/isOrange/isYellow levels, BP/BMI profiles) uses
+// illustrative constants; the hidden truth below is drawn from an INDEPENDENT
+// mechanism: a disjoint seeded-unit stream block (salts 200+) plus a documented
+// prevalence-shaped risk function that is deliberately DIFFERENT from the rules
+// engine's scoring functions (WHO 2019 chart lookup, FINDRISC logistic) so that
+// the truth cannot be circularly derived from the engine (Cahier des Charges §7
+// "Vérité cachée … pour limiter la circularité" and §9.2). These constants are
+// documented generator tunables — same status as the §8.3/§8.4 benchmark
+// constants in benchmarkEngine.ts — and never engine outputs.
+// ============================================================================
+
+/** Salt block reserved for hidden-truth streams; panel design uses salts 1–4. */
+const GROUND_TRUTH_SALT_BASE = 200;
+
+const TRUTH_CONSTANTS = {
+  childBasePrevalence: 0.14,
+  adultBasePrevalence: 0.12,
+  adultAgeRampPerYear: 0.006,
+  adultAgeRampStart: 40,
+  maleExcess: 0.05,
+  maxPrevalence: 0.65,
+  mediSenseConfirmProb: 0.78,
+  baselineConfirmProb: 0.52,
+  visitWindowDays: [5, 30] as [number, number],
+};
+
+/** Age/sex-only screening policy threshold of the hypothetical baseline (H-ref). */
+const AGE_SEX_ONLY_SCREENING_START_AGE = 45;
+
+export function drawSyntheticGroundTruth(
+  seed: number,
+  index: number,
+  ctx: { ageYears: number; sex: string; pathwayType: string }
+): {
+  hasTrueUnmetCondition: boolean;
+  invitedUnderAgeSexOnly: boolean;
+  confirmedVisitUnderMediSense: boolean;
+  confirmedVisitUnderBaseline: boolean;
+  daysToVisit: number;
+} {
+  const u = (salt: number) => seededUnit(seed, index, GROUND_TRUTH_SALT_BASE + salt);
+  const { ageYears, sex, pathwayType } = ctx;
+
+  const prevalence =
+    pathwayType === 'adult'
+      ? TRUTH_CONSTANTS.adultBasePrevalence +
+        TRUTH_CONSTANTS.adultAgeRampPerYear *
+          Math.max(0, ageYears - TRUTH_CONSTANTS.adultAgeRampStart) +
+        (sex.toLowerCase() === 'male' ? TRUTH_CONSTANTS.maleExcess : 0)
+      : TRUTH_CONSTANTS.childBasePrevalence;
+
+  const hasTrueUnmetCondition = u(0) < Math.min(TRUTH_CONSTANTS.maxPrevalence, prevalence);
+  const invitedUnderAgeSexOnly = ageYears >= AGE_SEX_ONLY_SCREENING_START_AGE;
+  const confirmedVisitUnderMediSense = u(1) < TRUTH_CONSTANTS.mediSenseConfirmProb;
+  const confirmedVisitUnderBaseline = u(2) < TRUTH_CONSTANTS.baselineConfirmProb;
+  const [lo, hi] = TRUTH_CONSTANTS.visitWindowDays;
+  const daysToVisit = lo + Math.round(u(3) * (hi - lo));
+
+  return {
+    hasTrueUnmetCondition,
+    invitedUnderAgeSexOnly,
+    confirmedVisitUnderMediSense,
+    confirmedVisitUnderBaseline,
+    daysToVisit,
+  };
+}
+
 export async function ensureSeededDatabase(seed = DEMO_SEED) {
   try {
     const existingCount = await db.select({ value: count() }).from(patients);
@@ -450,7 +519,8 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
       },
     ];
 
-    for (const p of corePersonas) {
+    for (let personaIndex = 0; personaIndex < corePersonas.length; personaIndex++) {
+      const p = corePersonas[personaIndex];
       const evaluated = evaluatePatientRules(
         {
           id: p.id,
@@ -494,13 +564,11 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
           preventionProgressDone: p.preventionProgressDone,
           preventionProgressTotal: p.preventionProgressTotal,
           clinicalProfile: p.clinicalProfile,
-          syntheticGroundTruth: {
-            hasTrueUnmetCondition: evaluated.overallLevel === 'red' || evaluated.overallLevel === 'orange',
-            invitedUnderAgeSexOnly: p.ageYears >= 40,
-            confirmedVisitUnderMediSense: true,
-            confirmedVisitUnderBaseline: p.ageYears >= 40,
-            daysToVisit: 9,
-          },
+          syntheticGroundTruth: drawSyntheticGroundTruth(seed, personaIndex, {
+            ageYears: p.ageYears,
+            sex: p.sex,
+            pathwayType: p.pathwayType,
+          }),
         })
         .onConflictDoNothing();
 
@@ -640,7 +708,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
         .onConflictDoNothing();
     }
 
-    // 4. Generate 45 additional diverse synthetic patients for the 52-record panel
+    // 4. Generate 45 additional diverse synthetic patients for the 53-record panel
     const rng = createSeededRng(seed);
     const variationRng = (index: number, salt: number) => seededUnit(seed, index, salt);
     const regions = ['Abu Dhabi', 'Al Ain', 'Al Dhafra'];
@@ -790,13 +858,11 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
             provenanceMap: { bp: 'M', bmi: 'M' },
             oldestMeasureMonths: 4,
           },
-          syntheticGroundTruth: {
-            hasTrueUnmetCondition: isOrange || (isYellow && i % 3 === 0),
-            invitedUnderAgeSexOnly: ageYears >= 45,
-            confirmedVisitUnderMediSense: recState === 'done' || i % 2 === 0,
-            confirmedVisitUnderBaseline: ageYears >= 45 && i % 3 === 0,
-            daysToVisit: isOrange ? 11 : 24,
-          },
+          syntheticGroundTruth: drawSyntheticGroundTruth(seed, 1000 + i, {
+            ageYears,
+            sex,
+            pathwayType,
+          }),
         })
         .onConflictDoNothing();
 
@@ -880,7 +946,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
     }
 
     const finalCount = await db.select({ value: count() }).from(patients);
-    return { seeded: true, totalPatients: finalCount[0]?.value || 52, seed };
+    return { seeded: true, totalPatients: finalCount[0]?.value || 53, seed };
   } catch (error) {
     console.error('Error seeding MediSense database:', error);
     throw new Error('Failed to seed MediSense database.', { cause: error });

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "documentId": "who-cvd-thresholds",
+  "version": "1.0.0",
+  "effectiveDate": "2026-11-15",
+  "source": "WHO 2019 CVD risk-level bands (<5%, 5% to <10%, 10% to <20%, 20% to <30%, >=30%) from the published non-laboratory chart set (Lancet Glob Health 2020, doi:10.1016/S2214-109X(19)30318-3); MediSense action thresholds (rule A2) per Section 4.6 & H7.",
+  "thresholds": {
+    "riskYellowPercent": 5,
+    "riskOrangePercent": 10,
+    "uncertaintySbpMmHg": 9.8,
+    "uncertaintyBmiKgM2": 1,
+    "counterfactualSbpTargetMmHg": 120,
+    "counterfactualBmiTargetKgM2": 25,
+    "domainAgeMinYears": 40,
+    "domainAgeMaxYears": 80
+  }
+}

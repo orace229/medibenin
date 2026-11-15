@@ -21,6 +21,12 @@ export interface M1LogisticsInput {
   missedVisitsCount: number;
   preferredChannel: string;
   reminderRank: number;
+  /**
+   * Optional S_prio weight vector (§5.3). Defaults to the canonical 0.40/0.25/0.20/0.15.
+   * Used by the benchmark engine for the real ±0.10 weight-perturbation sensitivity
+   * analysis; production calls omit it and keep the canonical weights.
+   */
+  weights?: { risk: number; gap: number; delay: number; vuln: number };
 }
 
 export interface M1LogisticsOutput {
@@ -35,7 +41,8 @@ export interface M1LogisticsOutput {
  * Sensitive attributes (nationality, religion, genomics, detailed health conditions) are EXCLUDED from M1.
  */
 export function computeLogisticsAndM1(input: M1LogisticsInput): M1LogisticsOutput {
-  // 1. S_prio = 100 * (0.40 * I_risque + 0.25 * I_lacune + 0.20 * I_retard + 0.15 * I_vuln)
+  // 1. S_prio = 100 * (w_risk * I_risque + w_gap * I_lacune + w_delay * I_retard + w_vuln * I_vuln)
+  // Weights default to the canonical §5.3 vector; overridable for sensitivity analysis.
   const iRisque =
     input.overallLevel === 'orange'
       ? 0.75
@@ -55,7 +62,8 @@ export function computeLogisticsAndM1(input: M1LogisticsInput): M1LogisticsOutpu
   }
 
   // TEST-M1: Vulnerability & M1 can ONLY increase priority or strengthen support
-  const rawSprio = 100 * (0.4 * iRisque + 0.25 * iLacune + 0.2 * iRetard + 0.15 * iVuln);
+  const w = input.weights ?? { risk: 0.4, gap: 0.25, delay: 0.2, vuln: 0.15 };
+  const rawSprio = 100 * (w.risk * iRisque + w.gap * iLacune + w.delay * iRetard + w.vuln * iVuln);
   const priorityScoreSprio = Math.round(rawSprio * 10) / 10;
 
   // 2. M1 Calibrated Logistic Model (Platt-calibrated operational features only)

@@ -99,6 +99,27 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
     };
   }, [parentQuery, role]);
 
+  const handleCoordinatorInvitation = async (item: any) => {
+    try {
+      await apiClient.sendInvitation(item.patientId, item.preferredLanguage);
+      setFeedback(`Queued invitation for ${item.displayName}.`);
+      await loadData();
+    } catch (err: any) {
+      setFeedback(err.message || 'Invitation blocked.');
+    }
+  };
+
+  const canSendInvitation = (item: any) =>
+    item.overallLevel !== 'red' &&
+    item.overallLevel !== 'grey' &&
+    (item.recommendationState === 'validated' || item.recommendationState === 'invited');
+
+  const invitationBlockedLabel = (item: any) => {
+    if (item.overallLevel === 'red') return isFr ? 'Revue clinique requise' : 'Clinical review required';
+    if (item.overallLevel === 'grey') return isFr ? 'Compléter les données' : 'Complete data first';
+    return isFr ? 'Valider le plan' : 'Validate plan first';
+  };
+
   const handleCoordinatorApproveDetachment = async (childId: string, childName: string) => {
     try {
       await apiClient.approveMajorityDetachment(childId);
@@ -152,10 +173,15 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
     loadData();
   }, [role]);
 
-  // Public-health indicators, pooled from the safeguarded segment table
-  // (segments with n < 10 are suppressed server-side and never pooled).
+  // Public-health indicators, pooled from the safeguarded segment table.
+  // Pooling uses ONLY the declared dimension (§7.1 publication hierarchy) so that
+  // each person is counted exactly once; segments with n < 10 are suppressed
+  // server-side and never pooled.
+  const poolingDimension: string = obsData?.poolingDimension || 'Region';
   const visibleSegments: any[] = (obsData?.safeguardedSegments || []).filter(
-    (s: any) => s.suppressedStatus === 'visible' || s.suppressedStatus === 'small_sample'
+    (s: any) =>
+      s.dimension === poolingDimension &&
+      (s.suppressedStatus === 'visible' || s.suppressedStatus === 'small_sample')
   );
   const sumVisible = (fn: (s: any) => number) =>
     visibleSegments.reduce((acc: number, s: any) => acc + Math.max(0, fn(s) || 0), 0);
@@ -621,18 +647,20 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                       <div className="pt-2 border-t border-[#E2E8F0] flex items-center justify-between gap-2">
                         <StatusChip state={item.recommendationState} />
                         <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              await apiClient.sendInvitation(item.patientId, item.preferredLanguage);
-                              setFeedback(`Queued invitation for ${item.displayName}.`);
-                              loadData();
-                            }}
-                            className="px-3 py-1.5 rounded-xl btn-liquid-primary font-semibold inline-flex items-center gap-1"
-                          >
-                            <Send className="w-3 h-3" />
-                            <span>Invite</span>
-                          </button>
+                          {canSendInvitation(item) ? (
+                            <button
+                              type="button"
+                              onClick={() => handleCoordinatorInvitation(item)}
+                              className="px-3 py-1.5 rounded-xl btn-liquid-primary font-semibold inline-flex items-center gap-1"
+                            >
+                              <Send className="w-3 h-3" />
+                              <span>Invite</span>
+                            </button>
+                          ) : (
+                            <span className="px-2.5 py-1.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[10px] font-semibold text-[#64748B]">
+                              {invitationBlockedLabel(item)}
+                            </span>
+                          )}
                           <button
                             type="button"
                             onClick={() =>
@@ -701,18 +729,20 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                           </td>
                           <td className="py-3 px-3 text-end">
                             <div className="inline-flex items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={async () => {
-                                  await apiClient.sendInvitation(item.patientId, item.preferredLanguage);
-                                  setFeedback(`Queued invitation for ${item.displayName}.`);
-                                  loadData();
-                                }}
-                                className="px-3 py-1.5 rounded-xl btn-liquid-primary font-semibold inline-flex items-center gap-1"
-                              >
-                                <Send className="w-3 h-3" />
-                                <span>Invite</span>
-                              </button>
+                              {canSendInvitation(item) ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCoordinatorInvitation(item)}
+                                  className="px-3 py-1.5 rounded-xl btn-liquid-primary font-semibold inline-flex items-center gap-1"
+                                >
+                                  <Send className="w-3 h-3" />
+                                  <span>Invite</span>
+                                </button>
+                              ) : (
+                                <span className="px-2.5 py-1.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[10px] font-semibold text-[#64748B]">
+                                  {invitationBlockedLabel(item)}
+                                </span>
+                              )}
                               <button
                                 type="button"
                                 onClick={() =>
@@ -853,6 +883,14 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                   </table>
                 </div>
               </GlassCard>
+
+              {/* Methodology & provenance footnote (§4.6 / §7 / §8.4) — kept compact by design */}
+              <p className="text-[11px] leading-relaxed text-[#64748B] px-1">
+                {isFr
+                  ? 'Méthodologie : les risques cardiovasculaires sont calculés sur les valeurs publiées du chart OMS 2019 non-laboratoire (Afrique du Nord & Moyen-Orient ; Asie du Sud) — aucune valeur inventée. Le benchmark compare des bras à capacité d’invitation égale, contre une vérité cachée générée par un mécanisme indépendant du moteur de règles (§7/§8.4), reproductible sur 3 graines. Scénario affiché : '
+                  : 'Methodology: cardiovascular risks are computed from the published WHO 2019 non-laboratory CVD risk chart values (North Africa & Middle East; South Asia) — no invented figures. The benchmark compares equal-invitation-capacity arms against a hidden truth generated by a mechanism independent of the rules layer (§7/§8.4), reproducible across 3 seeds. Displayed scenario: '}
+                <strong className="text-[#0B3B3C]">{obsData.scenarioNote}</strong>
+              </p>
             </motion.div>
           )
         )}

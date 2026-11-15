@@ -11,8 +11,8 @@ test('MediSense acceptance invariants', async (t) => {
     });
   }
   assert.equal(report.allPassed, true);
-  assert.equal(report.passedCount, 15);
-  assert.equal(report.totalCount, 15);
+  assert.equal(report.passedCount, 19);
+  assert.equal(report.totalCount, 19);
 });
 
 test('FINDRISC activity checkbox: checked adds zero points and unchecked adds two points', () => {

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "documentId": "privacy-thresholds",
+  "version": "1.0.0",
+  "effectiveDate": "2026-11-15",
+  "source": "Section 7.3 privacy safeguards: primary small-cell suppression and complementary neighbor masking thresholds, insufficient-events notice band, and the 95% Wilson confidence level.",
+  "thresholds": {
+    "minCellSize": 10,
+    "smallSampleMinSize": 10,
+    "smallSampleMaxSize": 29,
+    "insufficientEventsThreshold": 5,
+    "wilsonZ": 1.96
+  }
+}

@@ -6,7 +6,13 @@
  * - Small sample notice for 10 <= n <= 29 ("Small sample: no conclusion")
  * - Insufficient events notice (< 5 events -> "Insufficient events")
  * - Community & Equity Alerts (C1, C3, C4)
+ *
+ * All numeric safeguard thresholds (min cell, small-sample band, insufficient-events
+ * floor, Wilson z) are read from the versioned privacy thresholds document
+ * (src/config/thresholds/privacy.v1.json) via src/server/thresholds.ts — §9.2.
  */
+
+import { PRIVACY_THRESHOLDS } from './thresholds.ts';
 
 export interface WilsonInterval {
   proportion: number; // 0 to 100
@@ -18,7 +24,7 @@ export function computeWilson95(successes: number, total: number): WilsonInterva
   if (total <= 0) {
     return { proportion: 0, lower: 0, upper: 0 };
   }
-  const z = 1.96;
+  const z = PRIVACY_THRESHOLDS.wilsonZ;
   const p = successes / total;
   const z2 = z * z;
   const denom = 1 + z2 / total;
@@ -77,10 +83,10 @@ export function buildSafeguardedSegmentTable(
     familyAccCount: number;
   }>
 ): SegmentSafeguardRow[] {
-  // 1. Identify primary suppressed segments (n < 10)
+  // 1. Identify primary suppressed segments (n < minCellSize)
   const primarySuppressedIds = new Set<string>();
   for (const seg of rawSegments) {
-    if (seg.totalEligible < 10) {
+    if (seg.totalEligible < PRIVACY_THRESHOLDS.minCellSize) {
       primarySuppressedIds.add(seg.segmentId);
     }
   }
@@ -154,22 +160,23 @@ export function buildSafeguardedSegmentTable(
       };
     }
 
-    const isSmallSample = seg.totalEligible >= 10 && seg.totalEligible <= 29;
+    const isSmallSample =
+      seg.totalEligible >= PRIVACY_THRESHOLDS.smallSampleMinSize && seg.totalEligible <= PRIVACY_THRESHOLDS.smallSampleMaxSize;
     const reachWilson = computeWilson95(seg.evaluatedComplete, seg.totalEligible);
     const recommendationRateWilson = computeWilson95(seg.recommendedCount, seg.evaluatedComplete);
     const adoptionRateWilson = computeWilson95(seg.confirmedVisitsCount, seg.invitedCount);
 
-    // Anti-deception rule: < 5 events -> "Insufficient events"
+    // Anti-deception rule: < insufficientEventsThreshold events -> "Insufficient events"
     const fpDisplay =
-      seg.falsePositives < 5
-        ? 'Insufficient events (< 5)'
+      seg.falsePositives < PRIVACY_THRESHOLDS.insufficientEventsThreshold
+        ? `Insufficient events (< ${PRIVACY_THRESHOLDS.insufficientEventsThreshold})`
         : `${computeWilson95(seg.falsePositives, seg.falsePositives + seg.trueNegatives).proportion}% [${
             computeWilson95(seg.falsePositives, seg.falsePositives + seg.trueNegatives).lower
           }–${computeWilson95(seg.falsePositives, seg.falsePositives + seg.trueNegatives).upper}%]`;
 
     const fnDisplay =
-      seg.falseNegatives < 5
-        ? 'Insufficient events (< 5)'
+      seg.falseNegatives < PRIVACY_THRESHOLDS.insufficientEventsThreshold
+        ? `Insufficient events (< ${PRIVACY_THRESHOLDS.insufficientEventsThreshold})`
         : `${computeWilson95(seg.falseNegatives, seg.falseNegatives + seg.truePositives).proportion}% [${
             computeWilson95(seg.falseNegatives, seg.falseNegatives + seg.truePositives).lower
           }–${computeWilson95(seg.falseNegatives, seg.falseNegatives + seg.truePositives).upper}%]`;

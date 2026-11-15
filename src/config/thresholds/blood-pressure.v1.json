@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "documentId": "blood-pressure-thresholds",
+  "version": "1.0.0",
+  "effectiveDate": "2026-11-15",
+  "source": "WHO HEARTS technical package adult bands (elevated 130/85, high 140/90, crisis 180/120), AAP 2017 adolescent band (13+ years, 130/80), and pregnancy safeguard 140/90 (rule A11).",
+  "thresholds": {
+    "adultElevatedSysMmHg": 130,
+    "adultElevatedDiaMmHg": 85,
+    "adultHighSysMmHg": 140,
+    "adultHighDiaMmHg": 90,
+    "crisisSysMmHg": 180,
+    "crisisDiaMmHg": 120,
+    "adolescentAgeMinYears": 13,
+    "adolescentSysMmHg": 130,
+    "adolescentDiaMmHg": 80,
+    "pregnancySysMmHg": 140,
+    "pregnancyDiaMmHg": 90,
+    "pregnancySevereSysMmHg": 160,
+    "pregnancySevereDiaMmHg": 110
+  }
+}

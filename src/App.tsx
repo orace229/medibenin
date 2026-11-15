@@ -41,22 +41,20 @@ function MediSenseApplication() {
   const [preselectedLoginRole, setPreselectedLoginRole] = useState<UserRole>('patient');
 
   const handleEnterRolePortal = (role: UserRole, customToken?: string) => {
-    const normalizedRole: UserRole = role === 'parent' ? 'patient' : role;
-    const token = customToken || ROLE_TO_DEMO_TOKEN[normalizedRole];
+    const token = customToken || ROLE_TO_DEMO_TOKEN[role];
     setApiAuthToken(token);
     try {
-      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(normalizedRole));
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(role));
     } catch {
       /* storage unavailable — session kept in memory only */
     }
-    setCurrentRole(normalizedRole);
+    setCurrentRole(role);
     setView('portal');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleOpenLoginWithRole = (role: UserRole = 'patient') => {
-    const normalizedRole: UserRole = role === 'parent' ? 'patient' : role;
-    setPreselectedLoginRole(normalizedRole);
+    setPreselectedLoginRole(role);
     setView('login');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

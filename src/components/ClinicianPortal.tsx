@@ -106,7 +106,7 @@ interface GuidedAnalysisFormState {
   dailyFruitsVeg: boolean;
   antihypertensiveMedHistory: boolean;
   highBloodGlucoseHistory: boolean;
-  familyHistoryDiabetesLevel: 'none' | 'second_degree' | 'first_degree';
+  familyHistoryDiabetesLevel: 'unknown' | 'none' | 'second_degree' | 'first_degree';
   hba1cPercent: string;
   isPregnant: boolean;
   // Family & Cancer & Chronic
@@ -115,6 +115,9 @@ interface GuidedAnalysisFormState {
   colorectalScreeningOverdueMonths: string;
   breastScreeningOverdueMonths: string;
   cervicalScreeningOverdueMonths: string;
+  mammographyScreeningOverdueMonths: string;
+  ifhasFullScreeningDone: 'unknown' | 'yes' | 'no';
+  fallOrSensoryRisk: 'unknown' | 'yes' | 'no';
   chronicFollowupInterruptedMonths: string;
   activeSpecialistFollowup: boolean;
   // Pediatric & Adolescent
@@ -126,6 +129,9 @@ interface GuidedAnalysisFormState {
   hearingScreeningDone: boolean;
   visionScreeningDone: boolean;
   hemoglobinGdl: string;
+  anemiaScreeningDone: 'unknown' | 'yes' | 'no';
+  adolescentVaccinesUpToDate: 'unknown' | 'yes' | 'no';
+  isZeroDoseChild: 'unknown' | 'yes' | 'no';
   missedVaccineDoses: string;
   overdueMonthsWcv: string;
   phqAStatus: 'negative' | 'moderate' | 'severe';
@@ -164,7 +170,7 @@ const DEFAULT_ANALYSIS_FORM: GuidedAnalysisFormState = {
   dailyFruitsVeg: false,
   antihypertensiveMedHistory: true,
   highBloodGlucoseHistory: false,
-  familyHistoryDiabetesLevel: 'first_degree',
+  familyHistoryDiabetesLevel: 'unknown',
   hba1cPercent: '6.1',
   isPregnant: false,
   familyPrematureCvd: true,
@@ -172,6 +178,9 @@ const DEFAULT_ANALYSIS_FORM: GuidedAnalysisFormState = {
   colorectalScreeningOverdueMonths: '14',
   breastScreeningOverdueMonths: '0',
   cervicalScreeningOverdueMonths: '0',
+  mammographyScreeningOverdueMonths: '',
+  ifhasFullScreeningDone: 'unknown',
+  fallOrSensoryRisk: 'unknown',
   chronicFollowupInterruptedMonths: '0',
   activeSpecialistFollowup: false,
   weightForAgeZ: '0.0',
@@ -182,6 +191,9 @@ const DEFAULT_ANALYSIS_FORM: GuidedAnalysisFormState = {
   hearingScreeningDone: true,
   visionScreeningDone: true,
   hemoglobinGdl: '13.4',
+  anemiaScreeningDone: 'unknown',
+  adolescentVaccinesUpToDate: 'unknown',
+  isZeroDoseChild: 'unknown',
   missedVaccineDoses: '',
   overdueMonthsWcv: '0',
   phqAStatus: 'negative',
@@ -331,34 +343,48 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       weightKg: cp.weightKg !== undefined ? String(cp.weightKg) : '',
       heightCm: cp.heightCm !== undefined ? String(cp.heightCm) : '',
       waistCm: cp.waistCm !== undefined ? String(cp.waistCm) : '',
-      smokingStatus: Boolean(cp.smokingStatus),
-      dailyPhysicalActivity: cp.dailyPhysicalActivity !== undefined ? Boolean(cp.dailyPhysicalActivity) : true,
-      dailyFruitsVeg: cp.dailyFruitsVeg !== undefined ? Boolean(cp.dailyFruitsVeg) : true,
-      antihypertensiveMedHistory: Boolean(cp.antihypertensiveMedHistory),
-      highBloodGlucoseHistory: Boolean(cp.highBloodGlucoseHistory),
-      familyHistoryDiabetesLevel: cp.familyHistoryDiabetesLevel || 'none',
+      smokingStatus: Boolean(cp.smokingStatus && cp.smokingStatus !== 'never'),
+      dailyPhysicalActivity: cp.dailyPhysicalActivity !== undefined && cp.dailyPhysicalActivity !== null ? Boolean(cp.dailyPhysicalActivity) : false,
+      dailyFruitsVeg: cp.dailyFruitsVeg !== undefined && cp.dailyFruitsVeg !== null ? Boolean(cp.dailyFruitsVeg) : false,
+      antihypertensiveMedHistory: Boolean(cp.antihypertensiveMed),
+      highBloodGlucoseHistory: Boolean(cp.historyHighGlucose),
+      familyHistoryDiabetesLevel: cp.familyHistoryDiabetes || 'unknown',
       hba1cPercent: cp.hba1cPercent !== undefined ? String(cp.hba1cPercent) : '',
       isPregnant: Boolean(cp.isPregnant),
-      familyPrematureCvd: Boolean(cp.familyPrematureCvd),
-      familyBreastOrColorectalCancer: Boolean(cp.familyBreastOrColorectalCancer),
-      colorectalScreeningOverdueMonths: String(cp.colorectalScreeningOverdueMonths ?? 0),
-      breastScreeningOverdueMonths: String(cp.breastScreeningOverdueMonths ?? 0),
-      cervicalScreeningOverdueMonths: String(cp.cervicalScreeningOverdueMonths ?? 0),
-      chronicFollowupInterruptedMonths: String(cp.chronicFollowupInterruptedMonths ?? 0),
+      familyPrematureCvd: Boolean(cp.familyHistoryFhOrEarlyCvd),
+      familyBreastOrColorectalCancer: Boolean(cp.familyHistoryColorectal),
+      colorectalScreeningOverdueMonths:
+        cp.colorectalScreeningUpToDate === false ? '12' : cp.colorectalScreeningUpToDate === true ? '0' : '',
+      breastScreeningOverdueMonths: '',
+      cervicalScreeningOverdueMonths:
+        cp.cervicalScreeningUpToDate === false ? '12' : cp.cervicalScreeningUpToDate === true ? '0' : '',
+      mammographyScreeningOverdueMonths:
+        cp.mammographyUpToDate === false ? '12' : cp.mammographyUpToDate === true ? '0' : '',
+      ifhasFullScreeningDone:
+        cp.ifhasFullScreeningDone === true ? 'yes' : cp.ifhasFullScreeningDone === false ? 'no' : 'unknown',
+      fallOrSensoryRisk:
+        cp.fallOrSensoryRisk === true ? 'yes' : cp.fallOrSensoryRisk === false ? 'no' : 'unknown',
+      chronicFollowupInterruptedMonths: String(cp.monthsSinceLastChronicVisit ?? 0),
       activeSpecialistFollowup: Boolean(cp.activeSpecialistFollowup),
-      weightForAgeZ: cp.weightForAgeZ !== undefined ? String(cp.weightForAgeZ) : '0',
-      heightForAgeZ: cp.heightForAgeZ !== undefined ? String(cp.heightForAgeZ) : '0',
-      bmiForAgeZ: cp.bmiForAgeZ !== undefined ? String(cp.bmiForAgeZ) : '0',
-      muacMm: cp.muacMm !== undefined ? String(cp.muacMm) : '142',
-      mchatScore: cp.mchatScore !== undefined ? String(cp.mchatScore) : '0',
-      hearingScreeningDone: cp.hearingScreeningDone !== undefined ? Boolean(cp.hearingScreeningDone) : true,
-      visionScreeningDone: cp.visionScreeningDone !== undefined ? Boolean(cp.visionScreeningDone) : true,
+      weightForAgeZ: cp.weightForHeightZ !== undefined ? String(cp.weightForHeightZ) : '',
+      heightForAgeZ: cp.heightForAgeZ !== undefined ? String(cp.heightForAgeZ) : '',
+      bmiForAgeZ: cp.bmiForAgeZ !== undefined ? String(cp.bmiForAgeZ) : '',
+      muacMm: cp.muacMm !== undefined ? String(cp.muacMm) : '',
+      mchatScore: cp.mchatScore !== undefined ? String(cp.mchatScore) : '',
+      hearingScreeningDone: cp.hearingScreeningDone !== undefined ? Boolean(cp.hearingScreeningDone) : false,
+      visionScreeningDone: cp.visionScreeningDone !== undefined ? Boolean(cp.visionScreeningDone) : false,
       hemoglobinGdl: cp.hemoglobinGdl !== undefined ? String(cp.hemoglobinGdl) : '',
+      anemiaScreeningDone:
+        cp.anemiaScreeningDone === true ? 'yes' : cp.anemiaScreeningDone === false ? 'no' : 'unknown',
+      adolescentVaccinesUpToDate:
+        cp.adolescentVaccinesUpToDate === true ? 'yes' : cp.adolescentVaccinesUpToDate === false ? 'no' : 'unknown',
+      isZeroDoseChild:
+        cp.isZeroDoseChild === true ? 'yes' : cp.isZeroDoseChild === false ? 'no' : 'unknown',
       missedVaccineDoses: Array.isArray(cp.missedVaccineDoses) ? cp.missedVaccineDoses.join(', ') : '',
-      overdueMonthsWcv: String(cp.overdueMonthsWcv ?? 0),
+      overdueMonthsWcv: String(cp.overdueWcvMonths ?? 0),
       phqAStatus: cp.phqAStatus || 'negative',
       existingGenomicResult: Boolean(p.consents?.existingGenomicResult),
-      genomicDomain: cp.genomicSignal?.domain || 'none',
+      genomicDomain: 'none',
       redFlagWarningSymptom: Boolean(cp.redFlagWarningSymptom),
       redFlagSymptomLabel: cp.redFlagSymptomLabel || '',
       oldestMeasureMonths: String(cp.oldestMeasureMonths ?? 0),
@@ -497,6 +523,9 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
         muacMm: '122',
         mchatScore: '4',
         hemoglobinGdl: '10.2',
+        anemiaScreeningDone: 'no',
+        adolescentVaccinesUpToDate: 'no',
+        isZeroDoseChild: 'no',
         missedVaccineDoses: 'MMR Dose 1, PCV Booster',
         overdueMonthsWcv: '3',
         redFlagWarningSymptom: false,
@@ -534,6 +563,30 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           : Number(analysisForm.ageYears || 0);
       const payload = {
         ...analysisForm,
+        familyHistoryDiabetesLevel:
+          analysisForm.familyHistoryDiabetesLevel === 'unknown'
+            ? undefined
+            : analysisForm.familyHistoryDiabetesLevel,
+        ifhasFullScreeningDone:
+          analysisForm.ifhasFullScreeningDone === 'unknown'
+            ? undefined
+            : analysisForm.ifhasFullScreeningDone === 'yes',
+        fallOrSensoryRisk:
+          analysisForm.fallOrSensoryRisk === 'unknown'
+            ? undefined
+            : analysisForm.fallOrSensoryRisk === 'yes',
+        anemiaScreeningDone:
+          analysisForm.anemiaScreeningDone === 'unknown'
+            ? undefined
+            : analysisForm.anemiaScreeningDone === 'yes',
+        adolescentVaccinesUpToDate:
+          analysisForm.adolescentVaccinesUpToDate === 'unknown'
+            ? undefined
+            : analysisForm.adolescentVaccinesUpToDate === 'yes',
+        isZeroDoseChild:
+          analysisForm.isZeroDoseChild === 'unknown'
+            ? undefined
+            : analysisForm.isZeroDoseChild === 'yes',
         ageYears: computedAgeYears,
         ageMonths:
           analysisForm.pathwayType === 'child'
@@ -1152,6 +1205,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
                 className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white text-[#0B3B3C]"
               >
+                <option value="unknown">{isFr ? 'Non renseigné' : 'Not answered'}</option>
                 <option value="none">{isFr ? 'Aucun (0 pt)' : 'None (0 pt)'}</option>
                 <option value="second_degree">{isFr ? '2e degré : Grands-parents/Oncles (+3 pts)' : '2nd degree (+3 pts)'}</option>
                 <option value="first_degree">{isFr ? '1er degré : Parents/Fratrie (+5 pts)' : '1st degree (+5 pts)'}</option>
@@ -1200,6 +1254,75 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 }
                 className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-1">
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Retard dépistage col de l’utérus (mois)' : 'Cervical screening overdue (months)'}
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={analysisForm.cervicalScreeningOverdueMonths}
+                onChange={(e) =>
+                  setAnalysisForm({ ...analysisForm, cervicalScreeningOverdueMonths: e.target.value })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Retard mammographie (mois)' : 'Mammography overdue (months)'}
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={analysisForm.mammographyScreeningOverdueMonths}
+                onChange={(e) =>
+                  setAnalysisForm({ ...analysisForm, mammographyScreeningOverdueMonths: e.target.value })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Bilan complet IFHAS' : 'IFHAS comprehensive check'}
+              </label>
+              <select
+                value={analysisForm.ifhasFullScreeningDone}
+                onChange={(e) =>
+                  setAnalysisForm({
+                    ...analysisForm,
+                    ifhasFullScreeningDone: e.target.value as 'unknown' | 'yes' | 'no',
+                  })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white"
+              >
+                <option value="unknown">{isFr ? 'Non renseigné' : 'Not answered'}</option>
+                <option value="yes">{isFr ? 'Fait / à jour' : 'Done / up to date'}</option>
+                <option value="no">{isFr ? 'Non fait' : 'Not done'}</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Risque de chute / sensoriel (65+)' : 'Fall / sensory risk (65+)'}
+              </label>
+              <select
+                value={analysisForm.fallOrSensoryRisk}
+                onChange={(e) =>
+                  setAnalysisForm({
+                    ...analysisForm,
+                    fallOrSensoryRisk: e.target.value as 'unknown' | 'yes' | 'no',
+                  })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white"
+              >
+                <option value="unknown">{isFr ? 'Non renseigné' : 'Not answered'}</option>
+                <option value="yes">{isFr ? 'Oui' : 'Yes'}</option>
+                <option value="no">{isFr ? 'Non' : 'No'}</option>
+              </select>
             </div>
           </div>
 
@@ -1395,6 +1518,66 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               />
             </div>
           </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Dépistage anémie (12–24 mois)' : 'Anemia screening (12–24 months)'}
+              </label>
+              <select
+                value={analysisForm.anemiaScreeningDone}
+                onChange={(e) =>
+                  setAnalysisForm({
+                    ...analysisForm,
+                    anemiaScreeningDone: e.target.value as 'unknown' | 'yes' | 'no',
+                  })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white"
+              >
+                <option value="unknown">{isFr ? 'Non renseigné' : 'Not answered'}</option>
+                <option value="yes">{isFr ? 'Fait' : 'Done'}</option>
+                <option value="no">{isFr ? 'Non fait' : 'Not done'}</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Vaccins adolescents à jour' : 'Adolescent vaccines up to date'}
+              </label>
+              <select
+                value={analysisForm.adolescentVaccinesUpToDate}
+                onChange={(e) =>
+                  setAnalysisForm({
+                    ...analysisForm,
+                    adolescentVaccinesUpToDate: e.target.value as 'unknown' | 'yes' | 'no',
+                  })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white"
+              >
+                <option value="unknown">{isFr ? 'Non renseigné' : 'Not answered'}</option>
+                <option value="yes">{isFr ? 'Oui' : 'Yes'}</option>
+                <option value="no">{isFr ? 'Non' : 'No'}</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Enfant zéro dose' : 'Zero-dose child'}
+              </label>
+              <select
+                value={analysisForm.isZeroDoseChild}
+                onChange={(e) =>
+                  setAnalysisForm({
+                    ...analysisForm,
+                    isZeroDoseChild: e.target.value as 'unknown' | 'yes' | 'no',
+                  })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white"
+              >
+                <option value="unknown">{isFr ? 'Non renseigné' : 'Not answered'}</option>
+                <option value="yes">{isFr ? 'Oui' : 'Yes'}</option>
+                <option value="no">{isFr ? 'Non' : 'No'}</option>
+              </select>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1406,7 +1589,9 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               {isFr ? 'Accélérateur Génomique Consenti (G1–G3)' : 'Consented Genomic Accelerator (G1–G3)'}
             </span>
             <span className="text-[11px] text-[#64748B]">
-              {isFr ? 'Avance uniquement le calendrier préventif' : 'Strictly advances screening schedule'}
+              {isFr
+                ? 'Avance uniquement le calendrier préventif · consentement géré par le patient'
+                : 'Strictly advances screening schedule · consent managed by the patient'}
             </span>
           </div>
           <select
@@ -1415,7 +1600,6 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               setAnalysisForm({
                 ...analysisForm,
                 genomicDomain: e.target.value as any,
-                existingGenomicResult: e.target.value !== 'none',
               })
             }
             className="px-3 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-semibold text-[#0B3B3C]"

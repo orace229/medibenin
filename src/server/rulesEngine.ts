@@ -1,4 +1,16 @@
 import crypto from 'crypto';
+import {
+  lookupWhoNonLabCvdRisk,
+  WHO_2019_CHART_SOURCE,
+  type WhoChartRegion,
+} from './whoCvdChartMENA2019.ts';
+import {
+  WHO_CVD_THRESHOLDS,
+  DIABETES_SCREENING_THRESHOLDS,
+  BLOOD_PRESSURE_THRESHOLDS,
+  PEDIATRIC_THRESHOLDS,
+  ADULT_SCREENING_THRESHOLDS,
+} from './thresholds.ts';
 
 // Signed JSON Rules Table (Section 4.2, 4.3, 4.4, 4.8, 9.2, 12)
 export interface SignedRulesTable {
@@ -11,7 +23,7 @@ export interface SignedRulesTable {
   signatureHash: string;
   rules: Array<{
     id: string;
-    domain: 'pediatric' | 'adult' | 'community' | 'genomic';
+    domain: 'pediatric' | 'adult' | 'community' | 'genomic' | 'safety';
     title: string;
     sourceLabel: string;
     verificationStatus: 'published' | 'to_verify_doh';
@@ -28,7 +40,7 @@ const RULES_LIST: SignedRulesTable['rules'] = [
   { id: 'P10', domain: 'pediatric', title: 'Family history early cardiovascular & lipid screening (Equity pathway)', sourceLabel: 'International Pediatric FH Guidelines', verificationStatus: 'published' },
   { id: 'P11', domain: 'pediatric', title: 'Adolescent immunization schedule', sourceLabel: 'National Adolescent Immunization Schedule', verificationStatus: 'to_verify_doh' },
   { id: 'A1', domain: 'adult', title: 'Blood pressure elevation follow-up', sourceLabel: 'WHO HEARTS Technical Package', verificationStatus: 'published' },
-  { id: 'A2', domain: 'adult', title: '10-year cardiovascular risk evaluation', sourceLabel: 'WHO 2019 Non-Laboratory CVD Chart (MENA)', verificationStatus: 'published' },
+  { id: 'A2', domain: 'adult', title: '10-year cardiovascular risk evaluation', sourceLabel: 'WHO 2019 CVD Risk Chart (Non-Laboratory)', verificationStatus: 'published' },
   { id: 'A3', domain: 'adult', title: 'Type 2 diabetes & glycemic screening', sourceLabel: 'FINDRISC & ADA Glycemic Guidelines', verificationStatus: 'published' },
   { id: 'A4', domain: 'adult', title: 'Adapted metabolic screening for South/East Asian origin', sourceLabel: 'WHO Asian BMI Adaptation & ADA', verificationStatus: 'published' },
   { id: 'A5', domain: 'adult', title: 'Cervical cancer screening interval', sourceLabel: 'National Cancer Screening Guideline', verificationStatus: 'to_verify_doh' },
@@ -43,6 +55,8 @@ const RULES_LIST: SignedRulesTable['rules'] = [
   { id: 'C1', domain: 'community', title: 'Under-covered geographic zone alert', sourceLabel: 'Public Health Coverage Safeguard', verificationStatus: 'published' },
   { id: 'C3', domain: 'community', title: 'Segment adoption equity gap alert', sourceLabel: 'Public Health Equity Safeguard', verificationStatus: 'published' },
   { id: 'C4', domain: 'community', title: 'Segment false-negative governance alert', sourceLabel: 'Clinical Governance Safety Gate', verificationStatus: 'published' },
+  { id: 'E0', domain: 'safety', title: 'Emergency escape — suspend routine prevention and direct to emergency care', sourceLabel: 'MediSense Safety Escape Protocol', verificationStatus: 'published' },
+  { id: 'GREY', domain: 'safety', title: 'Insufficient data — Level Grey safety protocol (never counted as up to date)', sourceLabel: 'MediSense Clinical Safety Protocol', verificationStatus: 'published' },
 ];
 
 export function getCanonicalSignedRuleTable(): SignedRulesTable {
@@ -149,6 +163,8 @@ export interface BackendClinicalCalculations {
     suspendedByPregnancy: boolean;
     asianBmiRuleA4Triggered: boolean;
     itemBreakdown: Array<{ item: string; points: number }>;
+    questionnaireComplete: boolean;
+    missingItems: string[];
   };
   certaintyAudit: {
     completenessPercent: number;
@@ -183,78 +199,133 @@ export interface BackendClinicalCalculations {
 /**
  * Computes the official 8-item FINDRISC score (0 to 26 points) per Annexe B.
  */
+export interface FindriscBreakdownResult {
+  /**
+   * Published FINDRISC total. null when any of the 8 required items is missing
+   * and no explicit patient-declared score is available — a partial score is
+   * never extrapolated (no default imputation).
+   */
+  score: number | null;
+  /** Points for the items actually answered (missing items are absent). */
+  breakdown: Array<{ item: string; points: number }>;
+  /** Required questionnaire items with no recorded answer. */
+  missingItems: string[];
+}
+
 export function computeFindriscBreakdown(params: {
   ageYears: number;
   sex: string;
   bmi: number | null;
   waistCm: number | null;
-  dailyPhysicalActivity: boolean;
-  dailyFruitsVegetables: boolean;
-  antihypertensiveMed: boolean;
-  historyHighBloodGlucose: boolean;
-  familyDiabetes: 'none' | 'second_degree' | 'first_degree';
-  explicitScore?: number;
-}): { score: number; breakdown: Array<{ item: string; points: number }> } {
+  dailyPhysicalActivity: boolean | null;
+  dailyFruitsVegetables: boolean | null;
+  antihypertensiveMed: boolean | null;
+  historyHighBloodGlucose: boolean | null;
+  familyDiabetes: 'none' | 'second_degree' | 'first_degree' | null;
+  explicitScore?: number | null;
+}): FindriscBreakdownResult {
   const breakdown: Array<{ item: string; points: number }> = [];
+  const missingItems: string[] = [];
 
   // 1. Age
   const agePts =
     params.ageYears < 45 ? 0 : params.ageYears <= 54 ? 2 : params.ageYears <= 64 ? 3 : 4;
   breakdown.push({ item: `Age (${params.ageYears} yrs)`, points: agePts });
 
-  // 2. BMI
-  const bmi = params.bmi ?? 24;
-  const bmiPts = bmi < 25 ? 0 : bmi <= 30 ? 1 : 3;
-  breakdown.push({ item: `BMI (${bmi} kg/m²)`, points: bmiPts });
-
-  // 3. Waist circumference
-  const isMale = params.sex.toLowerCase() === 'male' || params.sex.toLowerCase() === 'm';
-  const w = params.waistCm ?? (bmi >= 30 ? 104 : bmi >= 26 ? 95 : 82);
-  let waistPts = 0;
-  if (isMale) {
-    waistPts = w < 94 ? 0 : w <= 102 ? 3 : 4;
+  // 2. BMI (missing -> item missing, never defaulted)
+  if (params.bmi === null || params.bmi === undefined || !Number.isFinite(params.bmi)) {
+    missingItems.push('Body mass index (BMI)');
   } else {
-    waistPts = w < 80 ? 0 : w <= 88 ? 3 : 4;
+    const bmiPts = params.bmi < 25 ? 0 : params.bmi <= 30 ? 1 : 3;
+    breakdown.push({ item: `BMI (${params.bmi} kg/m²)`, points: bmiPts });
   }
-  breakdown.push({ item: `Waist circumference (${w} cm)`, points: waistPts });
 
-  // 4. Physical activity >= 30 min/day
-  const actPts = params.dailyPhysicalActivity ? 0 : 2;
-  breakdown.push({ item: 'Physical activity < 30 min/day', points: actPts });
+  // 3. Waist circumference (missing -> item missing, never inferred from BMI)
+  if (params.waistCm === null || params.waistCm === undefined || !Number.isFinite(params.waistCm)) {
+    missingItems.push('Waist circumference');
+  } else {
+    const isMale = params.sex.toLowerCase() === 'male' || params.sex.toLowerCase() === 'm';
+    let waistPts = 0;
+    if (isMale) {
+      waistPts = params.waistCm < 94 ? 0 : params.waistCm <= 102 ? 3 : 4;
+    } else {
+      waistPts = params.waistCm < 80 ? 0 : params.waistCm <= 88 ? 3 : 4;
+    }
+    breakdown.push({ item: `Waist circumference (${params.waistCm} cm)`, points: waistPts });
+  }
 
-  // 5. Daily fruits & vegetables
-  const fruitPts = params.dailyFruitsVegetables ? 0 : 1;
-  breakdown.push({ item: 'Non-daily fruit/vegetable intake', points: fruitPts });
+  // 4. Physical activity >= 30 min/day (no answer -> item missing, never defaulted)
+  if (params.dailyPhysicalActivity === null || params.dailyPhysicalActivity === undefined) {
+    missingItems.push('Physical activity < 30 min/day');
+  } else {
+    breakdown.push({
+      item: 'Physical activity < 30 min/day',
+      points: params.dailyPhysicalActivity ? 0 : 2,
+    });
+  }
 
-  // 6. Antihypertensive medication
-  const medPts = params.antihypertensiveMed ? 2 : 0;
-  breakdown.push({ item: 'History of antihypertensive medication', points: medPts });
+  // 5. Daily fruits & vegetables (no answer -> item missing, never defaulted)
+  if (params.dailyFruitsVegetables === null || params.dailyFruitsVegetables === undefined) {
+    missingItems.push('Non-daily fruit/vegetable intake');
+  } else {
+    breakdown.push({
+      item: 'Non-daily fruit/vegetable intake',
+      points: params.dailyFruitsVegetables ? 0 : 1,
+    });
+  }
 
-  // 7. History of high blood glucose
-  const glucPts = params.historyHighBloodGlucose ? 5 : 0;
-  breakdown.push({ item: 'Previous borderline/elevated blood glucose', points: glucPts });
+  // 6. Antihypertensive medication (no answer -> item missing, never inferred from BP)
+  if (params.antihypertensiveMed === null || params.antihypertensiveMed === undefined) {
+    missingItems.push('History of antihypertensive medication');
+  } else {
+    breakdown.push({
+      item: 'History of antihypertensive medication',
+      points: params.antihypertensiveMed ? 2 : 0,
+    });
+  }
 
-  // 8. Family history of diabetes
-  const famPts =
-    params.familyDiabetes === 'first_degree'
-      ? 5
-      : params.familyDiabetes === 'second_degree'
-      ? 3
-      : 0;
-  breakdown.push({ item: `Family history of diabetes (${params.familyDiabetes})`, points: famPts });
+  // 7. History of high blood glucose (no answer -> item missing, never defaulted)
+  if (params.historyHighBloodGlucose === null || params.historyHighBloodGlucose === undefined) {
+    missingItems.push('Previous borderline/elevated blood glucose');
+  } else {
+    breakdown.push({
+      item: 'Previous borderline/elevated blood glucose',
+      points: params.historyHighBloodGlucose ? 5 : 0,
+    });
+  }
+
+  // 8. Family history of diabetes (no answer -> item missing, never inferred from the score)
+  if (params.familyDiabetes === null || params.familyDiabetes === undefined) {
+    missingItems.push('Family history of diabetes');
+  } else {
+    const famPts =
+      params.familyDiabetes === 'first_degree'
+        ? 5
+        : params.familyDiabetes === 'second_degree'
+        ? 3
+        : 0;
+    breakdown.push({
+      item: `Family history of diabetes (${params.familyDiabetes})`,
+      points: famPts,
+    });
+  }
 
   const computedTotal = breakdown.reduce((acc, b) => acc + b.points, 0);
-  const finalScore =
-    params.explicitScore !== undefined && params.explicitScore !== null
-      ? Number(params.explicitScore)
-      : computedTotal;
+  const explicitProvided = params.explicitScore !== undefined && params.explicitScore !== null;
+  const finalScore = explicitProvided
+    ? Number(params.explicitScore)
+    : missingItems.length === 0
+    ? computedTotal
+    : null;
 
-  return { score: finalScore, breakdown };
+  return { score: finalScore, breakdown, missingItems };
 }
 
 /**
- * Calibrated WHO 2019 Non-Laboratory 10-year CVD Risk Estimator (MENA / South Asia)
- * with ±1.96σ uncertainty interval (σ_BP = 5 mmHg, ΔBMI = ±1 kg/m²) and Counterfactual Attribution (Section 4.6 & Annexe A).
+ * WHO 2019 Non-Laboratory 10-year CVD Risk Estimator — published chart lookup (MENA & South Asia).
+ * Uses the official WHO 2019 CVD risk chart values (see whoCvdChartMENA2019.ts for the source and
+ * the documented interpolation choice), with a ±1.96σ-style uncertainty interval (±9.8 mmHg on SBP,
+ * ±1 kg/m² on BMI) and Counterfactual Attribution (Section 4.6 & Annexe A).
  */
 export function computeWho2019NonLabCvd(params: {
   ageYears: number;
@@ -266,32 +337,36 @@ export function computeWho2019NonLabCvd(params: {
 }) {
   const { ageYears, sex, systolicBp, bmi, smoker, nationalityGroup } = params;
   const isMale = sex.toLowerCase() === 'male' || sex.toLowerCase() === 'm';
+  // WHO publishes one non-laboratory chart per region; UAE falls in the MENA chart, South Asia has its own.
+  const chartRegion: WhoChartRegion =
+    nationalityGroup === 'South Asia' ? 'southAsia' : 'mena';
 
   const evalRiskFormula = (sysVal: number, bmiVal: number, isSmoker: boolean): number => {
-    const ageCentered = (ageYears - 50) / 10;
-    const sysCentered = (sysVal - 125) / 20;
-    const bmiCentered = (bmiVal - 25) / 5;
-    const regionAdj = nationalityGroup === 'South Asia' ? 0.18 : 0;
-
-    const linear =
-      -2.85 +
-      0.58 * ageCentered +
-      (isMale ? 0.34 : 0) +
-      0.52 * sysCentered +
-      0.22 * bmiCentered +
-      (isSmoker ? 0.56 : 0) +
-      regionAdj;
-
-    const p = 100 / (1 + Math.exp(-linear));
-    return Math.round(Math.min(48, Math.max(1, p)) * 10) / 10;
+    const risk = lookupWhoNonLabCvdRisk(
+      chartRegion,
+      isMale ? 'men' : 'women',
+      isSmoker ? 'smoker' : 'nonSmoker',
+      ageYears,
+      sysVal,
+      bmiVal
+    );
+    return Math.round(risk * 10) / 10;
   };
 
   const riskPercent = evalRiskFormula(systolicBp, bmi, smoker);
-  // ±1.96 * σ where σ = 5 mmHg (±9.8 mmHg) and BMI ± 1 kg/m² (Section 4.6 / H7)
-  const intervalLowPercent = evalRiskFormula(Math.max(90, systolicBp - 9.8), Math.max(16, bmi - 1), smoker);
-  const intervalHighPercent = evalRiskFormula(Math.min(240, systolicBp + 9.8), Math.min(50, bmi + 1), smoker);
+  // Uncertainty interval from the versioned who-cvd thresholds (±9.8 mmHg on SBP, ±1 kg/m² on BMI — Section 4.6 / H7)
+  const intervalLowPercent = evalRiskFormula(
+    Math.max(90, systolicBp - WHO_CVD_THRESHOLDS.uncertaintySbpMmHg),
+    Math.max(16, bmi - WHO_CVD_THRESHOLDS.uncertaintyBmiKgM2),
+    smoker
+  );
+  const intervalHighPercent = evalRiskFormula(
+    Math.min(240, systolicBp + WHO_CVD_THRESHOLDS.uncertaintySbpMmHg),
+    Math.min(50, bmi + WHO_CVD_THRESHOLDS.uncertaintyBmiKgM2),
+    smoker
+  );
 
-  // Check if [intervalLow, intervalHigh] crosses any WHO threshold (5%, 10%, 20%)
+  // Check if [intervalLow, intervalHigh] crosses any WHO decision threshold (5%, 10%, 20%)
   const thresholds = [5, 10, 20];
   const crossesThreshold = thresholds.some(
     (t) => intervalLowPercent < t && intervalHighPercent >= t
@@ -305,13 +380,13 @@ export function computeWho2019NonLabCvd(params: {
     riskReductionPct: number;
   }> = [];
 
-  if (systolicBp > 120) {
-    const targetRisk = evalRiskFormula(120, bmi, smoker);
+  if (systolicBp > WHO_CVD_THRESHOLDS.counterfactualSbpTargetMmHg) {
+    const targetRisk = evalRiskFormula(WHO_CVD_THRESHOLDS.counterfactualSbpTargetMmHg, bmi, smoker);
     const drop = Math.max(0.2, Math.round((riskPercent - targetRisk) * 10) / 10);
     counterfactuals.push({
       factor: 'Resting Systolic Blood Pressure',
       currentValue: `${systolicBp} mmHg`,
-      targetValue: '120 mmHg',
+      targetValue: `${WHO_CVD_THRESHOLDS.counterfactualSbpTargetMmHg} mmHg`,
       riskReductionPct: drop,
     });
   }
@@ -327,23 +402,20 @@ export function computeWho2019NonLabCvd(params: {
     });
   }
 
-  if (bmi > 25) {
-    const targetRisk = evalRiskFormula(systolicBp, 25, smoker);
+  if (bmi > WHO_CVD_THRESHOLDS.counterfactualBmiTargetKgM2) {
+    const targetRisk = evalRiskFormula(systolicBp, WHO_CVD_THRESHOLDS.counterfactualBmiTargetKgM2, smoker);
     const drop = Math.max(0.1, Math.round((riskPercent - targetRisk) * 10) / 10);
     counterfactuals.push({
       factor: 'Body Mass Index (BMI)',
       currentValue: `${bmi} kg/m²`,
-      targetValue: '25.0 kg/m²',
+      targetValue: `${WHO_CVD_THRESHOLDS.counterfactualBmiTargetKgM2.toFixed(1)} kg/m²`,
       riskReductionPct: drop,
     });
   }
 
   counterfactuals.sort((a, b) => b.riskReductionPct - a.riskReductionPct);
 
-  const regionUsed =
-    nationalityGroup === 'South Asia'
-      ? 'WHO South Asia / MENA Adapted Chart (H11)'
-      : 'WHO North Africa & Middle East (MENA) Chart';
+  const regionUsed = WHO_2019_CHART_SOURCE[chartRegion];
 
   return {
     riskPercent,
@@ -424,6 +496,12 @@ export function evaluatePatientRules(
       ? Number(cp.bmi)
       : null;
 
+  // Glycemic and pregnancy status are needed both by the adult rules and by the
+  // Level Grey completeness audit, so they are resolved once here.
+  const hba1c =
+    cp.hba1cPercent !== undefined && cp.hba1cPercent !== null ? Number(cp.hba1cPercent) : null;
+  const isPregnant = Boolean(cp.isPregnant);
+
   // TEST-S4: Corrected age for premature children (< 37 weeks gestational age, up to 24 months)
   let correctedAgeMonths: number | null = null;
   if (
@@ -458,7 +536,7 @@ export function evaluatePatientRules(
   // 0b. Emergency Escape Rule E0 (Section 4.5)
   const emergencyTriggered = Boolean(
     cp.hasEmergencySymptoms ||
-      (retainedSys !== null && retainedDia !== null && (retainedSys >= 180 || retainedDia >= 120) && cp.hasSymptomaticCrisis)
+      (retainedSys !== null && retainedDia !== null && (retainedSys >= BLOOD_PRESSURE_THRESHOLDS.crisisSysMmHg || retainedDia >= BLOOD_PRESSURE_THRESHOLDS.crisisDiaMmHg) && cp.hasSymptomaticCrisis)
   );
   const emergencyReason = emergencyTriggered
     ? cp.hasEmergencySymptoms
@@ -485,56 +563,16 @@ export function evaluatePatientRules(
     });
   }
 
-  // 1. Check for critical missing data -> Level Grey (Rule 5 & Section 4.7)
+  // 1. Level Grey completeness is audited after all clinical rules have run
+  // (see the "Level Grey completeness audit" block below). A missing required
+  // variable is never replaced by a default value, and a Grey is never counted
+  // as up to date.
   let completenessPercent = 100;
-  if (patient.pathwayType === 'adult' && (!retainedSys || !computedBmi)) {
-    const missing: string[] = [];
-    if (!retainedSys) missing.push('Resting blood pressure measurement (two readings at least 1 minute apart)');
-    if (!computedBmi) missing.push('Weight and height measurement (BMI)');
-    if (cp.hba1cPercent === undefined) missing.push('Recent glycemic check or FINDRISC questionnaire');
-    completenessPercent = Math.max(25, 100 - missing.length * 30);
-
-    flagsOut.push({
-      ruleId: 'GREY-ADULT',
-      flagType: 'missed_care',
-      level: 'grey',
-      title: 'Insufficient clinical data to complete adult prevention evaluation',
-      factors: [
-        'Essential baseline measurements are missing from the record',
-        'A safe preventive status cannot be confirmed until the measurements are recorded',
-      ],
-      sourceLabel: 'MediSense Clinical Safety Protocol (Level Grey)',
-      missingData: missing,
-      dueDate: 'Within 14 days',
-      certainty: 'low',
-      certaintyReason: 'To be confirmed by recording missing baseline measurements',
-      isEclipseSuspended: false,
-    });
-  }
-
-  if (patient.pathwayType === 'child' && cp.weightForHeightZ === undefined && cp.muacMm === undefined) {
-    completenessPercent = 40;
-    flagsOut.push({
-      ruleId: 'GREY-CHILD',
-      flagType: 'missed_care',
-      level: 'grey',
-      title: 'Insufficient growth data to complete pediatric evaluation',
-      factors: [
-        'Weight, length/height, or mid-upper arm circumference have not been recorded recently',
-      ],
-      sourceLabel: 'WHO Child Growth Standards Protocol',
-      missingData: ['Weight and length/height measurement', 'Mid-upper arm circumference check'],
-      dueDate: 'Within 14 days',
-      certainty: 'low',
-      certaintyReason: 'To be confirmed by recording child growth measurements',
-      isEclipseSuspended: false,
-    });
-  }
 
   // 2. Pediatric & Adolescent Rules (P1..P11)
   if (patient.pathwayType === 'child' || patient.pathwayType === 'adolescent') {
     // P1: Severe acute malnutrition
-    if ((cp.weightForHeightZ !== undefined && cp.weightForHeightZ < -3) || (cp.muacMm !== undefined && cp.muacMm < 115)) {
+    if ((cp.weightForHeightZ !== undefined && cp.weightForHeightZ < PEDIATRIC_THRESHOLDS.severeMalnutritionWhzBelow) || (cp.muacMm !== undefined && cp.muacMm < PEDIATRIC_THRESHOLDS.severeMalnutritionMuacBelowMm)) {
       flagsOut.push({
         ruleId: 'P1',
         flagType: 'elevated_risk',
@@ -599,8 +637,8 @@ export function evaluatePatientRules(
     }
 
     // P4: Immunization delay or zero-dose
-    if (cp.isZeroDoseChild || (cp.vaccineDelayDays && cp.vaccineDelayDays > 30)) {
-      const isPriority = Boolean(cp.isZeroDoseChild || (cp.vaccineDelayDays && cp.vaccineDelayDays > 60));
+    if (cp.isZeroDoseChild || (cp.vaccineDelayDays && cp.vaccineDelayDays > PEDIATRIC_THRESHOLDS.vaccineDelayFollowupDays)) {
+      const isPriority = Boolean(cp.isZeroDoseChild || (cp.vaccineDelayDays && cp.vaccineDelayDays > PEDIATRIC_THRESHOLDS.vaccineDelayPriorityDays));
       flagsOut.push({
         ruleId: 'P4',
         flagType: 'overdue_care',
@@ -621,11 +659,12 @@ export function evaluatePatientRules(
     }
 
     // P5: Early childhood anemia screening
+    const anemiaWindow = PEDIATRIC_THRESHOLDS.anemiaScreeningWindowMonths;
     if (
-      (patient.ageMonths >= 12 && patient.ageMonths <= 24 && cp.anemiaScreeningDone === false) ||
-      (cp.hemoglobinGdl !== undefined && Number(cp.hemoglobinGdl) < 11.0)
+      (patient.ageMonths >= anemiaWindow[0] && patient.ageMonths <= anemiaWindow[1] && cp.anemiaScreeningDone === false) ||
+      (cp.hemoglobinGdl !== undefined && Number(cp.hemoglobinGdl) < PEDIATRIC_THRESHOLDS.anemiaHbThresholdGdl)
     ) {
-      const lowHb = cp.hemoglobinGdl !== undefined && Number(cp.hemoglobinGdl) < 11.0;
+      const lowHb = cp.hemoglobinGdl !== undefined && Number(cp.hemoglobinGdl) < PEDIATRIC_THRESHOLDS.anemiaHbThresholdGdl;
       flagsOut.push({
         ruleId: 'P5',
         flagType: lowHb ? 'elevated_risk' : 'missed_care',
@@ -649,9 +688,9 @@ export function evaluatePatientRules(
     }
 
     // P6: M-CHAT-R developmental screening
-    if (cp.mchatScore !== undefined && Number(cp.mchatScore) >= 3) {
+    if (cp.mchatScore !== undefined && Number(cp.mchatScore) >= PEDIATRIC_THRESHOLDS.mchatFollowUpScore) {
       const score = Number(cp.mchatScore);
-      const isHigh = score >= 8;
+      const isHigh = score >= PEDIATRIC_THRESHOLDS.mchatHighScore;
       flagsOut.push({
         ruleId: 'P6',
         flagType: 'elevated_risk',
@@ -675,9 +714,12 @@ export function evaluatePatientRules(
     }
 
     // P8: Adolescent / child BMI-for-age monitoring
-    if (cp.bmiForAgeZ !== undefined && (Number(cp.bmiForAgeZ) > 1 || Number(cp.bmiForAgeZ) < -2)) {
+    if (
+      cp.bmiForAgeZ !== undefined &&
+      (Number(cp.bmiForAgeZ) > PEDIATRIC_THRESHOLDS.bmiForAgeZWatchAbove || Number(cp.bmiForAgeZ) < PEDIATRIC_THRESHOLDS.bmiForAgeZWatchBelow)
+    ) {
       const z = Number(cp.bmiForAgeZ);
-      const isOrange = z > 2 || z < -3;
+      const isOrange = z > PEDIATRIC_THRESHOLDS.bmiForAgeZOrangeAbove || z < PEDIATRIC_THRESHOLDS.bmiForAgeZOrangeBelow;
       flagsOut.push({
         ruleId: 'P8',
         flagType: 'elevated_risk',
@@ -697,7 +739,12 @@ export function evaluatePatientRules(
     }
 
     // P9: Pediatric / Adolescent Blood Pressure (AAP 2017)
-    if (retainedSys && retainedDia && patient.ageYears >= 13 && (retainedSys >= 130 || retainedDia >= 80)) {
+    if (
+      retainedSys &&
+      retainedDia &&
+      patient.ageYears >= BLOOD_PRESSURE_THRESHOLDS.adolescentAgeMinYears &&
+      (retainedSys >= BLOOD_PRESSURE_THRESHOLDS.adolescentSysMmHg || retainedDia >= BLOOD_PRESSURE_THRESHOLDS.adolescentDiaMmHg)
+    ) {
       flagsOut.push({
         ruleId: 'P9',
         flagType: 'elevated_risk',
@@ -737,7 +784,10 @@ export function evaluatePatientRules(
     }
 
     // P11: Adolescent vaccines
-    if (patient.ageYears >= 10 && cp.adolescentVaccinesUpToDate === false) {
+    if (
+      patient.ageYears >= PEDIATRIC_THRESHOLDS.adolescentVaccinesAgeMinYears &&
+      cp.adolescentVaccinesUpToDate === false
+    ) {
       flagsOut.push({
         ruleId: 'P11',
         flagType: 'missed_care',
@@ -760,7 +810,7 @@ export function evaluatePatientRules(
   let whoCvdCalc: BackendClinicalCalculations['whoCvdModel'] = {
     inDomain: false,
     domainNote: 'Applicable to non-pregnant adults aged 40–80 years',
-    regionUsed: 'WHO MENA Chart',
+    regionUsed: WHO_2019_CHART_SOURCE.mena,
     riskPercent: null,
     intervalLowPercent: null,
     intervalHighPercent: null,
@@ -774,22 +824,26 @@ export function evaluatePatientRules(
     suspendedByPregnancy: false,
     asianBmiRuleA4Triggered: false,
     itemBreakdown: [],
+    questionnaireComplete: false,
+    missingItems: [],
   };
 
   if (patient.pathwayType === 'adult') {
-    const isPregnant = Boolean(cp.isPregnant);
+    // Pregnancy status is resolved once above (it also drives the Grey audit).
 
-    // Compute FINDRISC 8-item breakdown
+    // Compute FINDRISC 8-item breakdown — NO default imputation: every item
+    // comes from the record or is reported as missing data (score stays null
+    // for an incomplete questionnaire; a declared score is used as-is).
     const fin = computeFindriscBreakdown({
       ageYears: patient.ageYears,
       sex: patient.sex,
       bmi: computedBmi,
       waistCm: cp.waistCm !== undefined ? Number(cp.waistCm) : null,
-      dailyPhysicalActivity: cp.dailyPhysicalActivity ?? false,
-      dailyFruitsVegetables: cp.dailyFruitsVegetables ?? true,
-      antihypertensiveMed: cp.antihypertensiveMed ?? Boolean(retainedSys && retainedSys >= 140),
-      historyHighBloodGlucose: cp.historyHighBloodGlucose ?? false,
-      familyDiabetes: cp.familyDiabetes || (cp.findriscScore && cp.findriscScore >= 14 ? 'first_degree' : 'none'),
+      dailyPhysicalActivity: cp.dailyPhysicalActivity ?? null,
+      dailyFruitsVegetables: cp.dailyFruitsVegetables ?? null,
+      antihypertensiveMed: cp.antihypertensiveMed ?? null,
+      historyHighBloodGlucose: cp.historyHighBloodGlucose ?? null,
+      familyDiabetes: cp.familyDiabetes ?? null,
       explicitScore: cp.findriscScore,
     });
 
@@ -797,7 +851,7 @@ export function evaluatePatientRules(
       !isPregnant &&
         (patient.nationalityGroup === 'South Asia' || patient.nationalityGroup === 'Southeast Asia') &&
         computedBmi !== null &&
-        computedBmi >= 23 &&
+        computedBmi >= DIABETES_SCREENING_THRESHOLDS.asianAdaptedBmiThresholdKgM2 &&
         cp.hba1cPercent === undefined
     );
 
@@ -805,19 +859,30 @@ export function evaluatePatientRules(
       score: isPregnant ? null : fin.score,
       levelLabel: isPregnant
         ? 'Suspended during pregnancy'
-        : fin.score >= 15
+        : fin.score === null
+        ? `Incomplete questionnaire (${fin.missingItems.length} item${fin.missingItems.length === 1 ? '' : 's'} missing)`
+        : fin.score >= DIABETES_SCREENING_THRESHOLDS.findriscHighRiskScore
         ? 'High risk'
-        : fin.score >= 12
+        : fin.score >= DIABETES_SCREENING_THRESHOLDS.findriscScreeningScore
         ? 'Moderate risk'
         : 'Low-to-moderate risk',
       suspendedByPregnancy: isPregnant,
       asianBmiRuleA4Triggered: asianBmiTriggered,
       itemBreakdown: fin.breakdown,
+      questionnaireComplete: fin.missingItems.length === 0,
+      missingItems: fin.missingItems,
     };
 
     // TEST-S3: Rule A11 — Pregnancy with elevated blood pressure -> RED, suspends A2, A3, A6
-    if (isPregnant && retainedSys && retainedDia && (retainedSys >= 140 || retainedDia >= 90)) {
-      const isSevere = retainedSys >= 160 || retainedDia >= 110;
+    if (
+      isPregnant &&
+      retainedSys &&
+      retainedDia &&
+      (retainedSys >= BLOOD_PRESSURE_THRESHOLDS.pregnancySysMmHg || retainedDia >= BLOOD_PRESSURE_THRESHOLDS.pregnancyDiaMmHg)
+    ) {
+      const isSevere =
+        retainedSys >= BLOOD_PRESSURE_THRESHOLDS.pregnancySevereSysMmHg ||
+        retainedDia >= BLOOD_PRESSURE_THRESHOLDS.pregnancySevereDiaMmHg;
       flagsOut.push({
         ruleId: 'A11',
         flagType: 'elevated_risk',
@@ -841,7 +906,7 @@ export function evaluatePatientRules(
 
     // A1: Adult blood pressure (when not pregnant)
     if (!isPregnant && retainedSys && retainedDia) {
-      if (retainedSys >= 140 || retainedDia >= 90) {
+      if (retainedSys >= BLOOD_PRESSURE_THRESHOLDS.adultHighSysMmHg || retainedDia >= BLOOD_PRESSURE_THRESHOLDS.adultHighDiaMmHg) {
         flagsOut.push({
           ruleId: 'A1',
           flagType: 'elevated_risk',
@@ -860,7 +925,10 @@ export function evaluatePatientRules(
           certaintyReason: baseCertaintyReason,
           isEclipseSuspended: false,
         });
-      } else if (retainedSys >= 130 || retainedDia >= 85) {
+      } else if (
+        retainedSys >= BLOOD_PRESSURE_THRESHOLDS.adultElevatedSysMmHg ||
+        retainedDia >= BLOOD_PRESSURE_THRESHOLDS.adultElevatedDiaMmHg
+      ) {
         flagsOut.push({
           ruleId: 'A1',
           flagType: 'elevated_risk',
@@ -888,7 +956,7 @@ export function evaluatePatientRules(
         domainNote: 'Suspended during pregnancy',
       };
     } else if (retainedSys && computedBmi) {
-      if (patient.ageYears < 40 || patient.ageYears > 80) {
+      if (patient.ageYears < WHO_CVD_THRESHOLDS.domainAgeMinYears || patient.ageYears > WHO_CVD_THRESHOLDS.domainAgeMaxYears) {
         whoCvdCalc = {
           ...whoCvdCalc,
           inDomain: false,
@@ -903,7 +971,7 @@ export function evaluatePatientRules(
             'The WHO 2019 10-year cardiovascular prediction model is statistically validated only for ages 40–80',
             'Prevention for this person relies directly on blood pressure follow-up, glycemic screening, adapted BMI guidance, family history, and genomic eligibility',
           ],
-          sourceLabel: 'WHO 2019 Non-Laboratory CVD Chart',
+          sourceLabel: 'WHO 2019 CVD Risk Chart (Non-Laboratory)',
           missingData: [],
           dueDate: 'Routine schedule',
           certainty: 'medium',
@@ -937,8 +1005,8 @@ export function evaluatePatientRules(
           baseCertaintyReason = 'The 10-year risk interval spans a decision level — flagged for clinician review';
         }
 
-        if (cvd.riskPercent >= 5) {
-          const isOrange = cvd.riskPercent >= 10;
+        if (cvd.riskPercent >= WHO_CVD_THRESHOLDS.riskYellowPercent) {
+          const isOrange = cvd.riskPercent >= WHO_CVD_THRESHOLDS.riskOrangePercent;
           const counterfactualStrings = cvd.counterfactuals.map(
             (c) => `Counterfactual: reducing ${c.factor} from ${c.currentValue} to ${c.targetValue} lowers 10-year risk by -${c.riskReductionPct}%`
           );
@@ -952,7 +1020,7 @@ export function evaluatePatientRules(
             level: isOrange ? 'orange' : 'yellow',
             title: `WHO 10-Year CVD Risk: ${cvd.riskPercent}% [${cvd.intervalLowPercent}–${cvd.intervalHighPercent}%]`,
             factors: counterfactualStrings.slice(0, 3),
-            sourceLabel: 'WHO 2019 Non-Laboratory CVD Chart',
+            sourceLabel: cvd.regionUsed,
             missingData: ['Fasting lipid profile to refine clinical assessment'],
             dueDate: isOrange ? 'Within 14 days' : 'Within 45 days',
             certainty:
@@ -970,9 +1038,14 @@ export function evaluatePatientRules(
     }
 
     // A3: Glycemic / Diabetes screening (FINDRISC >= 12 or HbA1c >= 5.7%)
-    const hba1c = cp.hba1cPercent !== undefined && cp.hba1cPercent !== null ? Number(cp.hba1cPercent) : null;
-    if (!isPregnant && ((fin.score !== null && fin.score >= 12) || (hba1c !== null && hba1c >= 5.7))) {
-      const isOrange = (fin.score !== null && fin.score >= 15) || (hba1c !== null && hba1c >= 6.5);
+    if (
+      !isPregnant &&
+      ((fin.score !== null && fin.score >= DIABETES_SCREENING_THRESHOLDS.findriscScreeningScore) ||
+        (hba1c !== null && hba1c >= DIABETES_SCREENING_THRESHOLDS.hba1cPrediabetesPercent))
+    ) {
+      const isOrange =
+        (fin.score !== null && fin.score >= DIABETES_SCREENING_THRESHOLDS.findriscHighRiskScore) ||
+        (hba1c !== null && hba1c >= DIABETES_SCREENING_THRESHOLDS.hba1cDiabetesPercent);
       const topFinItems = fin.breakdown
         .filter((b) => b.points > 0)
         .sort((a, b) => b.points - a.points)
@@ -994,7 +1067,11 @@ export function evaluatePatientRules(
             : 'Laboratory HbA1c test is recommended to check blood sugar regulation',
         ],
         sourceLabel: 'FINDRISC (Lindström & Tuomilehto 2003) & ADA Guidelines',
-        missingData: hba1c === null ? ['Laboratory HbA1c blood test'] : [],
+        missingData: [
+          ...(hba1c === null ? ['Laboratory HbA1c blood test'] : []),
+          // No default imputation: unanswered questionnaire items are surfaced as missing data
+          ...(fin.missingItems.length > 0 ? [`FINDRISC items not yet recorded: ${fin.missingItems.join(', ')}`] : []),
+        ],
         dueDate: isOrange ? 'Within 14 days' : 'Within 30 days',
         certainty: baseCertainty,
         certaintyReason: baseCertaintyReason,
@@ -1026,8 +1103,8 @@ export function evaluatePatientRules(
     if (
       !isPregnant &&
       patient.sex.toLowerCase() === 'female' &&
-      patient.ageYears >= 25 &&
-      patient.ageYears <= 65 &&
+      patient.ageYears >= ADULT_SCREENING_THRESHOLDS.cervicalScreeningAgeMinYears &&
+      patient.ageYears <= ADULT_SCREENING_THRESHOLDS.cervicalScreeningAgeMaxYears &&
       cp.cervicalScreeningUpToDate === false
     ) {
       flagsOut.push({
@@ -1051,8 +1128,8 @@ export function evaluatePatientRules(
     if (
       !isPregnant &&
       patient.sex.toLowerCase() === 'female' &&
-      patient.ageYears >= 40 &&
-      patient.ageYears <= 69 &&
+      patient.ageYears >= ADULT_SCREENING_THRESHOLDS.mammographyAgeMinYears &&
+      patient.ageYears <= ADULT_SCREENING_THRESHOLDS.mammographyAgeMaxYears &&
       cp.mammographyUpToDate === false
     ) {
       flagsOut.push({
@@ -1073,7 +1150,11 @@ export function evaluatePatientRules(
     }
 
     // A7: Colorectal screening (40-75y or 1st-degree family history)
-    if (!isPregnant && (patient.ageYears >= 40 || cp.familyHistoryColorectal) && cp.colorectalScreeningUpToDate === false) {
+    if (
+      !isPregnant &&
+      (patient.ageYears >= ADULT_SCREENING_THRESHOLDS.colorectalAgeMinYears || cp.familyHistoryColorectal) &&
+      cp.colorectalScreeningUpToDate === false
+    ) {
       flagsOut.push({
         ruleId: 'A7',
         flagType: 'missed_care',
@@ -1113,7 +1194,11 @@ export function evaluatePatientRules(
     }
 
     // A9: Interrupted chronic follow-up
-    if (cp.chronicCondition && cp.monthsSinceLastChronicVisit && Number(cp.monthsSinceLastChronicVisit) > 6) {
+    if (
+      cp.chronicCondition &&
+      cp.monthsSinceLastChronicVisit &&
+      Number(cp.monthsSinceLastChronicVisit) > ADULT_SCREENING_THRESHOLDS.chronicVisitGapMonths
+    ) {
       flagsOut.push({
         ruleId: 'A9',
         flagType: 'interrupted_followup',
@@ -1133,7 +1218,7 @@ export function evaluatePatientRules(
     }
 
     // A10: Older adult fall & sensory screening (>= 65 years, CDC STEADI)
-    if (patient.ageYears >= 65 && cp.fallOrSensoryRisk) {
+    if (patient.ageYears >= ADULT_SCREENING_THRESHOLDS.fallScreeningAgeMinYears && cp.fallOrSensoryRisk) {
       flagsOut.push({
         ruleId: 'A10',
         flagType: 'elevated_risk',
@@ -1181,6 +1266,111 @@ export function evaluatePatientRules(
     }
   }
 
+  // Level Grey completeness audit (Section 4.7): every required variable that
+  // is genuinely unknown is surfaced as missing data. Unknown is never treated
+  // as "healthy" or "up to date". A Grey flag does NOT mask a confirmed Orange
+  // or Yellow (see the overall-level ordering below).
+  const missingRequired: string[] = [];
+  const isUnknown = (v: unknown) => v === undefined || v === null;
+
+  if (patient.pathwayType === 'adult') {
+    if (!retainedSys) {
+      missingRequired.push('Resting blood pressure measurement (two readings at least 1 minute apart)');
+    }
+    if (!computedBmi) {
+      missingRequired.push('Weight and height measurement (BMI)');
+    }
+    // A3 is suspended during pregnancy, so glycemic completeness is not required there.
+    const glycemicKnown = isPregnant || findriscCalc.score !== null || hba1c !== null;
+    if (!glycemicKnown) {
+      missingRequired.push('Complete FINDRISC questionnaire (8 items) or a laboratory HbA1c');
+    }
+    if (!isPregnant && patient.ageYears >= 40 && patient.ageYears <= 80 && isUnknown(cp.smokingStatus)) {
+      missingRequired.push('Tobacco use (required by the WHO 2019 non-laboratory model)');
+    }
+    if (!isPregnant) {
+      if (
+        patient.sex.toLowerCase() === 'female' &&
+        patient.ageYears >= ADULT_SCREENING_THRESHOLDS.cervicalScreeningAgeMinYears &&
+        patient.ageYears <= ADULT_SCREENING_THRESHOLDS.cervicalScreeningAgeMaxYears &&
+        isUnknown(cp.cervicalScreeningUpToDate)
+      ) {
+        missingRequired.push('Cervical cancer screening status');
+      }
+      if (
+        patient.sex.toLowerCase() === 'female' &&
+        patient.ageYears >= ADULT_SCREENING_THRESHOLDS.mammographyAgeMinYears &&
+        patient.ageYears <= ADULT_SCREENING_THRESHOLDS.mammographyAgeMaxYears &&
+        isUnknown(cp.mammographyUpToDate)
+      ) {
+        missingRequired.push('Mammography screening status');
+      }
+      if (
+        patient.ageYears >= ADULT_SCREENING_THRESHOLDS.colorectalAgeMinYears &&
+        patient.ageYears <= 75 &&
+        isUnknown(cp.colorectalScreeningUpToDate)
+      ) {
+        missingRequired.push('Colorectal cancer screening status');
+      }
+      if (patient.ageYears >= 18 && patient.ageYears <= 75 && isUnknown(cp.ifhasFullScreeningDone)) {
+        missingRequired.push('IFHAS comprehensive adult check status');
+      }
+    }
+    if (patient.ageYears >= ADULT_SCREENING_THRESHOLDS.fallScreeningAgeMinYears && isUnknown(cp.fallOrSensoryRisk)) {
+      missingRequired.push('Fall / balance / sensory risk status (CDC STEADI)');
+    }
+  } else {
+    const ageMonths = patient.ageMonths;
+    if (ageMonths < 60) {
+      if (isUnknown(cp.weightForHeightZ) && isUnknown(cp.muacMm)) {
+        missingRequired.push('Weight-for-height Z-score and mid-upper arm circumference');
+      }
+    } else if (ageMonths <= 216 && isUnknown(cp.bmiForAgeZ)) {
+      missingRequired.push('BMI-for-age Z-score (WHO 2007)');
+    }
+    const immunizationKnown =
+      !isUnknown(cp.vaccineDelayDays) ||
+      !isUnknown(cp.isZeroDoseChild) ||
+      !isUnknown(cp.adolescentVaccinesUpToDate);
+    if (!immunizationKnown) {
+      missingRequired.push('Immunization registry status (delays and zero-dose)');
+    }
+    if (
+      ageMonths >= 12 &&
+      ageMonths <= 24 &&
+      isUnknown(cp.anemiaScreeningDone) &&
+      isUnknown(cp.hemoglobinGdl)
+    ) {
+      missingRequired.push('Anemia screening status or hemoglobin value');
+    }
+    if (ageMonths >= 16 && ageMonths <= 30 && isUnknown(cp.mchatScore)) {
+      missingRequired.push('M-CHAT-R developmental screening result');
+    }
+    if (patient.ageYears >= 10 && isUnknown(cp.adolescentVaccinesUpToDate)) {
+      missingRequired.push('Adolescent immunization status (HPV / meningococcal / boosters)');
+    }
+  }
+
+  if (missingRequired.length > 0) {
+    completenessPercent = Math.max(10, 100 - missingRequired.length * 12);
+    flagsOut.push({
+      ruleId: 'GREY',
+      flagType: 'missed_care',
+      level: 'grey',
+      title: 'Insufficient data to complete the prevention evaluation',
+      factors: [
+        'Required prevention variables are not recorded; missing values are never replaced by defaults',
+        'A safe preventive status cannot be confirmed until the missing measurements are recorded',
+      ],
+      sourceLabel: 'MediSense Clinical Safety Protocol (Level Grey)',
+      missingData: missingRequired,
+      dueDate: 'Within 14 days',
+      certainty: 'low',
+      certaintyReason: 'To be confirmed by recording the missing required variables',
+      isEclipseSuspended: false,
+    });
+  }
+
   // TEST-S2: Eclipse Rule — Active Red flag suspends Yellow flags
   const hasRed = flagsOut.some((f) => f.level === 'red');
   const suspendedYellowRuleIds: string[] = [];
@@ -1193,13 +1383,14 @@ export function evaluatePatientRules(
     }
   }
 
-  // Determine overall level
+  // Determine overall level. Confirmed Orange/Yellow findings outrank a Grey
+  // completeness flag: missing data must not hide an actionable finding.
   const activeFlags = flagsOut.filter((f) => f.ruleId !== 'A2-DOMAIN');
   let overallLevel: 'red' | 'orange' | 'yellow' | 'green' | 'grey' = 'green';
   if (activeFlags.some((f) => f.level === 'red')) overallLevel = 'red';
-  else if (activeFlags.some((f) => f.level === 'grey')) overallLevel = 'grey';
   else if (activeFlags.some((f) => f.level === 'orange')) overallLevel = 'orange';
   else if (activeFlags.some((f) => f.level === 'yellow')) overallLevel = 'yellow';
+  else if (activeFlags.some((f) => f.level === 'grey')) overallLevel = 'grey';
 
   const overallCertainty: 'high' | 'medium' | 'low' =
     overallLevel === 'grey' || flagsOut.some((f) => f.certainty === 'low')
@@ -1253,9 +1444,9 @@ export function evaluatePatientRules(
   const bpZoneLabel =
     !retainedSys
       ? 'Blood pressure not recorded yet'
-      : retainedSys >= 140 || (retainedDia && retainedDia >= 90)
+      : retainedSys >= BLOOD_PRESSURE_THRESHOLDS.adultHighSysMmHg || (retainedDia && retainedDia >= BLOOD_PRESSURE_THRESHOLDS.adultHighDiaMmHg)
       ? 'Above your target zone — priority confirmation recommended'
-      : retainedSys >= 130 || (retainedDia && retainedDia >= 85)
+      : retainedSys >= BLOOD_PRESSURE_THRESHOLDS.adultElevatedSysMmHg || (retainedDia && retainedDia >= BLOOD_PRESSURE_THRESHOLDS.adultElevatedDiaMmHg)
       ? 'Borderline zone — keep your scheduled follow-up'
       : 'Within your target zone';
 
