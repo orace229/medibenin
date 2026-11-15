@@ -14,6 +14,32 @@ services:
         value: production
       - key: DEMO_MODE
         value: "true"
+      # Neon Lakebase Postgres (preferred — set these in Render dashboard)
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_URL_UNPOOLED
+        sync: false
+      # Neon Auth
+      - key: NEON_AUTH_BASE_URL
+        sync: false
+      - key: NEON_AUTH_JWKS_URL
+        sync: false
+      # Neon AI Gateway
+      - key: NEON_AI_GATEWAY_BASE_URL
+        sync: false
+      - key: NEON_AI_GATEWAY_TOKEN
+        sync: false
+      # Neon Functions
+      - key: NEON_BRANCH_ID
+        sync: false
+      - key: NEON_FUNCTION_HOST_SUFFIX
+        sync: false
+      # Neon Realtime
+      - key: NEON_REALTIME_URL
+        sync: false
+      - key: NEON_REALTIME_SECRET
+        sync: false
+      # Legacy SQL_* fallback (keep for drizzle-kit compatibility)
       - key: SQL_HOST
         sync: false
       - key: SQL_PORT

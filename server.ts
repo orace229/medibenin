@@ -3,6 +3,13 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as dotenv from 'dotenv';
+import {
+  listAIGatewayModels,
+  getFunctionURL,
+  getNeonAuthBaseUrl,
+  getNeonAuthJwksUrl,
+  sealRealtimeQuery,
+} from './src/lib/neon.ts';
 import { eq, desc, count } from 'drizzle-orm';
 import { db } from './src/db/index.ts';
 import {
@@ -2596,6 +2603,118 @@ async function startServer() {
       res.status(500).json({ error: 'Failed to load observatory data' });
     }
   });
+  // =========================================================================
+  // NEON SERVICES HEALTH & WIRING ENDPOINTS
+  // =========================================================================
+
+  // Health check: Postgres
+  app.get('/api/neon/postgres', async (_req, res) => {
+    try {
+      const { db } = await import('./src/db/index.ts');
+      const { sql } = await import('drizzle-orm');
+      const rows = await db.execute(sql`SELECT current_database() AS db, now() AS ts`);
+      res.json({ ok: true, db: (rows.rows ?? rows)[0] });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, error: err.message });
+    }
+  });
+
+  // Health check: Neon Auth (JWKS reachability)
+  app.get('/api/neon/auth', async (_req, res) => {
+    try {
+      const jwksUrl = getNeonAuthJwksUrl();
+      const authBase = getNeonAuthBaseUrl();
+      const r = await fetch(jwksUrl);
+      const json = await r.json();
+      res.json({ ok: r.ok, jwksUrl, authBase, keysCount: (json.keys ?? []).length });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, error: err.message });
+    }
+  });
+
+  // Health check: AI Gateway
+  app.get('/api/neon/ai-gateway', async (_req, res) => {
+    try {
+      const models = await listAIGatewayModels();
+      res.json({ ok: true, models });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, error: err.message });
+    }
+  });
+
+  // Health check: Functions (proxy call to deployed hello function)
+  app.get('/api/neon/functions', async (_req, res) => {
+    try {
+      const url = getFunctionURL('hello');
+      const r = await fetch(url);
+      const text = await r.text();
+      res.json({ ok: r.ok, url, response: text });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, error: err.message });
+    }
+  });
+
+  // Realtime: seal a live query token (authenticated endpoint)
+  app.post('/api/neon/realtime/seal', requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { sql: querySql, params } = req.body as { sql: string; params?: unknown[] };
+      if (!querySql) return res.status(400).json({ error: 'sql is required' });
+      const sealed = await sealRealtimeQuery(querySql, params ?? []);
+      res.json({ ok: true, ...sealed });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, error: err.message });
+    }
+  });
+
+  // Health check: Realtime (seal a simple query to prove signing works)
+  app.get('/api/neon/realtime', async (_req, res) => {
+    try {
+      const wsUrl = process.env.NEON_REALTIME_URL;
+      const secret = process.env.NEON_REALTIME_SECRET;
+      if (!wsUrl || !secret) throw new Error('NEON_REALTIME_URL / NEON_REALTIME_SECRET not set');
+      const sealed = await sealRealtimeQuery('SELECT 1 AS ping', []);
+      res.json({ ok: true, wsUrl, tokenLength: sealed.token.length });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, error: err.message });
+    }
+  });
+
+  // Neon overall summary
+  app.get('/api/neon/health', async (_req, res) => {
+    const checks: Record<string, unknown> = {};
+    // Postgres
+    try {
+      const { db } = await import('./src/db/index.ts');
+      const { sql } = await import('drizzle-orm');
+      const rows = await db.execute(sql`SELECT current_database() AS db`);
+      checks.postgres = { ok: true, db: ((rows.rows ?? rows)[0] as any).db };
+    } catch (e: any) { checks.postgres = { ok: false, error: e.message }; }
+    // Auth JWKS
+    try {
+      const r = await fetch(getNeonAuthJwksUrl());
+      checks.auth = { ok: r.ok, status: r.status };
+    } catch (e: any) { checks.auth = { ok: false, error: e.message }; }
+    // AI Gateway
+    try {
+      const models = await listAIGatewayModels();
+      checks.aiGateway = { ok: true, models };
+    } catch (e: any) { checks.aiGateway = { ok: false, error: e.message }; }
+    // Functions
+    try {
+      const url = getFunctionURL('hello');
+      const r = await fetch(url);
+      checks.functions = { ok: r.ok, url };
+    } catch (e: any) { checks.functions = { ok: false, error: e.message }; }
+    // Realtime
+    try {
+      const sealed = await sealRealtimeQuery('SELECT 1 AS ping', []);
+      checks.realtime = { ok: true, wsUrl: sealed.url };
+    } catch (e: any) { checks.realtime = { ok: false, error: e.message }; }
+
+    const allOk = Object.values(checks).every((c: any) => c.ok);
+    res.status(allOk ? 200 : 207).json({ allOk, checks });
+  });
+
 
   // Mount Vite Dev Server or Static Dist
   if (process.env.NODE_ENV !== 'production') {
