@@ -1,4 +1,4 @@
-﻿import { db } from './index.ts';
+import { db } from './index.ts';
 import { users } from './schema.ts';
 import { eq } from 'drizzle-orm';
 

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 /**
  * check-forbidden-ui.mjs â€” Phase A gate for MediBenin.
  *

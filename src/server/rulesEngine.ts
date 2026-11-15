@@ -1,4 +1,4 @@
-﻿import crypto from 'crypto';
+import crypto from 'crypto';
 import {
   lookupWhoNonLabCvdRisk,
   WHO_2019_CHART_SOURCE,

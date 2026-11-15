@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Synthetic Benchmark & Observatory Engine â€” REAL computation, no hardcoded figures.
  *
  * Replaces the previous hard-coded observatory segment table and benchmark rows

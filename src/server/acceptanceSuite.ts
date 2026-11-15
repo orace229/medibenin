@@ -1,4 +1,4 @@
-﻿import {
+import {
   computeReferralHmac,
   evaluatePatientRules,
   getCanonicalSignedRuleTable,

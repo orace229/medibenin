@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { I18nProvider } from './lib/i18n.tsx';
 import { setApiAuthToken } from './lib/api.ts';
 import { UserRole } from './lib/types.ts';

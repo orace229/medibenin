@@ -1,4 +1,4 @@
-﻿import {
+import {
   ClinicianPatientDetail,
   ClinicianPatientListItem,
   ConsentState,

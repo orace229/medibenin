@@ -1,4 +1,4 @@
-﻿import test from 'node:test';
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runAllAcceptanceTests } from './acceptanceSuite.ts';
 import { computeFindriscBreakdown } from './rulesEngine.ts';

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { apiClient } from '../lib/api.ts';
 import { useI18n } from '../lib/i18n.tsx';
 import { DEMO_PANEL_STORY } from '../lib/demoData.ts';
