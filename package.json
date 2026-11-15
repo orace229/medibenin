@@ -15,7 +15,8 @@
     "db:push": "drizzle-kit push --config=src/db/drizzle.config.ts",
     "db:generate": "drizzle-kit generate --config=src/db/drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config=src/db/drizzle.config.ts",
-    "test": "tsx --test src/server/acceptanceSuite.test.ts src/server/rulesEngine.test.ts src/server/whoCvdChartMENA2019.test.ts src/server/safeguardsEngine.test.ts src/server/pathwayPolicy.test.ts src/server/benchmarkEquity.test.ts src/server/growthReference.test.ts"
+    "test": "tsx --test src/server/acceptanceSuite.test.ts src/server/rulesEngine.test.ts src/server/whoCvdChartMENA2019.test.ts src/server/safeguardsEngine.test.ts src/server/pathwayPolicy.test.ts src/server/benchmarkEquity.test.ts src/server/growthReference.test.ts",
+    "translate": "node scripts/generate-translations.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
