@@ -70,113 +70,112 @@ async function startServer() {
   // In-memory store for 6-digit SMS OTP family verification codes
   const familySmsOtpStore = new Map<string, { code: string; expiresAt: number }>();
 
-  let seededInitialized = false;
-  const ensureInit = async () => {
-    if (!seededInitialized) {
-      await ensureSeededDatabase(20261120);
-      // Ensure Zayed (18m) and Layla (14y) are affiliated to Tariq (PT-36Y-TARIQ) for unified Patient Portal
-      await db
-        .update(patients)
-        .set({ parentUserId: 'PT-36Y-TARIQ' })
-        .where(eq(patients.id, 'PT-18M-ZAYED'));
-      await db
-        .update(patients)
-        .set({ parentUserId: 'PT-14Y-LAYLA' === 'PT-14Y-LAYLA' ? 'PT-36Y-TARIQ' : 'PT-36Y-TARIQ' })
-        .where(eq(patients.id, 'PT-14Y-LAYLA'));
+  // ── Promise-singleton pattern: all callers share the same in-flight promise,
+  // so the DB seed only runs once and concurrent requests don't race.
+  let initPromise: Promise<void> | null = null;
+  const ensureInit = (): Promise<void> => {
+    if (!initPromise) {
+      initPromise = (async () => {
+        await ensureSeededDatabase(20261120);
+        // Ensure Zayed (18m) and Layla (14y) are affiliated to Tariq (PT-36Y-TARIQ) for unified Patient Portal
+        await Promise.all([
+          db.update(patients).set({ parentUserId: 'PT-36Y-TARIQ' }).where(eq(patients.id, 'PT-18M-ZAYED')),
+          db.update(patients).set({ parentUserId: 'PT-36Y-TARIQ' }).where(eq(patients.id, 'PT-14Y-LAYLA')),
+        ]);
 
-      // Ensure an 18-year-old affiliated child (Youssef Al-Nadim, 18y) exists to demonstrate Majority Detachment validation by the competent service
-      const existingYoussef = await db
-        .select()
-        .from(patients)
-        .where(eq(patients.id, 'PT-18Y-YOUSSEF'));
-      if (!existingYoussef[0]) {
-        await db.insert(patients).values({
-          id: 'PT-18Y-YOUSSEF',
-          displayName: 'Youssef Al-Nadim',
-          ageYears: 18,
-          ageMonths: 216,
-          gestationalAgeWeeks: 40,
-          sex: 'male',
-          pathwayType: 'adolescent',
-          isPersona: true,
-          parentUserId: 'PT-36Y-TARIQ',
-          region: 'Abu Dhabi',
-          nationalityGroup: 'Emirati',
-          insuranceCategory: 'Thiqa',
-          preferredLanguage: 'fr',
-          preferredChannel: 'SMS',
-          preferFemalePractitioner: false,
-          accessTimeMinutes: 15,
-          missedVisitsCount: 0,
-          facilityCenter: 'Al Bateen Healthcare Centre',
-          overallLevel: 'green',
-          overallCertainty: 'high',
-          primaryReasonSummary:
-            '18 years reached — Eligible for Majority Detachment & transition from WCV to autonomous Adult IFHAS portal',
-          nextDueDate: '2026-12-10',
-          preventionProgressDone: 4,
-          preventionProgressTotal: 4,
-          clinicalProfile: {
-            systolicBp1: 118,
-            diastolicBp1: 76,
-            systolicBp2: 116,
-            diastolicBp2: 74,
-            bpZoneLabel: 'In target zone',
-            weightKg: 68,
-            heightCm: 176,
-            bmi: 22.0,
-            adolescentVaccinesUpToDate: true,
-            anemiaScreeningDone: true,
-            provenanceMap: { bp: 'V', bmi: 'V' },
-            oldestMeasureMonths: 2,
-          } as any,
-        });
+        // Ensure an 18-year-old affiliated child (Youssef Al-Nadim, 18y) exists to demonstrate Majority Detachment validation by the competent service
+        const existingYoussef = await db
+          .select()
+          .from(patients)
+          .where(eq(patients.id, 'PT-18Y-YOUSSEF'));
+        if (!existingYoussef[0]) {
+          await db.insert(patients).values({
+            id: 'PT-18Y-YOUSSEF',
+            displayName: 'Youssef Al-Nadim',
+            ageYears: 18,
+            ageMonths: 216,
+            gestationalAgeWeeks: 40,
+            sex: 'male',
+            pathwayType: 'adolescent',
+            isPersona: true,
+            parentUserId: 'PT-36Y-TARIQ',
+            region: 'Abu Dhabi',
+            nationalityGroup: 'Emirati',
+            insuranceCategory: 'Thiqa',
+            preferredLanguage: 'fr',
+            preferredChannel: 'SMS',
+            preferFemalePractitioner: false,
+            accessTimeMinutes: 15,
+            missedVisitsCount: 0,
+            facilityCenter: 'Al Bateen Healthcare Centre',
+            overallLevel: 'green',
+            overallCertainty: 'high',
+            primaryReasonSummary:
+              '18 years reached — Eligible for Majority Detachment & transition from WCV to autonomous Adult IFHAS portal',
+            nextDueDate: '2026-12-10',
+            preventionProgressDone: 4,
+            preventionProgressTotal: 4,
+            clinicalProfile: {
+              systolicBp1: 118,
+              diastolicBp1: 76,
+              systolicBp2: 116,
+              diastolicBp2: 74,
+              bpZoneLabel: 'In target zone',
+              weightKg: 68,
+              heightCm: 176,
+              bmi: 22.0,
+              adolescentVaccinesUpToDate: true,
+              anemiaScreeningDone: true,
+              provenanceMap: { bp: 'V', bmi: 'V' },
+              oldestMeasureMonths: 2,
+            } as any,
+          });
 
-        await db
-          .insert(consents)
-          .values({
-            patientId: 'PT-18Y-YOUSSEF',
-            evaluationAndCalendar: true,
-            channelReminders: true,
-            shareWithFacility: true,
-            anonymousStatistics: true,
-            existingGenomicResult: false,
-            adolescentAssentGiven: true,
-          })
-          .onConflictDoNothing();
+          await db
+            .insert(consents)
+            .values({
+              patientId: 'PT-18Y-YOUSSEF',
+              evaluationAndCalendar: true,
+              channelReminders: true,
+              shareWithFacility: true,
+              anonymousStatistics: true,
+              existingGenomicResult: false,
+              adolescentAssentGiven: true,
+            })
+            .onConflictDoNothing();
 
-        const refCode = generateReferralCode('PT-18Y-YOUSSEF', 20261120);
-        await db
-          .insert(recommendations)
-          .values({
-            id: 'REC-PT-18Y-YOUSSEF',
-            patientId: 'PT-18Y-YOUSSEF',
-            pathwayTitle: 'Transition Visit: WCV Adolescent to Adult IFHAS Autonomy (18y)',
-            groupedActions: [
-              {
-                actionTitle: 'Baseline Adult IFHAS Cardiometabolic Check',
-                directiveSource: 'Published National Preventive Schedule',
-                category: 'routine_prevention',
-              },
-            ],
-            level: 'green',
-            state: 'invited',
-            dueDate: '2026-12-10',
-            facilityName: 'Al Bateen Healthcare Centre',
-            referralCodeDisplay: refCode,
-            referralCodeHmac: computeReferralHmac(refCode),
-            decisionAidText:
-              'Having reached 18 years of age, your record is eligible for autonomous adult access upon validation by the competent healthcare service.',
-            priorityScoreSprio: 22,
-            mlNoShowProbM1: 0.12,
-            mlTopFactorsM1: ['Transition 18y'],
-            mlSuggestedAction: 'Standard reminder',
-          })
-          .onConflictDoNothing();
-      }
-
-      seededInitialized = true;
+          const refCode = generateReferralCode('PT-18Y-YOUSSEF', 20261120);
+          await db
+            .insert(recommendations)
+            .values({
+              id: 'REC-PT-18Y-YOUSSEF',
+              patientId: 'PT-18Y-YOUSSEF',
+              pathwayTitle: 'Transition Visit: WCV Adolescent to Adult IFHAS Autonomy (18y)',
+              groupedActions: [
+                {
+                  actionTitle: 'Baseline Adult IFHAS Cardiometabolic Check',
+                  directiveSource: 'Published National Preventive Schedule',
+                  category: 'routine_prevention',
+                },
+              ],
+              level: 'green',
+              state: 'invited',
+              dueDate: '2026-12-10',
+              facilityName: 'Al Bateen Healthcare Centre',
+              referralCodeDisplay: refCode,
+              referralCodeHmac: computeReferralHmac(refCode),
+              decisionAidText:
+                'Having reached 18 years of age, your record is eligible for autonomous adult access upon validation by the competent healthcare service.',
+              priorityScoreSprio: 22,
+              mlNoShowProbM1: 0.12,
+              mlTopFactorsM1: ['Transition 18y'],
+              mlSuggestedAction: 'Standard reminder',
+            })
+            .onConflictDoNothing();
+        }
+      })();
     }
+    return initPromise!;
   };
 
   // Consent helpers: a missing row keeps the historical default (allowed) but an
@@ -418,8 +417,10 @@ async function startServer() {
     try {
       await ensureInit();
       const { level, pathway, state } = req.query;
-      const allPatients = await db.select().from(patients);
-      const allRecs = await db.select().from(recommendations);
+      const [allPatients, allRecs] = await Promise.all([
+        db.select().from(patients),
+        db.select().from(recommendations),
+      ]);
       const recByPatient = new Map(allRecs.map((r) => [r.patientId, r]));
 
       let list = allPatients.map((p) => {
@@ -469,14 +470,12 @@ async function startServer() {
       if (!pRows[0]) {
         return res.status(404).json({ error: 'Patient not found' });
       }
-      const pFlags = await db.select().from(flags).where(eq(flags.patientId, patientId));
-      const pRecs = await db.select().from(recommendations).where(eq(recommendations.patientId, patientId));
-      const pConsents = await db.select().from(consents).where(eq(consents.patientId, patientId));
-      const pLogs = await db
-        .select()
-        .from(usageLogs)
-        .where(eq(usageLogs.patientId, patientId))
-        .orderBy(desc(usageLogs.id));
+      const [pFlags, pRecs, pConsents, pLogs] = await Promise.all([
+        db.select().from(flags).where(eq(flags.patientId, patientId)),
+        db.select().from(recommendations).where(eq(recommendations.patientId, patientId)),
+        db.select().from(consents).where(eq(consents.patientId, patientId)),
+        db.select().from(usageLogs).where(eq(usageLogs.patientId, patientId)).orderBy(desc(usageLogs.id)),
+      ]);
 
       res.json({
         patient: mapPatientForClinicianScreen2(pRows[0], pFlags, pRecs, pConsents[0], pLogs),
@@ -1633,19 +1632,27 @@ async function startServer() {
       const pRows = await db.select().from(patients).where(eq(patients.id, patientId));
       if (!pRows[0]) return res.status(404).json({ error: 'Profile not found' });
 
-      const pFlags = await db.select().from(flags).where(eq(flags.patientId, patientId));
-      const pRecs = await db.select().from(recommendations).where(eq(recommendations.patientId, patientId));
-      const pConsents = await db.select().from(consents).where(eq(consents.patientId, patientId));
-      const pNotifs = await db
-        .select()
-        .from(notifications)
-        .where(eq(notifications.patientId, patientId))
-        .orderBy(desc(notifications.sentAt));
-      const pLogs = await db
-        .select()
-        .from(usageLogs)
-        .where(eq(usageLogs.patientId, patientId))
-        .orderBy(desc(usageLogs.id));
+      const [pFlags, pRecs, pConsents, pNotifs, pLogs, familyRows] = await Promise.all([
+        db.select().from(flags).where(eq(flags.patientId, patientId)),
+        db.select().from(recommendations).where(eq(recommendations.patientId, patientId)),
+        db.select().from(consents).where(eq(consents.patientId, patientId)),
+        db.select().from(notifications).where(eq(notifications.patientId, patientId)).orderBy(desc(notifications.sentAt)),
+        db.select().from(usageLogs).where(eq(usageLogs.patientId, patientId)).orderBy(desc(usageLogs.id)),
+        // Fetch family: parent + siblings in one query using parentUserId
+        db.select({
+          id: patients.id,
+          displayName: patients.displayName,
+          ageYears: patients.ageYears,
+          ageMonths: patients.ageMonths,
+          sex: patients.sex,
+          pathwayType: patients.pathwayType,
+          overallLevel: patients.overallLevel,
+          nextDueDate: patients.nextDueDate,
+          primaryReasonSummary: patients.primaryReasonSummary,
+          parentUserId: patients.parentUserId,
+          clinicalProfile: patients.clinicalProfile,
+        }).from(patients),
+      ]);
 
       const p = pRows[0];
       const evaluationAllowed = isPurposeAllowed(pConsents[0], 'evaluationAndCalendar');
@@ -1669,11 +1676,10 @@ async function startServer() {
         delete sanitizedProfile.genomicSignal;
       }
 
-      // Fetch family affiliation context (children affiliated to this adult OR parent + siblings if viewing an affiliated child)
+      // Family affiliation context — reuse familyRows from the parallel Promise.all above
       const rootParentId = p.parentUserId || p.id;
-      const allPatientsForFamily = await db.select().from(patients);
-      const parentRecord = allPatientsForFamily.find((row) => row.id === rootParentId) || null;
-      const affiliatedChildrenRows = allPatientsForFamily.filter(
+      const parentRecord = familyRows.find((row) => row.id === rootParentId) || null;
+      const affiliatedChildrenRows = familyRows.filter(
         (row) => row.parentUserId === rootParentId
       );
 
@@ -2471,11 +2477,24 @@ async function startServer() {
   // =========================================================================
   // 5. COORDINATOR PORTAL ENDPOINT (Screen 1: Population Queue + S_prio + M1)
   // =========================================================================
+
+  // Cache the benchmark sensitivity analysis (pure computation, seed-stable).
+  // Computed once on first call, reused for the process lifetime.
+  let _cachedSensitivity: ReturnType<typeof getObservatorySummary>['sensitivityAnalysis'] | null = null;
+  const getCachedSensitivity = () => {
+    if (!_cachedSensitivity) {
+      _cachedSensitivity = getObservatorySummary(20261120, 'baseline').sensitivityAnalysis;
+    }
+    return _cachedSensitivity;
+  };
+
   app.get('/api/coordinator/queue', requireAuth, requireRole('coordinator'), async (_req: AuthRequest, res) => {
     try {
       await ensureInit();
-      const allPatients = await db.select().from(patients);
-      const allRecs = await db.select().from(recommendations);
+      const [allPatients, allRecs] = await Promise.all([
+        db.select().from(patients),
+        db.select().from(recommendations),
+      ]);
       const recMap = new Map(allRecs.map((r) => [r.patientId, r]));
 
       const items = allPatients.map((p) => {
@@ -2512,10 +2531,8 @@ async function startServer() {
         .filter((i) => (i.overallLevel === 'orange' || i.overallLevel === 'yellow') && i.recommendationState !== 'refused')
         .sort((a, b) => b.priorityScoreSprio - a.priorityScoreSprio);
 
-      // Sensitivity analysis of S_prio weights (§5.3): computed on the benchmark
-      // cohort (same seed as the observatory) via the REAL ±0.10 perturbation and
-      // top-K overlap — no hardcoded percentage.
-      const benchmarkSensitivity = getObservatorySummary(20261120, 'baseline').sensitivityAnalysis;
+      // Sensitivity analysis — served from in-process cache (seed-stable computation)
+      const benchmarkSensitivity = getCachedSensitivity();
       const stable = benchmarkSensitivity.topKOverlapPercent >= 80;
 
       res.json({
@@ -2740,6 +2757,15 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`MediSense Full-Stack Server listening on http://0.0.0.0:${PORT}`);
+
+    // Warmup: seed DB and pre-compute benchmark cache in background so the
+    // first user request is fast (no cold-init penalty on login).
+    ensureInit()
+      .then(() => {
+        getCachedSensitivity(); // pre-warm benchmark computation
+        console.log('[warmup] DB seeded & benchmark cache ready');
+      })
+      .catch((err) => console.error('[warmup] failed:', err));
   });
 }
 

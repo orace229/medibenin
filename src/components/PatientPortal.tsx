@@ -362,26 +362,39 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
   useEffect(() => {
     let active = true;
-    apiClient
-      .getMe()
-      .then((res) => {
-        if (!active) return;
-        setCurrentUser(res.user);
-        const linked = Array.isArray(res.user?.linkedPatientIds)
-          ? (res.user.linkedPatientIds as string[])
-          : [];
-        setActivePatientId(linked[0] || 'PT-36Y-TARIQ');
-      })
-      .catch(() => {
-        if (active) setActivePatientId('PT-36Y-TARIQ');
-      });
+    // Launch both requests in parallel: resolve the patient ID from /me,
+    // and immediately start loading the default profile — whichever resolves first wins.
+    const defaultPid = 'PT-36Y-TARIQ';
+    const mePromise = apiClient.getMe().catch(() => null);
+    const defaultProfilePromise = loadProfile(defaultPid);
+
+    mePromise.then((res) => {
+      if (!active) return;
+      if (res?.user) setCurrentUser(res.user);
+      const linked = Array.isArray(res?.user?.linkedPatientIds)
+        ? (res!.user.linkedPatientIds as string[])
+        : [];
+      const resolvedPid = linked[0] || defaultPid;
+      if (resolvedPid !== defaultPid) {
+        // Real patient ID differs from default — reload for the correct profile
+        loadProfile(resolvedPid);
+      }
+      setActivePatientId(resolvedPid);
+    });
+    // defaultProfilePromise is already in flight; just await resolution via loadProfile state
+
     return () => {
       active = false;
     };
   }, [role]);
 
   useEffect(() => {
-    if (activePatientId) loadProfile(activePatientId);
+    // Only trigger a reload when activePatientId is set AFTER the initial mount
+    // (i.e. when the user switches to a child record — not on first render which
+    // is already handled by the parallel fetch above).
+    if (activePatientId && activePatientId !== 'PT-36Y-TARIQ') {
+      loadProfile(activePatientId);
+    }
   }, [activePatientId]);
 
   const rootParent = data?.familyContext?.rootParent || {
@@ -1210,14 +1223,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                     : zoneKey === 'target'
                                     ? 'Dans la zone cible'
                                     : 'Tension non mesurée pour le moment'
-                                  : isAr
-                                  ? zoneKey === 'above'
-                                    ? 'فوق النطاق المستهدف — تأكيد عاجل'
-                                    : zoneKey === 'borderline'
-                                    ? 'نطاق حدّي — احتفظ بموعد المتابعة'
-                                    : zoneKey === 'target'
-                                    ? 'ضمن النطاق المستهدف'
-                                    : 'لم يتم قياس الضغط بعد'
                                   : zoneKey === 'above'
                                   ? 'Above target zone — priority confirmation'
                                   : zoneKey === 'borderline'
