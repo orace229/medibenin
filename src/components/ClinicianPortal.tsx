@@ -108,7 +108,9 @@ interface GuidedAnalysisFormState {
   highBloodGlucoseHistory: boolean;
   familyHistoryDiabetesLevel: 'unknown' | 'none' | 'second_degree' | 'first_degree';
   hba1cPercent: string;
+  monthsSinceLastGlycemicScreening: string;
   isPregnant: boolean;
+  pregnancyWeeks: string;
   // Family & Cancer & Chronic
   familyPrematureCvd: boolean;
   familyBreastOrColorectalCancer: boolean;
@@ -117,15 +119,20 @@ interface GuidedAnalysisFormState {
   cervicalScreeningOverdueMonths: string;
   mammographyScreeningOverdueMonths: string;
   ifhasFullScreeningDone: 'unknown' | 'yes' | 'no';
+  ifhasMonthsSinceLast: string;
   fallOrSensoryRisk: 'unknown' | 'yes' | 'no';
   chronicFollowupInterruptedMonths: string;
   activeSpecialistFollowup: boolean;
+  orientationLevel: 'none' | 'orange' | 'red';
+  orientationNotAttended: boolean;
+  daysSinceOrientation: string;
   // Pediatric & Adolescent
   weightForAgeZ: string;
   heightForAgeZ: string;
   bmiForAgeZ: string;
   muacMm: string;
   mchatScore: string;
+  mchatFollowUpScore: string;
   hearingScreeningDone: boolean;
   visionScreeningDone: boolean;
   hemoglobinGdl: string;
@@ -134,6 +141,7 @@ interface GuidedAnalysisFormState {
   isZeroDoseChild: 'unknown' | 'yes' | 'no';
   missedVaccineDoses: string;
   overdueMonthsWcv: string;
+  lastWcvAgeMonths: string;
   phqAStatus: 'negative' | 'moderate' | 'severe';
   // Genomic & Emergency Escape E0
   existingGenomicResult: boolean;
@@ -172,22 +180,29 @@ const DEFAULT_ANALYSIS_FORM: GuidedAnalysisFormState = {
   highBloodGlucoseHistory: false,
   familyHistoryDiabetesLevel: 'unknown',
   hba1cPercent: '6.1',
+  monthsSinceLastGlycemicScreening: '48',
   isPregnant: false,
+  pregnancyWeeks: '',
   familyPrematureCvd: true,
   familyBreastOrColorectalCancer: false,
-  colorectalScreeningOverdueMonths: '14',
+  colorectalScreeningOverdueMonths: '30',
   breastScreeningOverdueMonths: '0',
-  cervicalScreeningOverdueMonths: '0',
-  mammographyScreeningOverdueMonths: '',
+  cervicalScreeningOverdueMonths: '40',
+  mammographyScreeningOverdueMonths: '30',
   ifhasFullScreeningDone: 'unknown',
+  ifhasMonthsSinceLast: '18',
   fallOrSensoryRisk: 'unknown',
   chronicFollowupInterruptedMonths: '0',
   activeSpecialistFollowup: false,
+  orientationLevel: 'none',
+  orientationNotAttended: false,
+  daysSinceOrientation: '0',
   weightForAgeZ: '0.0',
   heightForAgeZ: '0.0',
   bmiForAgeZ: '0.0',
   muacMm: '145',
   mchatScore: '0',
+  mchatFollowUpScore: '',
   hearingScreeningDone: true,
   visionScreeningDone: true,
   hemoglobinGdl: '13.4',
@@ -196,6 +211,7 @@ const DEFAULT_ANALYSIS_FORM: GuidedAnalysisFormState = {
   isZeroDoseChild: 'unknown',
   missedVaccineDoses: '',
   overdueMonthsWcv: '0',
+  lastWcvAgeMonths: '',
   phqAStatus: 'negative',
   existingGenomicResult: true,
   genomicDomain: 'cvd',
@@ -350,27 +366,65 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       highBloodGlucoseHistory: Boolean(cp.historyHighGlucose),
       familyHistoryDiabetesLevel: cp.familyHistoryDiabetes || 'unknown',
       hba1cPercent: cp.hba1cPercent !== undefined ? String(cp.hba1cPercent) : '',
+      monthsSinceLastGlycemicScreening:
+        cp.monthsSinceLastGlycemicScreening !== undefined && cp.monthsSinceLastGlycemicScreening !== null
+          ? String(cp.monthsSinceLastGlycemicScreening)
+          : '',
       isPregnant: Boolean(cp.isPregnant),
+      pregnancyWeeks:
+        cp.pregnancyWeeks !== undefined && cp.pregnancyWeeks !== null ? String(cp.pregnancyWeeks) : '',
       familyPrematureCvd: Boolean(cp.familyHistoryFhOrEarlyCvd),
       familyBreastOrColorectalCancer: Boolean(cp.familyHistoryColorectal),
       colorectalScreeningOverdueMonths:
-        cp.colorectalScreeningUpToDate === false ? '12' : cp.colorectalScreeningUpToDate === true ? '0' : '',
+        cp.monthsSinceLastColorectalScreening !== undefined && cp.monthsSinceLastColorectalScreening !== null
+          ? String(cp.monthsSinceLastColorectalScreening)
+          : cp.colorectalScreeningUpToDate === false
+          ? '30'
+          : cp.colorectalScreeningUpToDate === true
+          ? '0'
+          : '',
       breastScreeningOverdueMonths: '',
       cervicalScreeningOverdueMonths:
-        cp.cervicalScreeningUpToDate === false ? '12' : cp.cervicalScreeningUpToDate === true ? '0' : '',
+        cp.monthsSinceLastCervicalScreening !== undefined && cp.monthsSinceLastCervicalScreening !== null
+          ? String(cp.monthsSinceLastCervicalScreening)
+          : cp.cervicalScreeningUpToDate === false
+          ? '40'
+          : cp.cervicalScreeningUpToDate === true
+          ? '0'
+          : '',
       mammographyScreeningOverdueMonths:
-        cp.mammographyUpToDate === false ? '12' : cp.mammographyUpToDate === true ? '0' : '',
+        cp.monthsSinceLastMammography !== undefined && cp.monthsSinceLastMammography !== null
+          ? String(cp.monthsSinceLastMammography)
+          : cp.mammographyUpToDate === false
+          ? '30'
+          : cp.mammographyUpToDate === true
+          ? '0'
+          : '',
       ifhasFullScreeningDone:
         cp.ifhasFullScreeningDone === true ? 'yes' : cp.ifhasFullScreeningDone === false ? 'no' : 'unknown',
+      ifhasMonthsSinceLast:
+        cp.monthsSinceLastIfhas !== undefined && cp.monthsSinceLastIfhas !== null
+          ? String(cp.monthsSinceLastIfhas)
+          : '',
       fallOrSensoryRisk:
         cp.fallOrSensoryRisk === true ? 'yes' : cp.fallOrSensoryRisk === false ? 'no' : 'unknown',
       chronicFollowupInterruptedMonths: String(cp.monthsSinceLastChronicVisit ?? 0),
       activeSpecialistFollowup: Boolean(cp.activeSpecialistFollowup),
+      orientationLevel:
+        cp.orientationLevel === 'red' || cp.orientationLevel === 'orange'
+          ? cp.orientationLevel
+          : 'none',
+      orientationNotAttended: Boolean(cp.orientationNotAttended),
+      daysSinceOrientation: String(cp.daysSinceOrientation ?? 0),
       weightForAgeZ: cp.weightForHeightZ !== undefined ? String(cp.weightForHeightZ) : '',
       heightForAgeZ: cp.heightForAgeZ !== undefined ? String(cp.heightForAgeZ) : '',
       bmiForAgeZ: cp.bmiForAgeZ !== undefined ? String(cp.bmiForAgeZ) : '',
       muacMm: cp.muacMm !== undefined ? String(cp.muacMm) : '',
       mchatScore: cp.mchatScore !== undefined ? String(cp.mchatScore) : '',
+      mchatFollowUpScore:
+        cp.mchatFollowUpScore !== undefined && cp.mchatFollowUpScore !== null
+          ? String(cp.mchatFollowUpScore)
+          : '',
       hearingScreeningDone: cp.hearingScreeningDone !== undefined ? Boolean(cp.hearingScreeningDone) : false,
       visionScreeningDone: cp.visionScreeningDone !== undefined ? Boolean(cp.visionScreeningDone) : false,
       hemoglobinGdl: cp.hemoglobinGdl !== undefined ? String(cp.hemoglobinGdl) : '',
@@ -382,6 +436,10 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
         cp.isZeroDoseChild === true ? 'yes' : cp.isZeroDoseChild === false ? 'no' : 'unknown',
       missedVaccineDoses: Array.isArray(cp.missedVaccineDoses) ? cp.missedVaccineDoses.join(', ') : '',
       overdueMonthsWcv: String(cp.overdueWcvMonths ?? 0),
+      lastWcvAgeMonths:
+        cp.lastWcvAgeMonths !== undefined && cp.lastWcvAgeMonths !== null
+          ? String(cp.lastWcvAgeMonths)
+          : '',
       phqAStatus: cp.phqAStatus || 'negative',
       existingGenomicResult: Boolean(p.consents?.existingGenomicResult),
       genomicDomain: 'none',
@@ -528,6 +586,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
         isZeroDoseChild: 'no',
         missedVaccineDoses: 'MMR Dose 1, PCV Booster',
         overdueMonthsWcv: '3',
+        lastWcvAgeMonths: '6',
         redFlagWarningSymptom: false,
       });
     } else if (preset === 'red_escape') {
@@ -567,10 +626,35 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           analysisForm.familyHistoryDiabetesLevel === 'unknown'
             ? undefined
             : analysisForm.familyHistoryDiabetesLevel,
+        orientationLevel:
+          analysisForm.orientationLevel === 'none' ? undefined : analysisForm.orientationLevel,
+        orientationNotAttended:
+          analysisForm.orientationLevel === 'none' ? undefined : analysisForm.orientationNotAttended,
+        daysSinceOrientation:
+          analysisForm.orientationLevel === 'none' ? undefined : analysisForm.daysSinceOrientation,
         ifhasFullScreeningDone:
-          analysisForm.ifhasFullScreeningDone === 'unknown'
+          analysisForm.ifhasMonthsSinceLast !== ''
+            ? undefined
+            : analysisForm.ifhasFullScreeningDone === 'unknown'
             ? undefined
             : analysisForm.ifhasFullScreeningDone === 'yes',
+        monthsSinceLastIfhas:
+          analysisForm.ifhasMonthsSinceLast === '' ? undefined : analysisForm.ifhasMonthsSinceLast,
+        monthsSinceLastColorectalScreening:
+          analysisForm.colorectalScreeningOverdueMonths === ''
+            ? undefined
+            : analysisForm.colorectalScreeningOverdueMonths,
+        monthsSinceLastCervicalScreening:
+          analysisForm.cervicalScreeningOverdueMonths === ''
+            ? undefined
+            : analysisForm.cervicalScreeningOverdueMonths,
+        monthsSinceLastMammography:
+          analysisForm.mammographyScreeningOverdueMonths === ''
+            ? undefined
+            : analysisForm.mammographyScreeningOverdueMonths,
+        lastWcvAgeMonths:
+          analysisForm.lastWcvAgeMonths === '' ? undefined : analysisForm.lastWcvAgeMonths,
+        overdueMonthsWcv: undefined,
         fallOrSensoryRisk:
           analysisForm.fallOrSensoryRisk === 'unknown'
             ? undefined
@@ -1228,7 +1312,23 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
 
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Retard dépistage colorectal (mois)' : 'Colorectal Overdue (months)'}
+                {isFr ? 'Mois depuis le dernier dépistage glycémique' : 'Months since last glycemic screening'}
+              </label>
+              <input
+                type="number"
+                min={0}
+                placeholder="ex: 48"
+                value={analysisForm.monthsSinceLastGlycemicScreening}
+                onChange={(e) =>
+                  setAnalysisForm({ ...analysisForm, monthsSinceLastGlycemicScreening: e.target.value })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Mois depuis le dernier dépistage colorectal' : 'Months since last colorectal screening'}
               </label>
               <input
                 type="number"
@@ -1257,10 +1357,58 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Dernière orientation' : 'Last orientation level'}
+              </label>
+              <select
+                value={analysisForm.orientationLevel}
+                onChange={(e) =>
+                  setAnalysisForm({
+                    ...analysisForm,
+                    orientationLevel: e.target.value as 'none' | 'orange' | 'red',
+                  })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white"
+              >
+                <option value="none">{isFr ? 'Aucune' : 'None'}</option>
+                <option value="orange">Orange</option>
+                <option value="red">Rouge</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Jours depuis l’orientation' : 'Days since orientation'}
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={analysisForm.daysSinceOrientation}
+                onChange={(e) =>
+                  setAnalysisForm({ ...analysisForm, daysSinceOrientation: e.target.value })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
+              />
+            </div>
+            <label className="flex items-center gap-2 p-2 rounded-xl bg-white border border-[#E2E8F0] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={analysisForm.orientationNotAttended}
+                onChange={(e) =>
+                  setAnalysisForm({ ...analysisForm, orientationNotAttended: e.target.checked })
+                }
+              />
+              <span className="font-medium text-[#0B3B3C]">
+                {isFr ? 'Orientation non honorée' : 'Orientation not attended'}
+              </span>
+            </label>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-1">
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Retard dépistage col de l’utérus (mois)' : 'Cervical screening overdue (months)'}
+                {isFr ? 'Mois depuis le dernier dépistage du col' : 'Months since last cervical screening'}
               </label>
               <input
                 type="number"
@@ -1274,7 +1422,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
-                {isFr ? 'Retard mammographie (mois)' : 'Mammography overdue (months)'}
+                {isFr ? 'Mois depuis la dernière mammographie' : 'Months since last mammography'}
               </label>
               <input
                 type="number"
@@ -1304,6 +1452,20 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
                 <option value="yes">{isFr ? 'Fait / à jour' : 'Done / up to date'}</option>
                 <option value="no">{isFr ? 'Non fait' : 'Not done'}</option>
               </select>
+            </div>
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Mois depuis le dernier bilan IFHAS' : 'Months since last IFHAS check'}
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={analysisForm.ifhasMonthsSinceLast}
+                onChange={(e) =>
+                  setAnalysisForm({ ...analysisForm, ifhasMonthsSinceLast: e.target.value })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
+              />
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
@@ -1414,6 +1576,24 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               </label>
             )}
 
+            {analysisForm.sex === 'female' && analysisForm.isPregnant && (
+              <div className="p-2 rounded-xl bg-white border border-[#E2E8F0]">
+                <label className="block font-semibold text-[#334155] mb-1">
+                  {isFr ? 'Âge gestationnel (SA)' : 'Gestational age (weeks)'}
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={42}
+                  value={analysisForm.pregnancyWeeks}
+                  onChange={(e) =>
+                    setAnalysisForm({ ...analysisForm, pregnancyWeeks: e.target.value })
+                  }
+                  className="w-full px-2 py-1 rounded-lg border border-[#CBD5E1] font-mono"
+                />
+              </div>
+            )}
+
             <label className="flex items-center gap-2 p-2 rounded-xl bg-white border border-[#E2E8F0] cursor-pointer">
               <input
                 type="checkbox"
@@ -1493,6 +1673,21 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
             </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Score entretien de suivi M-CHAT-R/F (0–20)' : 'M-CHAT-R/F follow-up score'}
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={20}
+                value={analysisForm.mchatFollowUpScore}
+                onChange={(e) =>
+                  setAnalysisForm({ ...analysisForm, mchatFollowUpScore: e.target.value })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
                 {isFr ? 'Hémoglobine (g/dL)' : 'Hemoglobin (g/dL)'}
               </label>
               <input
@@ -1520,6 +1715,20 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
+            <div>
+              <label className="block font-semibold text-[#334155] mb-1">
+                {isFr ? 'Âge de la dernière visite WCV (mois)' : 'Age at last WCV (months)'}
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={analysisForm.lastWcvAgeMonths}
+                onChange={(e) =>
+                  setAnalysisForm({ ...analysisForm, lastWcvAgeMonths: e.target.value })
+                }
+                className="w-full px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white font-mono"
+              />
+            </div>
             <div>
               <label className="block font-semibold text-[#334155] mb-1">
                 {isFr ? 'Dépistage anémie (12–24 mois)' : 'Anemia screening (12–24 months)'}

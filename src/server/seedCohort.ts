@@ -322,6 +322,7 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
           bmi: 24.0,
           waistCm: 96,
           findriscScore: 15,
+          monthsSinceLastGlycemicScreening: 48,
           smokingStatus: 'never' as const,
           dailyPhysicalActivity: false,
           dailyFruitsVeg: true,
@@ -329,6 +330,9 @@ export async function ensureSeededDatabase(seed = DEMO_SEED) {
           historyHighGlucose: false,
           familyHistoryDiabetes: 'first_degree' as const,
           ifhasFullScreeningDone: false,
+          orientationLevel: 'orange' as const,
+          orientationNotAttended: true,
+          daysSinceOrientation: 30,
           genomicSignal: {
             type: 'PRS_CAD_T2D_94' as const,
             label: 'Simulated Genomic Information',

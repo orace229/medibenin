@@ -118,6 +118,7 @@ export function runAllAcceptanceTests(): {
         nationalityGroup: 'Emirati',
         clinicalProfile: {
           isPregnant: true,
+          pregnancyWeeks: 24,
           systolicBp2: 148,
           diastolicBp2: 94,
           bmi: 29.5,

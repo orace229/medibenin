@@ -11,6 +11,15 @@ import {
   PEDIATRIC_THRESHOLDS,
   ADULT_SCREENING_THRESHOLDS,
 } from './thresholds.ts';
+import {
+  computeBmiForAgeZ,
+  computeWeightForHeightZ,
+} from './growthReference.ts';
+import {
+  CARE_SCHEDULES,
+  computeMissedWcvCount,
+  isScreeningCurrent,
+} from './careSchedules.ts';
 
 // Signed JSON Rules Table (Section 4.2, 4.3, 4.4, 4.8, 9.2, 12)
 export interface SignedRulesTable {
@@ -500,7 +509,68 @@ export function evaluatePatientRules(
   // Level Grey completeness audit, so they are resolved once here.
   const hba1c =
     cp.hba1cPercent !== undefined && cp.hba1cPercent !== null ? Number(cp.hba1cPercent) : null;
+  const lastGlycemicMonths =
+    typeof cp.monthsSinceLastGlycemicScreening === 'number' &&
+    Number.isFinite(cp.monthsSinceLastGlycemicScreening)
+      ? Number(cp.monthsSinceLastGlycemicScreening)
+      : null;
   const isPregnant = Boolean(cp.isPregnant);
+  const pregnancyWeeks =
+    typeof cp.pregnancyWeeks === 'number' && Number.isFinite(cp.pregnancyWeeks)
+      ? Number(cp.pregnancyWeeks)
+      : null;
+
+  // Calendar-driven screening status: an explicit boolean wins; otherwise the
+  // months-since-last-screen is compared to the versioned interval.
+  const cervicalCurrent =
+    cp.cervicalScreeningUpToDate !== undefined && cp.cervicalScreeningUpToDate !== null
+      ? Boolean(cp.cervicalScreeningUpToDate)
+      : isScreeningCurrent(cp.monthsSinceLastCervicalScreening, CARE_SCHEDULES.cervicalIntervalMonths);
+  const mammographyCurrent =
+    cp.mammographyUpToDate !== undefined && cp.mammographyUpToDate !== null
+      ? Boolean(cp.mammographyUpToDate)
+      : isScreeningCurrent(cp.monthsSinceLastMammography, CARE_SCHEDULES.mammographyIntervalMonths);
+  const colorectalCurrent =
+    cp.colorectalScreeningUpToDate !== undefined && cp.colorectalScreeningUpToDate !== null
+      ? Boolean(cp.colorectalScreeningUpToDate)
+      : isScreeningCurrent(
+          cp.monthsSinceLastColorectalScreening,
+          CARE_SCHEDULES.colorectalIntervalMonths
+        );
+  const ifhasCurrent =
+    cp.ifhasFullScreeningDone !== undefined && cp.ifhasFullScreeningDone !== null
+      ? Boolean(cp.ifhasFullScreeningDone)
+      : isScreeningCurrent(cp.monthsSinceLastIfhas, CARE_SCHEDULES.ifhasIntervalMonths);
+  const computedMissedWcv =
+    cp.missedWcvConsecutive !== undefined && cp.missedWcvConsecutive !== null
+      ? Number(cp.missedWcvConsecutive)
+      : computeMissedWcvCount(patient.ageMonths, cp.lastWcvAgeMonths);
+
+  // Growth Z-scores: use the recorded value when present; otherwise compute it
+  // from the published WHO LMS tables. A value outside the published domain
+  // stays null (Level Grey), never an extrapolated number.
+  const recordedWhz =
+    cp.weightForHeightZ !== undefined && cp.weightForHeightZ !== null
+      ? Number(cp.weightForHeightZ)
+      : null;
+  const computedWhz =
+    recordedWhz !== null
+      ? recordedWhz
+      : weightKg && heightCm
+      ? computeWeightForHeightZ({ heightCm, weightKg, sex: patient.sex })
+      : null;
+  const recordedBmiZ =
+    cp.bmiForAgeZ !== undefined && cp.bmiForAgeZ !== null ? Number(cp.bmiForAgeZ) : null;
+  const computedBmiZ =
+    recordedBmiZ !== null
+      ? recordedBmiZ
+      : computedBmi && patient.ageMonths >= 60
+      ? computeBmiForAgeZ({
+          ageMonths: patient.ageMonths,
+          sex: patient.sex,
+          bmi: computedBmi,
+        })
+      : null;
 
   // TEST-S4: Corrected age for premature children (< 37 weeks gestational age, up to 24 months)
   let correctedAgeMonths: number | null = null;
@@ -572,7 +642,7 @@ export function evaluatePatientRules(
   // 2. Pediatric & Adolescent Rules (P1..P11)
   if (patient.pathwayType === 'child' || patient.pathwayType === 'adolescent') {
     // P1: Severe acute malnutrition
-    if ((cp.weightForHeightZ !== undefined && cp.weightForHeightZ < PEDIATRIC_THRESHOLDS.severeMalnutritionWhzBelow) || (cp.muacMm !== undefined && cp.muacMm < PEDIATRIC_THRESHOLDS.severeMalnutritionMuacBelowMm)) {
+    if ((computedWhz !== null && computedWhz < PEDIATRIC_THRESHOLDS.severeMalnutritionWhzBelow) || (cp.muacMm !== undefined && cp.muacMm < PEDIATRIC_THRESHOLDS.severeMalnutritionMuacBelowMm)) {
       flagsOut.push({
         ruleId: 'P1',
         flagType: 'elevated_risk',
@@ -591,7 +661,7 @@ export function evaluatePatientRules(
         certaintyReason: baseCertaintyReason,
         isEclipseSuspended: false,
       });
-    } else if (cp.weightForHeightZ !== undefined && cp.weightForHeightZ >= -3 && cp.weightForHeightZ < -2) {
+    } else if (computedWhz !== null && computedWhz >= -3 && computedWhz < -2) {
       // P2: Moderate malnutrition (-3 to -2 Z)
       flagsOut.push({
         ruleId: 'P2',
@@ -613,9 +683,9 @@ export function evaluatePatientRules(
       });
     }
 
-    // P3: Missed Well-Child Visit
-    if (cp.missedWcvConsecutive && cp.missedWcvConsecutive >= 1) {
-      const isTwo = cp.missedWcvConsecutive >= 2;
+    // P3: Missed Well-Child Visit (schedule-driven when the last visit age is known)
+    if (computedMissedWcv !== null && computedMissedWcv >= 1) {
+      const isTwo = computedMissedWcv >= 2;
       flagsOut.push({
         ruleId: 'P3',
         flagType: 'missed_care',
@@ -687,38 +757,50 @@ export function evaluatePatientRules(
       });
     }
 
-    // P6: M-CHAT-R developmental screening
-    if (cp.mchatScore !== undefined && Number(cp.mchatScore) >= PEDIATRIC_THRESHOLDS.mchatFollowUpScore) {
-      const score = Number(cp.mchatScore);
-      const isHigh = score >= PEDIATRIC_THRESHOLDS.mchatHighScore;
-      flagsOut.push({
-        ruleId: 'P6',
-        flagType: 'elevated_risk',
-        level: isHigh ? 'orange' : 'yellow',
-        title: isHigh
-          ? 'Priority developmental evaluation recommended (M-CHAT-R)'
-          : 'Structured developmental follow-up interview recommended (M-CHAT-R)',
-        factors: [
-          isHigh
-            ? 'The M-CHAT-R screening result suggests direct referral to a developmental specialist'
-            : 'The M-CHAT-R screening result suggests a structured follow-up conversation with the pediatrician',
-          'Screening prompt to guide dialogue — never presented as a diagnosis',
-        ],
-        sourceLabel: 'M-CHAT-R/F Published Screening Logic',
-        missingData: [],
-        dueDate: isHigh ? 'Within 14 days' : 'Within 30 days',
-        certainty: 'medium',
-        certaintyReason: 'Based on parent-reported developmental screening responses',
-        isEclipseSuspended: false,
-      });
+    // P6: M-CHAT-R developmental screening + follow-up interview (M-CHAT-R/F)
+    const mchatScore =
+      cp.mchatScore !== undefined && cp.mchatScore !== null ? Number(cp.mchatScore) : null;
+    const mchatFollowUp =
+      cp.mchatFollowUpScore !== undefined && cp.mchatFollowUpScore !== null
+        ? Number(cp.mchatFollowUpScore)
+        : null;
+    if (mchatScore !== null && mchatScore >= PEDIATRIC_THRESHOLDS.mchatFollowUpScore) {
+      const followUpCompleted = mchatFollowUp !== null;
+      const followUpPositive = followUpCompleted && mchatFollowUp! >= 2;
+      const referral = mchatScore >= PEDIATRIC_THRESHOLDS.mchatHighScore || followUpPositive;
+      const followUpNegative = followUpCompleted && !followUpPositive;
+      if (!followUpNegative) {
+        flagsOut.push({
+          ruleId: 'P6',
+          flagType: 'elevated_risk',
+          level: referral ? 'orange' : 'yellow',
+          title: referral
+            ? 'Priority developmental evaluation recommended (M-CHAT-R/F)'
+            : 'Structured developmental follow-up interview recommended (M-CHAT-R)',
+          factors: [
+            referral
+              ? 'The M-CHAT-R/F result suggests direct referral to a developmental specialist'
+              : 'The M-CHAT-R score is in the follow-up band (3–7): a structured follow-up interview is required before referral',
+            followUpCompleted
+              ? `Follow-up interview score: ${mchatFollowUp}/20`
+              : 'The follow-up interview has not yet been recorded',
+          ],
+          sourceLabel: 'M-CHAT-R/F Published Screening Logic',
+          missingData: referral || followUpCompleted ? [] : ['M-CHAT-R follow-up interview result'],
+          dueDate: referral ? 'Within 14 days' : 'Within 30 days',
+          certainty: 'medium',
+          certaintyReason: 'Based on parent-reported developmental screening responses',
+          isEclipseSuspended: false,
+        });
+      }
     }
 
     // P8: Adolescent / child BMI-for-age monitoring
     if (
-      cp.bmiForAgeZ !== undefined &&
-      (Number(cp.bmiForAgeZ) > PEDIATRIC_THRESHOLDS.bmiForAgeZWatchAbove || Number(cp.bmiForAgeZ) < PEDIATRIC_THRESHOLDS.bmiForAgeZWatchBelow)
+      computedBmiZ !== null &&
+      (computedBmiZ > PEDIATRIC_THRESHOLDS.bmiForAgeZWatchAbove || computedBmiZ < PEDIATRIC_THRESHOLDS.bmiForAgeZWatchBelow)
     ) {
-      const z = Number(cp.bmiForAgeZ);
+      const z = computedBmiZ;
       const isOrange = z > PEDIATRIC_THRESHOLDS.bmiForAgeZOrangeAbove || z < PEDIATRIC_THRESHOLDS.bmiForAgeZOrangeBelow;
       flagsOut.push({
         ruleId: 'P8',
@@ -847,12 +929,17 @@ export function evaluatePatientRules(
       explicitScore: cp.findriscScore,
     });
 
+    const asianOrigin =
+      patient.nationalityGroup === 'South Asia' || patient.nationalityGroup === 'Southeast Asia';
+    const asianBmiThresholdReached =
+      !isPregnant && asianOrigin && computedBmi !== null &&
+      computedBmi >= DIABETES_SCREENING_THRESHOLDS.asianAdaptedBmiThresholdKgM2;
+    const glycemicScreeningRecent =
+      hba1c !== null || (lastGlycemicMonths !== null && lastGlycemicMonths <= 36);
+    // A4 only when the last glycemic screening is known to be more than 3 years old.
+    // An unknown date is surfaced as missing data (Grey), never assumed recent or overdue.
     const asianBmiTriggered = Boolean(
-      !isPregnant &&
-        (patient.nationalityGroup === 'South Asia' || patient.nationalityGroup === 'Southeast Asia') &&
-        computedBmi !== null &&
-        computedBmi >= DIABETES_SCREENING_THRESHOLDS.asianAdaptedBmiThresholdKgM2 &&
-        cp.hba1cPercent === undefined
+      asianBmiThresholdReached && !glycemicScreeningRecent && lastGlycemicMonths !== null
     );
 
     findriscCalc = {
@@ -874,8 +961,10 @@ export function evaluatePatientRules(
     };
 
     // TEST-S3: Rule A11 — Pregnancy with elevated blood pressure -> RED, suspends A2, A3, A6
+    const a11After20Weeks = pregnancyWeeks === null || pregnancyWeeks >= 20;
     if (
       isPregnant &&
+      a11After20Weeks &&
       retainedSys &&
       retainedDia &&
       (retainedSys >= BLOOD_PRESSURE_THRESHOLDS.pregnancySysMmHg || retainedDia >= BLOOD_PRESSURE_THRESHOLDS.pregnancyDiaMmHg)
@@ -891,21 +980,30 @@ export function evaluatePatientRules(
           ? `Same-day obstetric emergency: severe maternal hypertension (${retainedSys}/${retainedDia} mmHg)`
           : `Urgent maternal blood pressure assessment required (${retainedSys}/${retainedDia} mmHg)`,
         factors: [
-          `Elevated blood pressure (${retainedSys}/${retainedDia} mmHg) recorded during ongoing pregnancy after 20 weeks`,
+          pregnancyWeeks === null
+            ? `Elevated blood pressure (${retainedSys}/${retainedDia} mmHg) recorded during ongoing pregnancy; gestational age is not recorded, so the preeclampsia window cannot be excluded`
+            : `Elevated blood pressure (${retainedSys}/${retainedDia} mmHg) recorded during ongoing pregnancy after 20 weeks`,
           'Requires immediate obstetric evaluation to rule out preeclampsia',
           'Other routine screening rules are automatically paused during this emergency',
         ],
         sourceLabel: 'International Obstetric Hypertension Guidelines',
-        missingData: ['Urine protein assessment & obstetric clinical review'],
+        missingData: [
+          'Urine protein assessment & obstetric clinical review',
+          ...(pregnancyWeeks === null ? ['Gestational age at assessment (weeks)'] : []),
+        ],
         dueDate: 'Immediate (Same day)',
-        certainty: 'high',
-        certaintyReason: 'Verified repeated blood pressure measurements in clinic',
+        certainty: pregnancyWeeks === null ? 'medium' : 'high',
+        certaintyReason:
+          pregnancyWeeks === null
+            ? 'Verified blood pressure; gestational age missing — obstetric confirmation required'
+            : 'Verified repeated blood pressure measurements in clinic',
         isEclipseSuspended: false,
       });
     }
 
-    // A1: Adult blood pressure (when not pregnant)
-    if (!isPregnant && retainedSys && retainedDia) {
+    // A1: Adult blood pressure (when not pregnant, or early pregnancy before 20 weeks)
+    const a1Active = !isPregnant || (pregnancyWeeks !== null && pregnancyWeeks < 20);
+    if (a1Active && retainedSys && retainedDia) {
       if (retainedSys >= BLOOD_PRESSURE_THRESHOLDS.adultHighSysMmHg || retainedDia >= BLOOD_PRESSURE_THRESHOLDS.adultHighDiaMmHg) {
         flagsOut.push({
           ruleId: 'A1',
@@ -1105,7 +1203,7 @@ export function evaluatePatientRules(
       patient.sex.toLowerCase() === 'female' &&
       patient.ageYears >= ADULT_SCREENING_THRESHOLDS.cervicalScreeningAgeMinYears &&
       patient.ageYears <= ADULT_SCREENING_THRESHOLDS.cervicalScreeningAgeMaxYears &&
-      cp.cervicalScreeningUpToDate === false
+      cervicalCurrent === false
     ) {
       flagsOut.push({
         ruleId: 'A5',
@@ -1130,7 +1228,7 @@ export function evaluatePatientRules(
       patient.sex.toLowerCase() === 'female' &&
       patient.ageYears >= ADULT_SCREENING_THRESHOLDS.mammographyAgeMinYears &&
       patient.ageYears <= ADULT_SCREENING_THRESHOLDS.mammographyAgeMaxYears &&
-      cp.mammographyUpToDate === false
+      mammographyCurrent === false
     ) {
       flagsOut.push({
         ruleId: 'A6',
@@ -1149,11 +1247,12 @@ export function evaluatePatientRules(
       });
     }
 
-    // A7: Colorectal screening (40-75y or 1st-degree family history)
+    // A7: Colorectal screening (40–75 years, or earlier with a first-degree family history)
     if (
       !isPregnant &&
+      patient.ageYears <= 75 &&
       (patient.ageYears >= ADULT_SCREENING_THRESHOLDS.colorectalAgeMinYears || cp.familyHistoryColorectal) &&
-      cp.colorectalScreeningUpToDate === false
+      colorectalCurrent === false
     ) {
       flagsOut.push({
         ruleId: 'A7',
@@ -1175,7 +1274,7 @@ export function evaluatePatientRules(
     }
 
     // A8: IFHAS comprehensive adult check
-    if (!isPregnant && cp.ifhasFullScreeningDone === false && flagsOut.length === 0) {
+    if (!isPregnant && ifhasCurrent === false && flagsOut.length === 0) {
       flagsOut.push({
         ruleId: 'A8',
         flagType: 'missed_care',
@@ -1193,22 +1292,39 @@ export function evaluatePatientRules(
       });
     }
 
-    // A9: Interrupted chronic follow-up
-    if (
-      cp.chronicCondition &&
-      cp.monthsSinceLastChronicVisit &&
-      Number(cp.monthsSinceLastChronicVisit) > ADULT_SCREENING_THRESHOLDS.chronicVisitGapMonths
-    ) {
+    // A9: Interrupted chronic follow-up OR an Orange/Red orientation that was
+    // not honoured within its window (closed-loop rule).
+    const daysSinceOrientation =
+      typeof cp.daysSinceOrientation === 'number' ? cp.daysSinceOrientation : null;
+    const orientationWindowDays =
+      cp.orientationLevel === 'red' ? 1 : cp.orientationLevel === 'orange' ? 14 : null;
+    const missedOrientation =
+      cp.orientationNotAttended === true &&
+      orientationWindowDays !== null &&
+      daysSinceOrientation !== null &&
+      daysSinceOrientation > orientationWindowDays;
+    const chronicGap =
+      Boolean(cp.chronicCondition) &&
+      Boolean(cp.monthsSinceLastChronicVisit) &&
+      Number(cp.monthsSinceLastChronicVisit) > ADULT_SCREENING_THRESHOLDS.chronicVisitGapMonths;
+    if (chronicGap || missedOrientation) {
       flagsOut.push({
         ruleId: 'A9',
         flagType: 'interrupted_followup',
         level: 'orange',
-        title: `Continuity of care follow-up overdue (${cp.monthsSinceLastChronicVisit} mos since last visit)`,
-        factors: [
-          `No follow-up visit recorded in ${cp.monthsSinceLastChronicVisit} months for ongoing ${cp.chronicCondition}`,
-          'Re-establishing regular monitoring prevents avoidable complications',
-        ],
-        sourceLabel: 'WHO PEN Continuity Protocol',
+        title: missedOrientation
+          ? `Orientation not honoured within its window (${daysSinceOrientation} days since ${cp.orientationLevel} orientation)`
+          : `Continuity of care follow-up overdue (${cp.monthsSinceLastChronicVisit} mos since last visit)`,
+        factors: missedOrientation
+          ? [
+              `A ${cp.orientationLevel} orientation was issued ${daysSinceOrientation} days ago and no confirmed visit is recorded`,
+              'Closed-loop follow-up requires re-contact and a new appointment',
+            ]
+          : [
+              `No follow-up visit recorded in ${cp.monthsSinceLastChronicVisit} months for ongoing ${cp.chronicCondition}`,
+              'Re-establishing regular monitoring prevents avoidable complications',
+            ],
+        sourceLabel: 'WHO PEN Continuity Protocol / Closed-loop follow-up',
         missingData: [],
         dueDate: 'Within 14 days',
         certainty: baseCertainty,
@@ -1285,6 +1401,21 @@ export function evaluatePatientRules(
     if (!glycemicKnown) {
       missingRequired.push('Complete FINDRISC questionnaire (8 items) or a laboratory HbA1c');
     }
+    if (isPregnant && pregnancyWeeks === null) {
+      missingRequired.push('Gestational age at assessment (weeks)');
+    }
+    const asianOrigin =
+      patient.nationalityGroup === 'South Asia' || patient.nationalityGroup === 'Southeast Asia';
+    if (
+      !isPregnant &&
+      asianOrigin &&
+      computedBmi !== null &&
+      computedBmi >= DIABETES_SCREENING_THRESHOLDS.asianAdaptedBmiThresholdKgM2 &&
+      hba1c === null &&
+      lastGlycemicMonths === null
+    ) {
+      missingRequired.push('Date of last glycemic screening (rule A4, > 3 years interval)');
+    }
     if (!isPregnant && patient.ageYears >= 40 && patient.ageYears <= 80 && isUnknown(cp.smokingStatus)) {
       missingRequired.push('Tobacco use (required by the WHO 2019 non-laboratory model)');
     }
@@ -1293,7 +1424,7 @@ export function evaluatePatientRules(
         patient.sex.toLowerCase() === 'female' &&
         patient.ageYears >= ADULT_SCREENING_THRESHOLDS.cervicalScreeningAgeMinYears &&
         patient.ageYears <= ADULT_SCREENING_THRESHOLDS.cervicalScreeningAgeMaxYears &&
-        isUnknown(cp.cervicalScreeningUpToDate)
+        cervicalCurrent === null
       ) {
         missingRequired.push('Cervical cancer screening status');
       }
@@ -1301,18 +1432,18 @@ export function evaluatePatientRules(
         patient.sex.toLowerCase() === 'female' &&
         patient.ageYears >= ADULT_SCREENING_THRESHOLDS.mammographyAgeMinYears &&
         patient.ageYears <= ADULT_SCREENING_THRESHOLDS.mammographyAgeMaxYears &&
-        isUnknown(cp.mammographyUpToDate)
+        mammographyCurrent === null
       ) {
         missingRequired.push('Mammography screening status');
       }
       if (
         patient.ageYears >= ADULT_SCREENING_THRESHOLDS.colorectalAgeMinYears &&
         patient.ageYears <= 75 &&
-        isUnknown(cp.colorectalScreeningUpToDate)
+        colorectalCurrent === null
       ) {
         missingRequired.push('Colorectal cancer screening status');
       }
-      if (patient.ageYears >= 18 && patient.ageYears <= 75 && isUnknown(cp.ifhasFullScreeningDone)) {
+      if (patient.ageYears >= 18 && patient.ageYears <= 75 && ifhasCurrent === null) {
         missingRequired.push('IFHAS comprehensive adult check status');
       }
     }
@@ -1322,10 +1453,10 @@ export function evaluatePatientRules(
   } else {
     const ageMonths = patient.ageMonths;
     if (ageMonths < 60) {
-      if (isUnknown(cp.weightForHeightZ) && isUnknown(cp.muacMm)) {
+      if (computedWhz === null && isUnknown(cp.muacMm)) {
         missingRequired.push('Weight-for-height Z-score and mid-upper arm circumference');
       }
-    } else if (ageMonths <= 216 && isUnknown(cp.bmiForAgeZ)) {
+    } else if (ageMonths <= 216 && computedBmiZ === null) {
       missingRequired.push('BMI-for-age Z-score (WHO 2007)');
     }
     const immunizationKnown =
@@ -1334,6 +1465,9 @@ export function evaluatePatientRules(
       !isUnknown(cp.adolescentVaccinesUpToDate);
     if (!immunizationKnown) {
       missingRequired.push('Immunization registry status (delays and zero-dose)');
+    }
+    if (ageMonths <= 72 && computedMissedWcv === null) {
+      missingRequired.push('Age of the last Well-Child Visit (schedule adherence)');
     }
     if (
       ageMonths >= 12 &&
@@ -1472,8 +1606,8 @@ export function evaluatePatientRules(
       bmi: computedBmi,
       waistCm: cp.waistCm ?? null,
       correctedAgeMonths,
-      weightForHeightZ: cp.weightForHeightZ ?? null,
-      bmiForAgeZ: cp.bmiForAgeZ ?? null,
+      weightForHeightZ: computedWhz,
+      bmiForAgeZ: computedBmiZ,
       muacMm: cp.muacMm ?? null,
     },
     whoCvdModel: whoCvdCalc,

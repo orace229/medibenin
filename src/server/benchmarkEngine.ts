@@ -395,6 +395,7 @@ function generatePopulation(seed: number, scenario: BenchmarkScenario): Person[]
         familyHistoryDiabetes: declaredFamily,
         familyHistoryColorectal: rng() < 0.08,
         hba1cPercent: hba1cMeasured ? Math.round(clamp(hba1cTrue + gauss(0, 0.08), 4.2, 13) * 10) / 10 : undefined,
+        monthsSinceLastGlycemicScreening: rng() < 0.55 ? 48 : 12,
         isPregnant: pregnant,
         pregnancyWeeks: pregnancyWeeks ?? undefined,
         chronicCondition: chronicBase ? 'cardiometabolic follow-up' : null,

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "documentId": "care-schedules",
+  "version": "1.0.0",
+  "effectiveDate": "2026-11-15",
+  "source": "Declared starting values for the Abu Dhabi Well-Child Visit / IFHAS and national cancer-screening intervals. WCV ages follow the DoH schedule cited in Annex C; intervals are V3/V4 TO VERIFY and must be replaced by the official texts before any real use.",
+  "schedules": {
+    "wcvAgesMonths": [0, 1, 2, 4, 6, 9, 12, 15, 18, 24, 30, 36, 48, 60, 72],
+    "wcvWindowMonths": 2,
+    "cervicalIntervalMonths": 36,
+    "mammographyIntervalMonths": 24,
+    "colorectalIntervalMonths": 24,
+    "ifhasIntervalMonths": 12
+  }
+}

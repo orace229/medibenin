@@ -44,6 +44,8 @@ import {
 } from './src/server/benchmarkEngine.ts';
 import { runAllAcceptanceTests } from './src/server/acceptanceSuite.ts';
 import { THRESHOLD_DOCUMENTS } from './src/server/thresholds.ts';
+import { CARE_SCHEDULE_METADATA } from './src/server/careSchedules.ts';
+import { GROWTH_REFERENCE_METADATA } from './src/server/growthReference.ts';
 import { resolvePathwayConflict, type PathwayState } from './src/server/syncConflicts.ts';
 import { evaluateInvitationPolicy, isPurposeAllowed } from './src/server/pathwayPolicy.ts';
 
@@ -209,6 +211,8 @@ async function startServer() {
         rulesCount: canonical.rules.length,
         dbRegistered: dbRules.length > 0,
         rulesSummary: canonical.rules,
+        careSchedule: CARE_SCHEDULE_METADATA,
+        growthReferences: GROWTH_REFERENCE_METADATA,
       });
     } catch (error: any) {
       console.error('Failed to verify governance status:', error);
@@ -844,6 +848,10 @@ async function startServer() {
             ? body.familyHistoryDiabetesLevel
             : baseProfile.familyHistoryDiabetes ?? null,
         hba1cPercent: numOrUndef(body.hba1cPercent, baseProfile.hba1cPercent),
+        monthsSinceLastGlycemicScreening: numOrUndef(
+          body.monthsSinceLastGlycemicScreening,
+          baseProfile.monthsSinceLastGlycemicScreening
+        ),
         isPregnant:
           body.isPregnant !== undefined ? Boolean(body.isPregnant) : baseProfile.isPregnant ?? false,
         familyHistoryFhOrEarlyCvd:
@@ -855,24 +863,37 @@ async function startServer() {
             ? Boolean(body.familyBreastOrColorectalCancer)
             : baseProfile.familyHistoryColorectal ?? false,
         colorectalScreeningUpToDate:
-          body.colorectalScreeningOverdueMonths !== undefined &&
-          body.colorectalScreeningOverdueMonths !== ''
-            ? Number(body.colorectalScreeningOverdueMonths) <= 0
+          body.colorectalScreeningUpToDate !== undefined
+            ? Boolean(body.colorectalScreeningUpToDate)
             : baseProfile.colorectalScreeningUpToDate ?? null,
         cervicalScreeningUpToDate:
-          body.cervicalScreeningOverdueMonths !== undefined &&
-          body.cervicalScreeningOverdueMonths !== ''
-            ? Number(body.cervicalScreeningOverdueMonths) <= 0
+          body.cervicalScreeningUpToDate !== undefined
+            ? Boolean(body.cervicalScreeningUpToDate)
             : baseProfile.cervicalScreeningUpToDate ?? null,
         mammographyUpToDate:
-          body.mammographyScreeningOverdueMonths !== undefined &&
-          body.mammographyScreeningOverdueMonths !== ''
-            ? Number(body.mammographyScreeningOverdueMonths) <= 0
+          body.mammographyUpToDate !== undefined
+            ? Boolean(body.mammographyUpToDate)
             : baseProfile.mammographyUpToDate ?? null,
         ifhasFullScreeningDone:
           body.ifhasFullScreeningDone !== undefined
             ? Boolean(body.ifhasFullScreeningDone)
             : baseProfile.ifhasFullScreeningDone ?? null,
+        monthsSinceLastColorectalScreening: numOrUndef(
+          body.monthsSinceLastColorectalScreening,
+          baseProfile.monthsSinceLastColorectalScreening
+        ),
+        monthsSinceLastCervicalScreening: numOrUndef(
+          body.monthsSinceLastCervicalScreening,
+          baseProfile.monthsSinceLastCervicalScreening
+        ),
+        monthsSinceLastMammography: numOrUndef(
+          body.monthsSinceLastMammography,
+          baseProfile.monthsSinceLastMammography
+        ),
+        monthsSinceLastIfhas: numOrUndef(
+          body.monthsSinceLastIfhas,
+          baseProfile.monthsSinceLastIfhas
+        ),
         fallOrSensoryRisk:
           body.fallOrSensoryRisk !== undefined
             ? Boolean(body.fallOrSensoryRisk)
@@ -885,6 +906,18 @@ async function startServer() {
           Number(body.chronicFollowupInterruptedMonths || 0) > 0
             ? baseProfile.chronicCondition || 'cardiometabolic follow-up'
             : baseProfile.chronicCondition ?? null,
+        orientationLevel:
+          body.orientationLevel === 'red' || body.orientationLevel === 'orange'
+            ? body.orientationLevel
+            : baseProfile.orientationLevel ?? null,
+        orientationNotAttended:
+          body.orientationNotAttended !== undefined
+            ? Boolean(body.orientationNotAttended)
+            : baseProfile.orientationNotAttended ?? null,
+        daysSinceOrientation: numOrUndef(
+          body.daysSinceOrientation,
+          baseProfile.daysSinceOrientation
+        ),
         activeSpecialistFollowup:
           body.activeSpecialistFollowup !== undefined
             ? Boolean(body.activeSpecialistFollowup)
@@ -918,6 +951,7 @@ async function startServer() {
         bmiForAgeZ: numOrUndef(body.bmiForAgeZ, baseProfile.bmiForAgeZ),
         muacMm: numOrUndef(body.muacMm, baseProfile.muacMm),
         mchatScore: numOrUndef(body.mchatScore, baseProfile.mchatScore),
+        mchatFollowUpScore: numOrUndef(body.mchatFollowUpScore, baseProfile.mchatFollowUpScore),
         hemoglobinGdl: numOrUndef(body.hemoglobinGdl, baseProfile.hemoglobinGdl),
         anemiaScreeningDone:
           body.hemoglobinGdl !== undefined && body.hemoglobinGdl !== ''
@@ -938,7 +972,14 @@ async function startServer() {
             ? Boolean(body.adolescentVaccinesUpToDate)
             : baseProfile.adolescentVaccinesUpToDate ?? null,
         missedWcvConsecutive:
-          Number(body.overdueMonthsWcv || 0) >= 3 ? 1 : baseProfile.missedWcvConsecutive ?? 0,
+          body.lastWcvAgeMonths !== undefined && body.lastWcvAgeMonths !== ''
+            ? undefined
+            : body.overdueMonthsWcv !== undefined && body.overdueMonthsWcv !== ''
+            ? Number(body.overdueMonthsWcv) >= 3
+              ? 1
+              : 0
+            : baseProfile.missedWcvConsecutive,
+        lastWcvAgeMonths: numOrUndef(body.lastWcvAgeMonths, baseProfile.lastWcvAgeMonths),
         pregnancyWeeks: numOrUndef(body.pregnancyWeeks, baseProfile.pregnancyWeeks),
         oldestMeasureMonths: numOrUndef(body.oldestMeasureMonths, 0),
         provenanceMap: {
@@ -2056,8 +2097,17 @@ async function startServer() {
       if (body.isPregnant !== undefined) {
         currentProfile.isPregnant = Boolean(body.isPregnant);
       }
+      if (body.pregnancyWeeks !== undefined && body.pregnancyWeeks !== '') {
+        currentProfile.pregnancyWeeks = Number(body.pregnancyWeeks);
+      }
+      if (body.monthsSinceLastGlycemicScreening !== undefined && body.monthsSinceLastGlycemicScreening !== '') {
+        currentProfile.monthsSinceLastGlycemicScreening = Number(body.monthsSinceLastGlycemicScreening);
+      }
       if (body.mchatScore !== undefined && body.mchatScore !== '') {
         currentProfile.mchatScore = Number(body.mchatScore);
+      }
+      if (body.mchatFollowUpScore !== undefined && body.mchatFollowUpScore !== '') {
+        currentProfile.mchatFollowUpScore = Number(body.mchatFollowUpScore);
       }
       if (body.redFlagWarningSymptom !== undefined) {
         currentProfile.redFlagWarningSymptom = Boolean(body.redFlagWarningSymptom);

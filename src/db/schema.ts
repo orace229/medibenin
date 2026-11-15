@@ -85,7 +85,9 @@ export const patients = pgTable('patients', {
     hemoglobinGdl?: number;
     hba1cPercent?: number;
     findriscScore?: number;
+    monthsSinceLastGlycemicScreening?: number | null;
     mchatScore?: number;
+    mchatFollowUpScore?: number | null;
     smokingStatus?: 'never' | 'current' | 'dokha_shisha' | null;
     dailyPhysicalActivity?: boolean | null;
     dailyFruitsVeg?: boolean | null;
@@ -96,6 +98,9 @@ export const patients = pgTable('patients', {
     familyHistoryColorectal?: boolean;
     chronicCondition?: string | null;
     monthsSinceLastChronicVisit?: number;
+    orientationLevel?: 'red' | 'orange' | null;
+    orientationNotAttended?: boolean | null;
+    daysSinceOrientation?: number | null;
     lastWcvAgeMonths?: number;
     missedWcvConsecutive?: number;
     vaccineDelayDays?: number;
@@ -106,6 +111,10 @@ export const patients = pgTable('patients', {
     mammographyUpToDate?: boolean | null;
     colorectalScreeningUpToDate?: boolean | null;
     ifhasFullScreeningDone?: boolean | null;
+    monthsSinceLastCervicalScreening?: number | null;
+    monthsSinceLastMammography?: number | null;
+    monthsSinceLastColorectalScreening?: number | null;
+    monthsSinceLastIfhas?: number | null;
     fallOrSensoryRisk?: boolean | null;
     activeSpecialistFollowup?: boolean;
     redFlagWarningSymptom?: boolean;

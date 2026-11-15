@@ -85,10 +85,31 @@ dossiers liés et aux membres de la famille affiliés). La santé publique n'a
 ## Tests et qualité
 
 ```bash
-npm test          # 44 tests : acceptation, règles, WHO 2019, garde-fous, politique de consentement/invitation
+npm test          # 58 tests : acceptation, règles, WHO 2019, croissance LMS, garde-fous, consentement/invitation
 npm run lint      # tsc --noEmit
 npm run check:ui  # garde-fou de contenu UI interdit
 ```
+
+## Fidélité clinique (P1-B)
+
+- **Croissance LMS** : BMI-for-age 5–19 ans (WHO 2007) et poids-pour-taille
+  65–120 cm (WHO 2006) sont calculés depuis les tables LMS officielles ; un Z
+  fourni reste prioritaire, et une valeur hors domaine reste `null` (Gris).
+- **Calendriers** : les visites WCV, les intervalles col/sein/colorectal/IFHAS
+  sont versionnés dans `src/config/schedules/care-schedules.v1.json` (valeurs
+  V3/V4 à remplacer par les textes officiels).
+- **A4** : l’intervalle glycémique de 3 ans est vérifié ; une date inconnue
+  produit un Gris, jamais une accélération supposée.
+- **A7** : plafond à 75 ans.
+- **A9** : une orientation Orange/Rouge non honorée dans sa fenêtre devient un
+  signalement de suivi interrompu.
+- **A11** : la règle prééclampsie s’applique à partir de 20 SA ; avant 20 SA,
+  la tension élevée passe par A1. Une grossesse sans âge gestationnel produit
+  A11 avec donnée manquante.
+- **P6** : le score 3–7 exige l’entretien de suivi M-CHAT-R/F ; un suivi
+  positif oriente, un suivi négatif clôt le dépistage.
+- **P3** : le nombre de visites WCV manquées peut être dérivé de l’âge de la
+  dernière visite.
 
 ## Garde-fous d’équité (P1)
 

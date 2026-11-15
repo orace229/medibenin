@@ -39,3 +39,15 @@
 7. **Scenario selector** — the observatory can switch between baseline, MNAR missing, under-reporting, incomplete history and equity-gap scenarios.
 8. **Testable pathway policy** — consent and invitation rules moved to `src/server/pathwayPolicy.ts`, covered by 6 unit tests; safeguards have 4 new tests and benchmark equity has 3.
 9. **Tests** — `npm test` now runs 44 tests; all pass.
+
+## P1-B Clinical Fidelity Applied (2026-11-15)
+
+1. **WHO growth LMS** — added `src/config/growth/who-bmi-for-age-5-19.json` and `who-weight-for-height-65-120.json`, transcribed from the official WHO expanded tables, plus `src/server/growthReference.ts`. BMI-for-age and weight-for-height Z-scores are computed when not supplied; values outside the published domain stay null (Grey).
+2. **Care schedules** — added versioned `src/config/schedules/care-schedules.v1.json` (WCV ages, cervical 36, mammography 24, colorectal 24, IFHAS 12 months) and `src/server/careSchedules.ts`. These are declared V3/V4 starting values, exposed in governance status.
+3. **A4** — the 3-year glycemic-screening interval is required; an unknown date is missing data, not an assumed accelerator.
+4. **A7** — colorectal screening is capped at 75 years.
+5. **A9** — an Orange/Red orientation not honoured within its window produces a closed-loop interrupted-follow-up flag.
+6. **A11** — preeclampsia applies from 20 weeks; before 20 weeks the elevated BP is handled by A1; missing gestational age is surfaced as missing data.
+7. **P6** — M-CHAT-R 3–7 now requires the follow-up interview; a positive follow-up refers, a negative one closes the screen.
+8. **P3** — missed WCV count can be derived from the age at the last visit using the versioned schedule.
+9. **Tests** — 58 tests total; growth-reference tests cover published median/SD cells and domain boundaries.
