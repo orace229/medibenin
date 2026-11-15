@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useI18n } from '../lib/i18n.tsx';
 import { apiClient } from '../lib/api.ts';
+import { computeWilson95 } from '../lib/wilson.ts';
 import {
   MediSenseLogo,
   DemoBanner,
@@ -36,6 +37,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
 
   const [coordData, setCoordData] = useState<any>(null);
   const [obsData, setObsData] = useState<any>(null);
+  const [obsScenario, setObsScenario] = useState<string>('baseline');
   const [activeQueueTab, setActiveQueueTab] = useState<'prioritized' | 'red' | 'grey'>('prioritized');
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -77,7 +79,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
         setCoordData(c);
         setFamilyData(fam);
       } else {
-        const o = await apiClient.getObservatorySummary(seedRef);
+        const o = await apiClient.getObservatorySummary(seedRef, obsScenario);
         setObsData(o);
       }
     } catch (err) {
@@ -171,18 +173,23 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
 
   useEffect(() => {
     loadData();
-  }, [role]);
+  }, [role, obsScenario]);
 
   // Public-health indicators, pooled from the safeguarded segment table.
   // Pooling uses ONLY the declared dimension (§7.1 publication hierarchy) so that
-  // each person is counted exactly once; segments with n < 10 are suppressed
-  // server-side and never pooled.
+  // each person is counted exactly once. Segments with n < 10 are suppressed
+  // server-side; 10–29 segments are shown individually but excluded from pooled
+  // comparisons (§7.3: "small sample: no comparative conclusion").
   const poolingDimension: string = obsData?.poolingDimension || 'Region';
-  const visibleSegments: any[] = (obsData?.safeguardedSegments || []).filter(
-    (s: any) =>
-      s.dimension === poolingDimension &&
-      (s.suppressedStatus === 'visible' || s.suppressedStatus === 'small_sample')
+  const dimensionSegments: any[] = (obsData?.safeguardedSegments || []).filter(
+    (s: any) => s.dimension === poolingDimension
   );
+  const visibleSegments: any[] = dimensionSegments.filter(
+    (s: any) => s.suppressedStatus === 'visible'
+  );
+  const smallSampleExcluded = dimensionSegments.filter(
+    (s: any) => s.suppressedStatus === 'small_sample'
+  ).length;
   const sumVisible = (fn: (s: any) => number) =>
     visibleSegments.reduce((acc: number, s: any) => acc + Math.max(0, fn(s) || 0), 0);
   const totalEligibleN = sumVisible((s) => s.totalEligible);
@@ -191,9 +198,12 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
   const confirmedVisitsN = sumVisible((s) => s.confirmedVisitsCount);
   const pooledPercent = (n: number, d: number) =>
     d > 0 ? Math.round((n / d) * 1000) / 10 : null;
+  const reachCi = computeWilson95(evaluatedCompleteN, totalEligibleN);
+  const adoptionCi = computeWilson95(confirmedVisitsN, invitedN);
+  const closedLoopCi = computeWilson95(confirmedVisitsN, invitedN);
   const pooledReach = pooledPercent(evaluatedCompleteN, totalEligibleN);
   const pooledAdoption = pooledPercent(confirmedVisitsN, invitedN);
-  const pooledClosedLoop = pooledPercent(confirmedVisitsN, totalEligibleN);
+  const pooledClosedLoop = pooledPercent(confirmedVisitsN, invitedN);
   const falseNegativeProps = visibleSegments
     .map((s: any) => {
       const m = /^([\d.]+)%/.exec(s.falseNegativeRateDisplay || '');
@@ -775,6 +785,28 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
               animate={{ opacity: 1, y: 0 }}
               className="space-y-5 sm:space-y-6"
             >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-[#64748B]">
+                  {isFr
+                    ? 'Scénario du banc d’essai : la comparaison change de scénario, la vérité cachée reste indépendante du moteur.'
+                    : 'Benchmark scenario: switching changes the stress scenario; hidden truth remains independent of the rules layer.'}
+                </p>
+                <label className="flex items-center gap-2 text-xs font-semibold text-[#0B3B3C]">
+                  <span>{isFr ? 'Scénario' : 'Scenario'}</span>
+                  <select
+                    value={obsScenario}
+                    onChange={(e) => setObsScenario(e.target.value)}
+                    className="px-2.5 py-1.5 rounded-xl border border-[#E2E8F0] bg-white text-xs"
+                  >
+                    <option value="baseline">Baseline</option>
+                    <option value="mnar_missing">{isFr ? 'Données manquantes non aléatoires' : 'MNAR missing data'}</option>
+                    <option value="underreporting">{isFr ? 'Sous-déclaration' : 'Under-reporting'}</option>
+                    <option value="incomplete_history">{isFr ? 'Historique incomplet' : 'Incomplete history'}</option>
+                    <option value="equity_gap">{isFr ? 'Écart d’équité (C3)' : 'Equity gap (C3)'}</option>
+                  </select>
+                </label>
+              </div>
+
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                 <StatCard
                   title={isFr ? 'Cohorte synthétique' : 'Synthetic Cohort'}
@@ -785,34 +817,48 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                 <StatCard
                   title={isFr ? 'Portée' : 'Reach'}
                   value={pooledReach !== null ? `${pooledReach}%` : '—'}
-                  subtitle={isFr ? 'Évaluations complètes (cumul)' : 'Complete evaluations (pooled)'}
+                  subtitle={`95% CI [${reachCi.lower}–${reachCi.upper}%] · n=${totalEligibleN}${
+                    smallSampleExcluded > 0
+                      ? isFr
+                        ? ` · ${smallSampleExcluded} petit(s) segment(s) exclu(s)`
+                        : ` · ${smallSampleExcluded} small segment(s) excluded`
+                      : ''
+                  }`}
                   icon={<Users className="w-4 h-4" />}
                 />
                 <StatCard
                   title={isFr ? 'Adoption' : 'Adoption'}
                   value={pooledAdoption !== null ? `${pooledAdoption}%` : '—'}
-                  subtitle={isFr ? 'Visites confirmées (cumul)' : 'Confirmed visits (pooled)'}
+                  subtitle={`95% CI [${adoptionCi.lower}–${adoptionCi.upper}%] · ${
+                    isFr ? 'visites confirmées / invités' : 'confirmed visits / invited'
+                  }`}
                   icon={<Send className="w-4 h-4" />}
                 />
                 <StatCard
                   title={isFr ? 'Boucle complète' : 'Closed-loop completion'}
                   value={pooledClosedLoop !== null ? `${pooledClosedLoop}%` : '—'}
-                  subtitle={isFr ? 'Confirmés parmi éligibles' : 'Confirmed among eligible'}
+                  subtitle={`95% CI [${closedLoopCi.lower}–${closedLoopCi.upper}%] · ${
+                    isFr ? 'confirmés parmi invités' : 'confirmed among invited'
+                  }`}
                   icon={<ShieldCheck className="w-4 h-4" />}
                 />
                 <StatCard
                   title={isFr ? 'Faux négatifs estimés' : 'False-negative estimate'}
                   value={falseNegativeRange}
-                  subtitle={isFr ? 'Plage des segments visibles' : 'Range across visible segments'}
+                  subtitle={
+                    isFr
+                      ? 'Plage des segments visibles (10–29 exclus)'
+                      : 'Range across visible segments (10–29 excluded)'
+                  }
                   icon={<AlertTriangle className="w-4 h-4 text-[#C2410C]" />}
                 />
               </div>
 
-              {/* Community & Equity Alerts (C1, C3) */}
+              {/* Community & Equity Alerts (C1, C3, C4) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(obsData.communityAlerts || []).map((al: any) => (
                   <GlassCard
-                    key={al.ruleId}
+                    key={`${al.ruleId}-${al.zoneOrSegment}`}
                     kicker={al.zoneOrSegment}
                     title={al.title}
                     description={al.description}
@@ -828,7 +874,12 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                     Segment Coverage & Safeguards (95% Wilson CI)
                   </h2>
                   <p className="text-xs text-[#64748B]">
-                    Small groups are always masked automatically to protect privacy, including the smallest complementary group.
+                    {isFr
+                      ? 'Les groupes de moins de 10 sont masqués ; les groupes de 10 à 29 sont affichés mais exclus des totaux et comparaisons.'
+                      : 'Groups below 10 are masked; groups of 10–29 are shown but excluded from pooled totals and comparisons.'}{' '}
+                    {isFr
+                      ? 'La plus petite cellule complémentaire est masquée automatiquement.'
+                      : 'The smallest complementary cell is masked automatically.'}
                   </p>
                 </div>
 

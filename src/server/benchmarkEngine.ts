@@ -34,6 +34,7 @@ import {
   getCanonicalSignedRuleTable,
 } from './rulesEngine.ts';
 import { computeLogisticsAndM1 } from './mlLogistics.ts';
+import { PRIVACY_THRESHOLDS } from './thresholds.ts';
 import {
   buildSafeguardedSegmentTable,
   computeWilson95,
@@ -48,13 +49,15 @@ export type BenchmarkScenario =
   | 'baseline'
   | 'mnar_missing'
   | 'underreporting'
-  | 'incomplete_history';
+  | 'incomplete_history'
+  | 'equity_gap';
 
 export const BENCHMARK_SCENARIOS: BenchmarkScenario[] = [
   'baseline',
   'mnar_missing',
   'underreporting',
   'incomplete_history',
+  'equity_gap',
 ];
 
 export const COHORT_SIZE_PER_SEED = 6000; // H22: within the 5,000–10,000 range
@@ -71,6 +74,8 @@ const SCENARIO_NOTES: Record<BenchmarkScenario, string> = {
     'Scenario (b) §8.4: 30% of true smokers are declared as non-smokers and first-degree family-history items are under-declared by 40%.',
   incomplete_history:
     'Scenario (c) §8.4: for 35% of children with a truly missed Well-Child Visit the registry does not record it, and 20% of truly missed anemia screenings are wrongly marked as done.',
+  equity_gap:
+    'Scenario (d) — equity stress test: a stronger language/access barrier lowers attendance for South Asian and Southeast Asian segments, so the C3 adoption-gap alert can be exercised. Declared as a synthetic stress scenario, not a measured effect.',
 };
 
 // ---------------------------------------------------------------------------
@@ -191,6 +196,8 @@ interface Person {
   invitedMediSense?: boolean;
   invitedBaseline?: boolean;
   attended?: boolean;
+  attendedMediSense?: boolean;
+  attendedBaseline?: boolean;
   informedRefusal?: boolean;
   daysToVisit?: number;
 }
@@ -636,22 +643,38 @@ function selectMediSenseInvitations(people: Person[], rng: () => number): Person
 }
 
 function selectBaselineInvitations(people: Person[], rng: () => number): Person[] {
-  const eligible = people.filter((p) => {
-    if (p.pathwayType !== 'adult') {
-      if (p.ageMonths <= 72) {
-        return CHILD_SCHEDULE_AGES.some((a) => p.ageMonths >= a && p.ageMonths <= a + 2);
-      }
-      // adolescents: annual school-health check window (age-based rule)
-      return p.ageMonths % 12 <= 2;
+  // Age-and-sex invitation policy: invite the cohorts that the current
+  // schedule targets (adults 40+, women 25-39 for cervical screening,
+  // adolescents, children in a WCV window), then fill remaining capacity with
+  // the next age/sex-eligible people. This keeps both benchmark arms at the
+  // SAME invitation capacity K instead of giving MediSense a larger panel.
+  const scored = people.map((p) => {
+    let score = 1;
+    if (p.pathwayType === 'adult') {
+      score =
+        p.ageYears >= 40
+          ? 3
+          : p.sex === 'female' && p.ageYears >= 25
+          ? 2
+          : 1;
+    } else if (p.pathwayType === 'adolescent') {
+      score = 2;
+    } else {
+      score = CHILD_SCHEDULE_AGES.some((a) => p.ageMonths >= a && p.ageMonths <= a + 2)
+        ? 3
+        : 1;
     }
-    return p.ageYears >= 40; // age criterion (IFHAS-like), sex irrelevant here
+    return { p, score };
   });
-  // Shuffle deterministically: a registry-order invitation list
-  for (let i = eligible.length - 1; i > 0; i--) {
+
+  // Deterministic shuffle, then stable sort by the age/sex policy score.
+  for (let i = scored.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
-    [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
+    [scored[i], scored[j]] = [scored[j], scored[i]];
   }
-  const invited = eligible.slice(0, INVITATION_BUDGET_K);
+  scored.sort((a, b) => b.score - a.score);
+
+  const invited = scored.slice(0, INVITATION_BUDGET_K).map((entry) => entry.p);
   for (const p of invited) p.invitedBaseline = true;
   return invited;
 }
@@ -661,8 +684,16 @@ function selectBaselineInvitations(people: Person[], rng: () => number): Person[
  * and deliberately different from the M1 model weights (different functional form
  * and coefficients) so that M1 is evaluated against an independent outcome.
  */
-function attendanceProbability(p: Person): number {
-  const level = p.invitedMediSense ? p.overallLevel ?? 'green' : 'green';
+function attendanceProbability(p: Person, scenario: BenchmarkScenario): number {
+  // The same attendance mechanism is used for BOTH arms. Applying the flag
+  // level only to the MediSense arm would create an artificial advantage
+  // unrelated to the targeting rule.
+  const level = p.overallLevel ?? 'green';
+  const equityPenalty =
+    scenario === 'equity_gap' &&
+    (p.nationalityGroup === 'South Asia' || p.nationalityGroup === 'Southeast Asia')
+      ? 0.65
+      : 0;
   return sigmoid(
     1.15 -
       0.65 * (p.accessTimeMinutes > 30 ? 1 : 0) -
@@ -670,7 +701,8 @@ function attendanceProbability(p: Person): number {
       0.4 * (p.languageNeedsSupport ? 1 : 0) +
       0.15 * (p.channel === 'WhatsApp' ? 1 : 0) +
       0.35 * (level === 'orange' || level === 'red' ? 1 : 0) -
-      0.1 * (level === 'yellow' ? 1 : 0)
+      0.1 * (level === 'yellow' ? 1 : 0) -
+      equityPenalty
   );
 }
 
@@ -686,7 +718,12 @@ function daysToVisit(level: string, rng: () => number, mediSenseArm: boolean): n
   return Math.round(clamp(Math.exp(gauss(Math.log(24), 0.45)), 3, 120));
 }
 
-function simulateOutcomes(invited: Person[], rng: () => number, mediSenseArm: boolean): ArmOutcome {
+function simulateOutcomes(
+  invited: Person[],
+  rng: () => number,
+  mediSenseArm: boolean,
+  scenario: BenchmarkScenario
+): ArmOutcome {
   const out: ArmOutcome = {
     invited: invited.length,
     confirmed: 0,
@@ -703,9 +740,11 @@ function simulateOutcomes(invited: Person[], rng: () => number, mediSenseArm: bo
     else out.adultInvited++;
 
     const refusal = rng() < refusalProbability(p);
-    const attend = !refusal && rng() < attendanceProbability(p);
+    const attend = !refusal && rng() < attendanceProbability(p, scenario);
     p.informedRefusal = refusal;
     p.attended = attend;
+    if (mediSenseArm) p.attendedMediSense = attend;
+    else p.attendedBaseline = attend;
 
     if (refusal) {
       out.informedRefusals++;
@@ -789,7 +828,7 @@ function aggregateSegments(people: Person[]) {
       if (p.recommended) agg.recommendedCount++;
       if (p.invitedMediSense) {
         agg.invitedCount++;
-        if (p.attended) agg.confirmedVisitsCount++;
+        if (p.attendedMediSense) agg.confirmedVisitsCount++;
       }
       // Confusion matrix vs hidden ground truth (grey never counted as green:
       // a grey person with a true unmet need is an honest false negative)
@@ -824,7 +863,7 @@ function aggregateSegments(people: Person[]) {
 // Community & equity alerts (C1, C3, C4) — computed, not asserted
 // ---------------------------------------------------------------------------
 
-function computeCommunityAlerts(
+export function computeCommunityAlerts(
   segments: ReturnType<typeof aggregateSegments>,
   people: Person[]
 ) {
@@ -863,15 +902,21 @@ function computeCommunityAlerts(
   }
 
   // C3 — adoption equity gap: >10 points below pooled average, non-overlapping CIs,
-  // comparable invitation rate
-  const totalInvited = segments.reduce((acc, s) => acc + s.invitedCount, 0);
-  const totalConfirmed = segments.reduce((acc, s) => acc + s.confirmedVisitsCount, 0);
+  // comparable invitation rate. Pooled figures are computed on PEOPLE, never by
+  // summing the same people across the five published dimensions.
+  const totalInvited = people.filter((p) => p.invitedMediSense).length;
+  const totalConfirmed = people.filter(
+    (p) => p.invitedMediSense && p.attendedMediSense
+  ).length;
   const overallAdoption = totalInvited > 0 ? (totalConfirmed / totalInvited) * 100 : 0;
   const overallInvitedRate = totalInvited / people.length;
 
   const overallAdoptionCi = computeWilson95(totalConfirmed, totalInvited);
   const natSegs = segments.filter(
-    (s) => s.dimension === 'Nationality Group' && s.invitedCount >= 30
+    (s) =>
+      s.dimension === 'Nationality Group' &&
+      s.totalEligible >= PRIVACY_THRESHOLDS.minCellSize &&
+      s.invitedCount >= 30
   );
   for (const seg of natSegs) {
     const adoptionCi = computeWilson95(seg.confirmedVisitsCount, seg.invitedCount);
@@ -890,16 +935,21 @@ function computeCommunityAlerts(
     }
   }
 
-  // C4 — false-negative governance alert: segment FN rate > pooled + 5 points, >= 5 events
-  const totalFn = segments.reduce((acc, s) => acc + s.falseNegatives, 0);
-  const totalTp = segments.reduce((acc, s) => acc + s.truePositives, 0);
+  // C4 — false-negative governance alert: segment FN rate > pooled + 5 points,
+  // at least 5 events, and a segment large enough to publish (n >= 10).
+  const totalFn = people.filter((p) => !p.recommended && p.truth.hasTrueNeed).length;
+  const totalTp = people.filter((p) => p.recommended && p.truth.hasTrueNeed).length;
   const overallFnRate = totalFn + totalTp > 0 ? (totalFn / (totalFn + totalTp)) * 100 : 0;
 
   for (const seg of segments.filter((s) => s.dimension === 'Nationality Group' || s.dimension === 'Region')) {
     const fnEvents = seg.falseNegatives;
-    if (fnEvents < 5) continue;
-    const fnRate = (fnEvents / (fnEvents + seg.truePositives)) * 100;
-    if (fnEvents >= 5 && fnRate > overallFnRate + 5) {
+    const fnDenominator = fnEvents + seg.truePositives;
+    // Never disclose a small-cell false-negative count through a governance alert.
+    if (seg.totalEligible < PRIVACY_THRESHOLDS.minCellSize) continue;
+    if (fnEvents < PRIVACY_THRESHOLDS.insufficientEventsThreshold) continue;
+    if (fnDenominator < PRIVACY_THRESHOLDS.insufficientEventsThreshold) continue;
+    const fnRate = (fnEvents / fnDenominator) * 100;
+    if (fnRate > overallFnRate + 5) {
       alerts.push({
         ruleId: 'C4',
         level: 'red',
@@ -1061,13 +1111,13 @@ function runBenchmarkForSeed(
 
   const invitedMediSense = people.filter((p) => p.invitedMediSense);
   const invitedBaseline = people.filter((p) => p.invitedBaseline);
-  const mediSense = simulateOutcomes(invitedMediSense, outcomeRng, true);
-  const baseline = simulateOutcomes(invitedBaseline, outcomeRng, false);
+  const mediSense = simulateOutcomes(invitedMediSense, outcomeRng, true, scenario);
+  const baseline = simulateOutcomes(invitedBaseline, outcomeRng, false, scenario);
 
   // M1 calibration: predicted no-show (M1) vs realized attendance, MediSense arm
   const m1Pairs = invitedMediSense.map((p) => ({
     predicted: p.mlNoShowProb ?? 0,
-    outcome: !p.attended, // invitation did not end in a confirmed visit
+    outcome: !p.attendedMediSense, // invitation did not end in a confirmed visit
   }));
   const m1Calibration = brierAndEce(m1Pairs);
 
@@ -1076,7 +1126,7 @@ function runBenchmarkForSeed(
     .filter((p) => p.overallLevel === 'orange' || p.overallLevel === 'yellow' || p.overallLevel === 'red')
     .map((p) => ({
       predicted: predictedConfirmationProb(p.overallLevel!, p.overallCertainty ?? 'medium'),
-      outcome: Boolean(p.attended && p.truth.hasTrueNeed),
+      outcome: Boolean(p.attendedMediSense && p.truth.hasTrueNeed),
     }));
   const engineCalibration = brierAndEce(enginePairs);
 
@@ -1303,7 +1353,7 @@ export function getObservatorySummary(
       groundTruth:
         'Hidden truth (untreated hypertension, glycemic state, missed visits, vaccine delays, anemia, M-CHAT, growth) is drawn from documented prevalence-like mechanisms with coefficients DIFFERENT from the engine thresholds (§8.4 anti-circularity).',
       attendanceModel:
-        'Non-attendance: logistic model on access time, prior missed visits, language support, channel and flag level. Coefficients deliberately different from M1 weights (H24/V20).',
+        'Non-attendance: the SAME logistic mechanism is used for both arms (access time, prior missed visits, language support, channel, flag level). No arm-specific boost is applied, so the comparison measures targeting, not an artificial attendance advantage. Coefficients deliberately different from M1 weights (H24/V20).',
       generatorIndependence:
         'Observation layer adds measurement noise (BP ±4.5 mmHg per reading, growth ±0.15 Z) and missing data (baseline ~10% MCAR) before the engine sees anything.',
       missingData: SCENARIO_NOTES[scenario],

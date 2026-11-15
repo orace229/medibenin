@@ -27,3 +27,15 @@
 8. **Cold start** — `npm run db:push` creates the schema; `.env.example` documents SQL host/port/credentials; README documents the mandatory `db:push` step and production start.
 9. **Parent portal** — `parent` is no longer collapsed to `patient`; the portal loads the first linked record from `/api/auth/me`; a parent demo preset and OTP scope checks were added.
 10. **Regression checks** — `npm test` (31 tests), `tsc --noEmit`, and `npm run check:ui` pass; `db:push` and the production server were exercised against a temporary PostgreSQL instance.
+
+## P1-A Remediation Applied (2026-11-15)
+
+1. **C3 fixed** — pooled adoption/invitation rates are computed on people, not by summing the same people across five dimensions. A dedicated `equity_gap` scenario exercises the C3 alert, and a unit test asserts it fires on a crafted 20%-vs-pooled gap.
+2. **C4 protected against small cells** — an alert now requires a segment of at least 10 people and at least 5 events; a unit test asserts a 7-person false-negative cluster is never disclosed.
+3. **Small samples excluded from pooled totals** — 10–29 segments remain visible in the table but no longer feed headline reach/adoption/closed-loop figures.
+4. **Wilson intervals on headline figures** — the observatory displays 95% intervals for reach, adoption and closed-loop completion using the shared `src/lib/wilson.ts`.
+5. **Secondary suppression hardened** — one complementary neighbor is suppressed for each primary cell, not only one per dimension.
+6. **Benchmark fairness** — both arms now use the same attendance mechanism (no MediSense-only level boost), both are invited at the same capacity K, and per-arm attendance outcomes are stored separately so overlapping invitations cannot contaminate the other arm.
+7. **Scenario selector** — the observatory can switch between baseline, MNAR missing, under-reporting, incomplete history and equity-gap scenarios.
+8. **Testable pathway policy** — consent and invitation rules moved to `src/server/pathwayPolicy.ts`, covered by 6 unit tests; safeguards have 4 new tests and benchmark equity has 3.
+9. **Tests** — `npm test` now runs 44 tests; all pass.

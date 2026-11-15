@@ -45,6 +45,7 @@ import {
 import { runAllAcceptanceTests } from './src/server/acceptanceSuite.ts';
 import { THRESHOLD_DOCUMENTS } from './src/server/thresholds.ts';
 import { resolvePathwayConflict, type PathwayState } from './src/server/syncConflicts.ts';
+import { evaluateInvitationPolicy, isPurposeAllowed } from './src/server/pathwayPolicy.ts';
 
 dotenv.config();
 
@@ -175,11 +176,6 @@ async function startServer() {
     const rows = await db.select().from(consents).where(eq(consents.patientId, patientId));
     return rows[0];
   };
-  const isPurposeAllowed = (
-    row: typeof consents.$inferSelect | undefined,
-    key: 'evaluationAndCalendar' | 'channelReminders' | 'shareWithFacility' | 'anonymousStatistics' | 'existingGenomicResult'
-  ) => (row ? row[key] !== false : true);
-
   // =========================================================================
   // 1. SYSTEM & GOVERNANCE VERIFICATION ENDPOINTS (Public for Phase 0 checks)
   // =========================================================================
@@ -1330,9 +1326,6 @@ async function startServer() {
       await ensureInit();
       const patientId = req.params.id;
       const { mode, language, customBodyText } = req.body; // mode: 'preview' | 'send'
-      if (mode !== 'preview' && mode !== 'send') {
-        return res.status(400).json({ error: 'mode must be "preview" or "send".' });
-      }
       const pRows = await db.select().from(patients).where(eq(patients.id, patientId));
       if (!pRows[0]) return res.status(404).json({ error: 'Patient not found' });
       const p = pRows[0];
@@ -1344,36 +1337,14 @@ async function startServer() {
       if (!rec) return res.status(404).json({ error: 'No care pathway found for this patient' });
 
       const consentRow = await getConsentRow(patientId);
-      if (!isPurposeAllowed(consentRow, 'channelReminders')) {
-        return res.status(403).json({
-          error:
-            'Reminder consent is required: the patient has withdrawn the reminders purpose. No message was generated or sent.',
-        });
-      }
-
-      // Sending is a closed-loop action: never for a Red (immediate clinical
-      // review) or a Grey (complete the missing data), never after a refusal,
-      // and only once the pathway has been human-validated.
-      if (mode === 'send') {
-        if (rec.level === 'red' || rec.level === 'grey') {
-          return res.status(403).json({
-            error:
-              rec.level === 'red'
-                ? 'A Red pathway cannot be invited: it requires same-day clinical review.'
-                : 'A Grey pathway cannot be invited: complete the missing data first.',
-          });
-        }
-        if (rec.state === 'refused') {
-          return res.status(403).json({
-            error:
-              'This invitation was refused by the person. Reminders are stopped; a new invitation requires an explicit patient decision.',
-          });
-        }
-        if (rec.state !== 'validated' && rec.state !== 'invited') {
-          return res.status(409).json({
-            error: `The pathway must be validated by a clinician before invitation (current state: ${rec.state}).`,
-          });
-        }
+      const policy = evaluateInvitationPolicy({
+        mode,
+        level: rec.level,
+        state: rec.state,
+        consent: consentRow,
+      });
+      if (!policy.allowed) {
+        return res.status(policy.status ?? 400).json({ error: policy.error });
       }
 
       const lang = (language || p.preferredLanguage || 'en') as 'en' | 'fr' | 'ar';

@@ -279,7 +279,7 @@ export const apiClient = {
       body: JSON.stringify(payload),
     }),
 
-  getObservatorySummary: (seed = 20261120) =>
-    apiFetch<any>(`/api/observatory/summary?seed=${seed}`),
+  getObservatorySummary: (seed = 20261120, scenario = 'baseline') =>
+    apiFetch<any>(`/api/observatory/summary?seed=${seed}&scenario=${encodeURIComponent(scenario)}`),
 };
 

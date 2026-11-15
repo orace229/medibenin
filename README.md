@@ -85,10 +85,22 @@ dossiers liés et aux membres de la famille affiliés). La santé publique n'a
 ## Tests et qualité
 
 ```bash
-npm test          # tests d'acceptation + règles + WHO 2019
+npm test          # 44 tests : acceptation, règles, WHO 2019, garde-fous, politique de consentement/invitation
 npm run lint      # tsc --noEmit
 npm run check:ui  # garde-fou de contenu UI interdit
 ```
+
+## Garde-fous d’équité (P1)
+
+- Les totaux de l’observatoire sont calculés sur une seule dimension et excluent
+  les segments de 10 à 29 (pas de conclusion comparative).
+- Chaque proportion publiée est accompagnée d’un intervalle de Wilson 95 %.
+- C3 (écart d’adoption) est recalculé sur les personnes, plus sur la somme des
+  dimensions ; il peut être exercé via le scénario `equity_gap`.
+- C4 (faux négatifs) ne publie jamais un petit effectif : `n >= 10` et au moins
+  5 événements sont requis.
+- La suppression secondaire protège une cellule voisine pour chaque cellule
+  primaire masquée.
 
 ## Ce que cette démonstration ne prouve pas
 

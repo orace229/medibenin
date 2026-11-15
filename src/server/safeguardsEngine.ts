@@ -13,31 +13,10 @@
  */
 
 import { PRIVACY_THRESHOLDS } from './thresholds.ts';
+import { computeWilson95, type WilsonInterval } from '../lib/wilson.ts';
 
-export interface WilsonInterval {
-  proportion: number; // 0 to 100
-  lower: number; // 0 to 100
-  upper: number; // 0 to 100
-}
-
-export function computeWilson95(successes: number, total: number): WilsonInterval {
-  if (total <= 0) {
-    return { proportion: 0, lower: 0, upper: 0 };
-  }
-  const z = PRIVACY_THRESHOLDS.wilsonZ;
-  const p = successes / total;
-  const z2 = z * z;
-  const denom = 1 + z2 / total;
-  const center = (p + z2 / (2 * total)) / denom;
-  const halfWidth =
-    (z * Math.sqrt((p * (1 - p)) / total + z2 / (4 * total * total))) / denom;
-
-  return {
-    proportion: Math.round(p * 1000) / 10,
-    lower: Math.max(0, Math.round((center - halfWidth) * 1000) / 10),
-    upper: Math.min(100, Math.round((center + halfWidth) * 1000) / 10),
-  };
-}
+export { computeWilson95 };
+export type { WilsonInterval };
 
 export interface SegmentSafeguardRow {
   segmentId: string;
@@ -101,18 +80,33 @@ export function buildSafeguardedSegmentTable(
   }
 
   for (const [, list] of byDimension.entries()) {
-    const hasPrimary = list.some((s) => primarySuppressedIds.has(s.segmentId));
-    if (hasPrimary) {
-      const candidates = list
-        .filter((s) => !primarySuppressedIds.has(s.segmentId))
-        .sort((a, b) => a.totalEligible - b.totalEligible);
-      if (candidates.length > 0) {
-        secondarySuppressedIds.add(candidates[0].segmentId);
+    const primaries = list.filter((s) => primarySuppressedIds.has(s.segmentId));
+    if (primaries.length === 0) continue;
+    // For every primary cell, suppress the smallest non-primary neighbor in
+    // the same dimension. With several primary cells, one neighbor each is
+    // needed to prevent reconstruction of the primary values.
+    const candidates = list
+      .filter((s) => !primarySuppressedIds.has(s.segmentId))
+      .sort((a, b) => a.totalEligible - b.totalEligible);
+    let candidateIndex = 0;
+    for (let i = 0; i < primaries.length; i++) {
+      while (
+        candidateIndex < candidates.length &&
+        secondarySuppressedIds.has(candidates[candidateIndex].segmentId)
+      ) {
+        candidateIndex++;
+      }
+      if (candidateIndex < candidates.length) {
+        secondarySuppressedIds.add(candidates[candidateIndex].segmentId);
+        candidateIndex++;
       }
     }
   }
 
   // 3. Build masked output rows
+  const wilson = (successes: number, total: number) =>
+    computeWilson95(successes, total, PRIVACY_THRESHOLDS.wilsonZ);
+
   return rawSegments.map((seg) => {
     if (primarySuppressedIds.has(seg.segmentId)) {
       return {
@@ -162,24 +156,24 @@ export function buildSafeguardedSegmentTable(
 
     const isSmallSample =
       seg.totalEligible >= PRIVACY_THRESHOLDS.smallSampleMinSize && seg.totalEligible <= PRIVACY_THRESHOLDS.smallSampleMaxSize;
-    const reachWilson = computeWilson95(seg.evaluatedComplete, seg.totalEligible);
-    const recommendationRateWilson = computeWilson95(seg.recommendedCount, seg.evaluatedComplete);
-    const adoptionRateWilson = computeWilson95(seg.confirmedVisitsCount, seg.invitedCount);
+    const reachWilson = wilson(seg.evaluatedComplete, seg.totalEligible);
+    const recommendationRateWilson = wilson(seg.recommendedCount, seg.evaluatedComplete);
+    const adoptionRateWilson = wilson(seg.confirmedVisitsCount, seg.invitedCount);
 
     // Anti-deception rule: < insufficientEventsThreshold events -> "Insufficient events"
     const fpDisplay =
       seg.falsePositives < PRIVACY_THRESHOLDS.insufficientEventsThreshold
         ? `Insufficient events (< ${PRIVACY_THRESHOLDS.insufficientEventsThreshold})`
-        : `${computeWilson95(seg.falsePositives, seg.falsePositives + seg.trueNegatives).proportion}% [${
-            computeWilson95(seg.falsePositives, seg.falsePositives + seg.trueNegatives).lower
-          }–${computeWilson95(seg.falsePositives, seg.falsePositives + seg.trueNegatives).upper}%]`;
+        : `${wilson(seg.falsePositives, seg.falsePositives + seg.trueNegatives).proportion}% [${
+            wilson(seg.falsePositives, seg.falsePositives + seg.trueNegatives).lower
+          }–${wilson(seg.falsePositives, seg.falsePositives + seg.trueNegatives).upper}%]`;
 
     const fnDisplay =
       seg.falseNegatives < PRIVACY_THRESHOLDS.insufficientEventsThreshold
         ? `Insufficient events (< ${PRIVACY_THRESHOLDS.insufficientEventsThreshold})`
-        : `${computeWilson95(seg.falseNegatives, seg.falseNegatives + seg.truePositives).proportion}% [${
-            computeWilson95(seg.falseNegatives, seg.falseNegatives + seg.truePositives).lower
-          }–${computeWilson95(seg.falseNegatives, seg.falseNegatives + seg.truePositives).upper}%]`;
+        : `${wilson(seg.falseNegatives, seg.falseNegatives + seg.truePositives).proportion}% [${
+            wilson(seg.falseNegatives, seg.falseNegatives + seg.truePositives).lower
+          }–${wilson(seg.falseNegatives, seg.falseNegatives + seg.truePositives).upper}%]`;
 
     const totalAcc = Math.max(1, seg.recommendedCount);
     const genShare = `${Math.round((seg.genomicAccCount / totalAcc) * 100)}%`;
