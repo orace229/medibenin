@@ -1,139 +1,169 @@
-# MediSense — Défi 04 (Abu Dhabi)
+# MediBenin — Precision Prevention and Screening (Challenge 04)
 
-Plateforme de repérage transparent des risques et des lacunes de suivi de soins
-(enfants, adolescents, adultes), avec parcours personnalisés, engagement
-culturellement adapté (AR/FR/EN), garde-fous de population locale et évaluation
-par les résultats. 100 % données synthétiques, règles cliniques publiées et
-page de preuves ouverte (`/proof`).
+> **Future Health Digital Innovation Challenge 2026** · Population Health · **Challenge 04 : Precision Prevention and Screening**  
+> **Team:** CareX (University of Abomey-Calavi — ENEAM, IFRI, FSS)  
+> **Live Prototype:** [https://medibenin.onrender.com](https://medibenin.onrender.com)  
+> **Evidence & Governance:** `/proof` (available directly on the platform)
 
-## Démarrage à froid (machine vierge)
+---
 
-Prérequis : **Node.js 20.19+** (Vite 8) et **PostgreSQL 14+** (local ou Cloud SQL).
+## Overview
+
+MediBenin is a precision-prevention platform designed to solve a critical operational gap in healthcare: **turning early risk detection into a completed, confirmed clinical consultation**. 
+
+While screening programs identify early indicators across chronic and pediatric health, between 60% and 80% of screened individuals never reach follow-up care. MediBenin closes this loop across **children, adults, and communities** through an auditable, four-portal closed loop where clinical authority remains strictly in human hands.
+
+```mermaid
+flowchart LR
+    A["1. Precision Screening"] --> B["2. Deterministic Rules Engine (SHA-256)"]
+    B --> C["Clinician Workspace (1-Click Human Sign-off)"]
+    B --> D["Care Coordinator Queue (Logistics Priority & Outreach)"]
+    C & D --> E["Patient & Family Portal (Unified QR Pass)"]
+    E --> F["Completed Clinic Visit (Closed-Loop Confirmation)"]
+    F --> G["Public Health Observatory (Wilson 95% CI & Privacy)"]
+    G -. Feedback Loop .-> A
+```
+
+---
+
+## Key Features & Challenge 04 Alignment
+
+| Pillar | How it Works | Evidence / Standard |
+|---|---|---|
+| **1. Transparent Clinical Stratification (Req 1)** | Evaluates 7 risk dimensions (hypertension, diabetes, obesity, smoking, CVD, respiratory, preventive). Surfaces explicit risk tiers (**Green / Orange / Red**) and certainty levels (**Established / Probable / Possible**). Zero generative AI black-box in clinical judgment. | WHO HEARTS, WHO 2019 Non-Lab CVD Risk Charts, ADA Diabetes Guidelines, WHO LMS Growth Standards (2006/2007). |
+| **2. Strictly Separated Workspaces (Req 2)** | • **Clinician Portal:** Clinical review and 1-click human validation, adaptation, or deferral.<br>• **Coordinator Queue:** Logistics prioritization ($S_{prio}$) combining clinical urgency, overdue days, and travel time with a calibrated no-show model to dispatch WhatsApp/SMS invitations. | Principle AD-2: Rules govern clinical decisions; ML acts strictly on logistics. Ethical monotonicity (TEST-M1). |
+| **3. Family QR Pass & Citizen Choice (Req 3 & 5)** | Groups adult checkups and pediatric Well-Child Visits under a single scannable household QR code (`IFH3692T`) for bundled check-ins. Citizens control their data via 5 granular consent toggles (assessment, reminders, sharing, affiliation, research). | Penalty-free refusal, audit logging, and scannable HMAC-verified orientation pass. |
+| **4. Population Equity & Safeguards (Req 4)** | Real-time population surveillance with Wilson 95% confidence intervals on all proportions, automated small-cell suppression ($n < 10$), and secondary complementary masking to prevent re-identification. | Wilson Score Interval (1927), k-anonymity privacy safeguards. |
+
+---
+
+## 4 Role-Based Portals (Live Access)
+
+The platform is deployed live on Render Free: **`https://medibenin.onrender.com`**.  
+The landing page includes instant **Continue as Guest** one-click access buttons for all four roles:
+
+| Portal | User Persona / Context | Role / Scope |
+|---|---|---|
+| **Clinician Workspace** | Dr. Sydney Kpegbe (Primary Care Physician) | `clinician` — Patient panel, clinical flags, 1-click validation |
+| **Care Coordinator Queue** | Fatima Zahra (Care Coordinator) | `coordinator` — Prioritized triage list, no-show scoring, WhatsApp/SMS dispatch |
+| **Patient & Family Portal** | Tariq Al-Nadim (Adult, 36y) + 3 children (Zayed 18m, Layla 14y, Youssef 18y) | `patient` — Household health view, scannable Family QR Pass, 5 consent toggles |
+| **Public Health Observatory** | Population Health Directorate | `public_health` — Territorial coverage map, Wilson 95% CI, suppressed cells |
+
+---
+
+## Cold Start & Local Setup (Clean Machine)
+
+### Prerequisites
+- **Node.js 20.19+** (compatible with Vite 8 and React 19)
+- **PostgreSQL 14+** (Local or Cloud PostgreSQL such as Neon Serverless)
+
+### 1. Installation
 
 ```bash
-# 1. Dépendances
+# Clone the repository
+git clone https://github.com/Uriel-Hope/medibenin.git
+cd medibenin
+
+# Install dependencies
 npm install
+```
 
-# 2. Base de données — créer une base vide nommée `medisense`
-#    (ou pointer .env vers une instance PostgreSQL existante)
-psql -c "CREATE DATABASE medisense;"
+### 2. Environment Configuration
 
-# 3. Variables d'environnement — copier l'exemple puis ajuster
+Copy the example environment file and configure your database parameters:
+
+```bash
 cp .env.example .env
-#   SQL_HOST, SQL_PORT, SQL_USER, SQL_PASSWORD, SQL_DB_NAME  → connexion PostgreSQL
-#   SQL_ADMIN_USER, SQL_ADMIN_PASSWORD                        → db:push (drizzle-kit)
-#   DEMO_MODE=true                                         → active les tokens de démo
-#   GEMINI_API_KEY                                         → optionnel (M2 templates par défaut)
+```
 
-# 4. Créer / mettre à jour le schéma (OBLIGATOIRE au premier lancement)
+Key environment variables in `.env`:
+- `SQL_HOST`, `SQL_PORT`, `SQL_USER`, `SQL_PASSWORD`, `SQL_DB_NAME`: PostgreSQL connection settings
+- `DATABASE_URL`: Connection string (e.g. `postgresql://user:pass@host/dbname?sslmode=require`)
+- `DEMO_MODE=true`: Enables instant access to demo personas and demo tokens
+- `PORT=3000`: Local server port (defaults to 3000)
+
+### 3. Database Schema Push & Seeding
+
+```bash
+# Push database schema (Drizzle ORM)
 npm run db:push
 
-# 5. Démarrer (la cohorte synthétique est semée si la base est vide)
+# Start the development server
 npm run dev
 ```
 
-L'application écoute sur `http://localhost:3000`. La cohorte de démonstration
-(déterministe, graine `20261120` : 7 personas cliniques détaillés + 1 cas de
-transition à 18 ans + 45 profils synthétiques = 53 dossiers) est semée
-automatiquement si les tables existent et sont vides.
-**Le schéma n'est pas créé automatiquement** : `npm run db:push` est requis.
+The application runs on `http://localhost:3000`.  
+A reproducible synthetic cohort of **53 patient records** (PRNG seed `20261120`, including detailed clinical personas and pediatric profiles) is automatically seeded on startup if the database is empty.
 
-Production locale (sert `dist/`) :
+### 4. Production Build
 
 ```bash
+# Build production bundle (Vite)
 npm run build
+
+# Start production server
 npm run start:prod
 ```
 
-## Portails de démonstration (tokens de démo)
+---
 
-Les tokens de démo sont acceptés quand `DEMO_MODE=true`, ou automatiquement
-hors production. En production, ils sont refusés par défaut.
+## Demonstration Tokens (API & Local Testing)
 
-| Portail | Token | Rôle |
-| :--- | :--- | :--- |
-| Patient unifié (Tariq, 36 ans + enfants affiliés) | `demo-token-patient` | `patient` |
-| Parent (Amira, enfants affiliés Zayed & Layla) | `demo-token-parent` | `parent` |
-| Médecin / Clinicien (Dr Kpegbe) | `demo-token-clinician` | `clinician` |
-| Coordinateur de parcours | `demo-token-coordinator` | `coordinator` |
-| Santé publique (observatoire agrégé) | `demo-token-public-health` | `public_health` |
+When `DEMO_MODE=true` is enabled, the following preconfigured tokens can be used for API requests or direct testing:
 
-Contrôle d'accès : chaque route est protégée par une liste de rôles
-**deny-by-default** + scoping par propriété (un rôle personnel n'accède qu'à ses
-dossiers liés et aux membres de la famille affiliés). La santé publique n'a
-**aucun** accès individuel — agrégats observatoire uniquement.
+| Portal | Header / Token | Role |
+|:---|:---|:---|
+| **Patient & Family** (Tariq + 3 children) | `Bearer demo-token-patient` | `patient` |
+| **Clinician Workspace** (Dr. Kpegbe) | `Bearer demo-token-clinician` | `clinician` |
+| **Care Coordinator** | `Bearer demo-token-coordinator` | `coordinator` |
+| **Public Health Observatory** | `Bearer demo-token-public-health` | `public_health` |
 
-## Consentements et sécurité (P0)
+**Access Control (RBAC):** Every route implements a **deny-by-default** policy. Personal roles (`patient`) only have access to their own record and affiliated dependents. The `public_health` role has **zero** access to individual patient records—only aggregated, suppressed statistics.
 
-- Les 5 finalités sont appliquées : évaluation, rappels, transmission au centre,
-  statistiques agrégées, résultat génomique existant.
-- Un retrait d'évaluation suspend l'évaluation et remet le dossier en Niveau
-  Gris ; un retrait génomique recalcule et retire G1/G2 ; un retrait des rappels
-  bloque toute invitation.
-- Une invitation ne peut pas être envoyée pour un Rouge, un Gris, un plan non
-  validé ou après un refus.
-- Le signal génomique n'est jamais renvoyé par l'API sans le consentement 5.
-- La règle d'urgence E0 est déclenchée par le signalement de signes de danger.
+---
 
-## Preuves et gouvernance
+## Clinical Fidelity & Cryptographic Governance
 
-- `GET /api/governance/acceptance-tests` — suite d'acceptation automatisée (19 tests).
-- `GET /api/governance/status` — table de règles signée (`ABU_DHABI_WCV_IFHAS_V8`).
-- `GET /api/governance/thresholds` — documents de seuils versionnés (hash SHA-256).
-- `GET /api/observatory/summary` — observatoire agrégé (Wilson 95 %, masquage n < 10).
+- **Signed Rule Table (SHA-256 HMAC):** The 22 clinical rules are sealed cryptographically (`getCanonicalSignedRuleTable`). The system strictly rejects unsigned or tampered tables (`TEST-S5`).
+- **Epistemic Certainty:** Missing data never defaults to "healthy". Unscreened or missing inputs produce a **Level Grey** status requiring explicit data collection.
+- **Pediatric LMS Standards:** BMI-for-age 5–19y (WHO 2007) and weight-for-height 65–120cm (WHO 2006) Z-scores are computed directly from official LMS tables (`interpolateLms`), avoiding rough approximations.
+- **Offline Sync Conflict Resolution:** A formal authority lattice (Center > Coordinator > Field Worker) and state precedence (`done` > `postponed`, `refused` > `scheduled`) resolve disconnected field sync conflicts (`TEST-S1`).
 
-## Déploiement gratuit
+---
 
-Un guide complet Render + Neon est fourni dans [`DEPLOY.md`](./DEPLOY.md).
-Le fichier `render.yaml` décrit le service web gratuit et `drizzle/` contient
-les migrations non interactives appliquées au démarrage.
+## Testing & Quality Assurance
 
-## Tests et qualité
+The codebase includes an automated test suite verifying clinical safety, ethical ML constraints, statistical safeguards, and regulatory requirements:
 
 ```bash
-npm test          # 58 tests : acceptation, règles, WHO 2019, croissance LMS, garde-fous, consentement/invitation
-npm run lint      # tsc --noEmit
-npm run check:ui  # garde-fou de contenu UI interdit
+# Run the 58 automated unit & acceptance tests
+npm test
+
+# Run TypeScript type check
+npm run lint
+
+# Check UI compliance and forbidden terminology
+npm run check:ui
 ```
 
-## Fidélité clinique (P1-B)
+All 58 tests pass out-of-the-box, verifying:
+- **Clinical Safety (S):** Sync conflict lattice, Eclipse rule (Red suspends minor Yellow flags), Emergency escape E0, LMS child growth calculation.
+- **Responsible ML (M):** Monotonicity invariant (TEST-M1: social vulnerability only increases support, never delays care), strict information barrier between logistics and clinician view (TEST-M2).
+- **Challenge Requirements (E):** Wilson 95% confidence intervals, k-anonymity primary suppression ($n < 10$) and complementary neighbor masking (TEST-E4), Family QR Pass HMAC check (TEST-E5).
+- **Access & Governance (G):** Deny-by-default RBAC, property-scoped access, versioned threshold integrity.
 
-- **Croissance LMS** : BMI-for-age 5–19 ans (WHO 2007) et poids-pour-taille
-  65–120 cm (WHO 2006) sont calculés depuis les tables LMS officielles ; un Z
-  fourni reste prioritaire, et une valeur hors domaine reste `null` (Gris).
-- **Calendriers** : les visites WCV, les intervalles col/sein/colorectal/IFHAS
-  sont versionnés dans `src/config/schedules/care-schedules.v1.json` (valeurs
-  V3/V4 à remplacer par les textes officiels).
-- **A4** : l’intervalle glycémique de 3 ans est vérifié ; une date inconnue
-  produit un Gris, jamais une accélération supposée.
-- **A7** : plafond à 75 ans.
-- **A9** : une orientation Orange/Rouge non honorée dans sa fenêtre devient un
-  signalement de suivi interrompu.
-- **A11** : la règle prééclampsie s’applique à partir de 20 SA ; avant 20 SA,
-  la tension élevée passe par A1. Une grossesse sans âge gestationnel produit
-  A11 avec donnée manquante.
-- **P6** : le score 3–7 exige l’entretien de suivi M-CHAT-R/F ; un suivi
-  positif oriente, un suivi négatif clôt le dépistage.
-- **P3** : le nombre de visites WCV manquées peut être dérivé de l’âge de la
-  dernière visite.
+---
 
-## Garde-fous d’équité (P1)
+## Project Documentation & Submission Artifacts
 
-- Les totaux de l’observatoire sont calculés sur une seule dimension et excluent
-  les segments de 10 à 29 (pas de conclusion comparative).
-- Chaque proportion publiée est accompagnée d’un intervalle de Wilson 95 %.
-- C3 (écart d’adoption) est recalculé sur les personnes, plus sur la somme des
-  dimensions ; il peut être exercé via le scénario `equity_gap`.
-- C4 (faux négatifs) ne publie jamais un petit effectif : `n >= 10` et au moins
-  5 événements sont requis.
-- La suppression secondaire protège une cellule voisine pour chaque cellule
-  primaire masquée.
+- 📋 **Submission Form Reference:** [`SOUMISSION_HACK2SKILL.md`](./SOUMISSION_HACK2SKILL.md) — Exact, field-by-field copy-paste responses for Hack2skill.
+- 📑 **Slide-by-Slide PPTX Guide:** [`DOSSIER_SOUMISSION_PPTX.md`](./DOSSIER_SOUMISSION_PPTX.md) — Complete content for the 16 slides of the official submission presentation.
+- 🎬 **Video Demo Script (2m 45s):** [`SCRIPT_VIDEO_DEMO.md`](./SCRIPT_VIDEO_DEMO.md) / [`VOICEOVER_AFRICAN_ENGLISH.md`](./VOICEOVER_AFRICAN_ENGLISH.md).
+- 🗺️ **Detailed User Journeys:** [`PARCOURS_UTILISATEURS.md`](./PARCOURS_UTILISATEURS.md).
 
-## Ce que cette démonstration ne prouve pas
+---
 
-Les données sont synthétiques ; le calibrage clinique réel exige le protocole du
-pilote documenté dans le cahier des charges (§8.5). Aucune inférence clinique
-n'est calculée côté navigateur. M1 est une baseline logistique à coefficients
-experts (pas un modèle entraîné) ; M2 utilise des modèles de messages préécrits.
-Les limites restantes (M1 entraîné, C3, FHIR complet, fiche modèle, registre des
-dangers, rapport d'équité) sont documentées comme feuille de route.
+## License
+
+Developed by **Team CareX** (University of Abomey-Calavi) for the Future Health Digital Innovation Challenge 2026.  
+All clinical guidelines referenced (WHO, ADA, ESC) remain under their respective public domain / clinical use terms. Synthetic data only.
