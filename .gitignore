@@ -1,12 +1,49 @@
+# Dependencies & build
 node_modules/
 build/
 dist/
 coverage/
-.DS_Store
-*.log
+.cache/
+
+# Environment and secrets
 .env*
 !.env.example
 
-# Local agent tooling (skills, agent config)
+# OS and IDE artifacts
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Presentations, exports, media (local work)
+*.pptx
+*.ppt
+*.pdf
+*.mp4
+*.mov
+*.avi
+*.webm
+*.zip
+
+# Redundant lockfiles & test scratch files
+bun.lock
+hello.ts
+
+# Migration & temporary scripts
+scripts/patch-*.mjs
+scripts/to-utf8.mjs
+scripts/fix-encoding.*
+scripts/remove-arabic.mjs
+
+# Internal work & submission markdown (only README.md is tracked)
+*.md
+!README.md
+
+# Local agent tooling
 .agents/
 .neon

@@ -154,15 +154,6 @@ All 58 tests pass out-of-the-box, verifying:
 
 ---
 
-## Project Documentation & Submission Artifacts
-
-- 📋 **Submission Form Reference:** [`SOUMISSION_HACK2SKILL.md`](./SOUMISSION_HACK2SKILL.md) — Exact, field-by-field copy-paste responses for Hack2skill.
-- 📑 **Slide-by-Slide PPTX Guide:** [`DOSSIER_SOUMISSION_PPTX.md`](./DOSSIER_SOUMISSION_PPTX.md) — Complete content for the 16 slides of the official submission presentation.
-- 🎬 **Video Demo Script (2m 45s):** [`SCRIPT_VIDEO_DEMO.md`](./SCRIPT_VIDEO_DEMO.md) / [`VOICEOVER_AFRICAN_ENGLISH.md`](./VOICEOVER_AFRICAN_ENGLISH.md).
-- 🗺️ **Detailed User Journeys:** [`PARCOURS_UTILISATEURS.md`](./PARCOURS_UTILISATEURS.md).
-
----
-
 ## License
 
 Developed by **Team CareX** (University of Abomey-Calavi) for the Future Health Digital Innovation Challenge 2026.  
