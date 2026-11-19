@@ -16,6 +16,15 @@ import {
   Lock,
   Smartphone,
   UserCheck,
+  ClipboardList,
+  BellRing,
+  AlertTriangle,
+  Activity,
+  HeartPulse,
+  RefreshCw,
+  Send,
+  CalendarClock,
+  Play,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -36,6 +45,8 @@ import {
   PassQrCard,
   ConsentToggle,
   GlassCard,
+  LevelBadge,
+  StatCard,
 } from './MediBeninUI.tsx';
 import { ConsentState } from '../lib/types.ts';
 
@@ -228,6 +239,66 @@ const BpGauge: React.FC<{
   );
 };
 
+type SelfFormState = {
+  systolicBp1: string;
+  diastolicBp1: string;
+  systolicBp2: string;
+  diastolicBp2: string;
+  weightKg: string;
+  heightCm: string;
+  waistCm: string;
+  dailyPhysicalActivity: boolean | null;
+  dailyFruitsVeg: boolean | null;
+  smokingStatus: boolean | null;
+  antihypertensiveMedHistory: boolean | null;
+  highBloodGlucoseHistory: boolean | null;
+  familyHistoryDiabetesLevel: string;
+  familyPrematureCvd: boolean;
+  isPregnant: boolean;
+  mchatScore: string;
+  redFlagWarningSymptom: boolean;
+};
+
+const EMPTY_SELF_FORM: SelfFormState = {
+  systolicBp1: '',
+  diastolicBp1: '',
+  systolicBp2: '',
+  diastolicBp2: '',
+  weightKg: '',
+  heightCm: '',
+  waistCm: '',
+  dailyPhysicalActivity: null,
+  dailyFruitsVeg: null,
+  smokingStatus: null,
+  antihypertensiveMedHistory: null,
+  highBloodGlucoseHistory: null,
+  familyHistoryDiabetesLevel: '',
+  familyPrematureCvd: false,
+  isPregnant: false,
+  mchatScore: '',
+  redFlagWarningSymptom: false,
+};
+
+const DEMO_SELF_FORM: SelfFormState = {
+  systolicBp1: '128',
+  diastolicBp1: '82',
+  systolicBp2: '126',
+  diastolicBp2: '80',
+  weightKg: '78',
+  heightCm: '175',
+  waistCm: '94',
+  dailyPhysicalActivity: true,
+  dailyFruitsVeg: false,
+  smokingStatus: false,
+  antihypertensiveMedHistory: false,
+  highBloodGlucoseHistory: false,
+  familyHistoryDiabetesLevel: 'second_degree',
+  familyPrematureCvd: false,
+  isPregnant: false,
+  mchatScore: '',
+  redFlagWarningSymptom: false,
+};
+
 interface PatientPortalProps {
   role: 'patient' | 'parent';
   onLogout: () => void;
@@ -244,7 +315,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [activePatientId, setActivePatientId] = useState<string>('');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<
-    'home' | 'checkup' | 'journey' | 'notifications' | 'profile' | 'privacy'
+    | 'home'
+    | 'checkup'
+    | 'plan'
+    | 'reminders'
+    | 'journey'
+    | 'notifications'
+    | 'profile'
+    | 'privacy'
   >('home');
 
   const [data, setData] = useState<any>(null);
@@ -257,6 +335,15 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [isAnalyzingRisk, setIsAnalyzingRisk] = useState(false);
   const [riskAnalysisError, setRiskAnalysisError] = useState<string | null>(null);
   const [showFamilyInfo, setShowFamilyInfo] = useState(false);
+
+  // Personalized screening planner & smart reminder assistant state.
+  const [screeningPlan, setScreeningPlan] = useState<any>(null);
+  const [reminderPlan, setReminderPlan] = useState<any>(null);
+  const [planLoading, setPlanLoading] = useState(false);
+  const [reminderBusy, setReminderBusy] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('2026-12-04');
+  const [manualMode, setManualMode] = useState(false);
+  const [lastAssessment, setLastAssessment] = useState<any>(null);
 
   // SMS OTP Gate for accessing affiliated children (<18y or attached 18y)
   const [verifiedChildIds, setVerifiedChildIds] = useState<string[]>([]);
@@ -272,45 +359,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   // Guided Self-Assessment & Home Vitals Form.
-  // Prevention answers start as UNKNOWN (null / empty) rather than "healthy":
-  // an unanswered FINDRISC item must never add zero points by default.
-  const [selfForm, setSelfForm] = useState<{
-    systolicBp1: string;
-    diastolicBp1: string;
-    systolicBp2: string;
-    diastolicBp2: string;
-    weightKg: string;
-    heightCm: string;
-    waistCm: string;
-    dailyPhysicalActivity: boolean | null;
-    dailyFruitsVeg: boolean | null;
-    smokingStatus: boolean | null;
-    antihypertensiveMedHistory: boolean | null;
-    highBloodGlucoseHistory: boolean | null;
-    familyHistoryDiabetesLevel: string;
-    familyPrematureCvd: boolean;
-    isPregnant: boolean;
-    mchatScore: string;
-    redFlagWarningSymptom: boolean;
-  }>({
-    systolicBp1: '128',
-    diastolicBp1: '82',
-    systolicBp2: '126',
-    diastolicBp2: '80',
-    weightKg: '78',
-    heightCm: '175',
-    waistCm: '',
-    dailyPhysicalActivity: null,
-    dailyFruitsVeg: null,
-    smokingStatus: null,
-    antihypertensiveMedHistory: null,
-    highBloodGlucoseHistory: null,
-    familyHistoryDiabetesLevel: '',
-    familyPrematureCvd: false,
-    isPregnant: false,
-    mchatScore: '',
-    redFlagWarningSymptom: false,
-  });
+  // The form starts EMPTY: an evaluator must be able to enter their own values
+  // and obtain a dynamic risk calculation instead of editing preloaded demo data.
+  const [selfForm, setSelfForm] = useState<SelfFormState>(EMPTY_SELF_FORM);
 
   const loadProfile = async (pid: string) => {
     try {
@@ -359,6 +410,35 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       setLoading(false);
     }
   };
+
+  const loadPlan = async (pid: string) => {
+    try {
+      setPlanLoading(true);
+      const res = await apiClient.getScreeningPlan(pid, locale);
+      setScreeningPlan(res.plan);
+    } catch (err) {
+      console.error('Error loading screening plan:', err);
+      setScreeningPlan(null);
+    } finally {
+      setPlanLoading(false);
+    }
+  };
+
+  const loadReminders = async (pid: string) => {
+    try {
+      const res = await apiClient.getReminderPlan(pid, locale);
+      setReminderPlan(res.plan);
+    } catch (err) {
+      console.error('Error loading reminder plan:', err);
+      setReminderPlan(null);
+    }
+  };
+
+  useEffect(() => {
+    if (!activePatientId) return;
+    void loadPlan(activePatientId);
+    void loadReminders(activePatientId);
+  }, [activePatientId, locale]);
 
   useEffect(() => {
     let active = true;
@@ -495,13 +575,15 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     setIsAnalyzingRisk(true);
     setRiskAnalysisError(null);
     try {
-      await apiClient.submitSelfAssessment(activePatientId, selfForm);
+      const res = await apiClient.submitSelfAssessment(activePatientId, selfForm);
+      setLastAssessment(res);
       await loadProfile(activePatientId);
-      setActiveTab('home');
+      await Promise.all([loadPlan(activePatientId), loadReminders(activePatientId)]);
+      setActiveTab('checkup');
       setFeedbackBanner(
         isFr
-          ? 'Merci. Vos mesures ont bien été envoyées — votre équipe de soin va les examiner.'
-          : 'Thank you. Your care team will review it.'
+          ? 'Mesures enregistrées. Votre niveau de risque et votre plan de dépistage ont été recalculés.'
+          : 'Measurements saved. Your risk level and screening plan were recalculated.'
       );
     } catch (err: any) {
       setRiskAnalysisError(
@@ -512,6 +594,61 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       );
     } finally {
       setIsAnalyzingRisk(false);
+    }
+  };
+
+  const handleScheduleScreening = async (date?: string) => {
+    const targetDate = date || scheduleDate;
+    try {
+      setReminderBusy(true);
+      await apiClient.scheduleScreening(activePatientId, targetDate);
+      setScheduleDate(targetDate);
+      setFeedbackBanner(
+        isFr
+          ? `Visite planifiée le ${targetDate}. Votre assistant de rappel est prêt.`
+          : `Visit scheduled for ${targetDate}. Your reminder assistant is ready.`
+      );
+      await Promise.all([loadProfile(activePatientId), loadReminders(activePatientId), loadPlan(activePatientId)]);
+      setActiveTab('reminders');
+    } catch (err: any) {
+      setFeedbackBanner(err?.message || 'Unable to schedule this visit.');
+    } finally {
+      setReminderBusy(false);
+    }
+  };
+
+  const handleSendReminder = async (kind: 'upcoming' | 'missed') => {
+    try {
+      setReminderBusy(true);
+      await apiClient.sendSmartReminder(activePatientId, kind);
+      setFeedbackBanner(
+        isFr
+          ? 'Rappel envoyé via votre canal préféré (message validé, sans diagnostic).'
+          : 'Reminder sent through your preferred channel (safety-checked, no diagnosis).'
+      );
+      await Promise.all([loadReminders(activePatientId), loadProfile(activePatientId)]);
+    } catch (err: any) {
+      setFeedbackBanner(err?.message || 'Unable to send the reminder.');
+    } finally {
+      setReminderBusy(false);
+    }
+  };
+
+  const handleEnableReminders = async () => {
+    try {
+      const nextConsents = {
+        ...(data?.consents || {}),
+        channelReminders: true,
+      };
+      await apiClient.updateConsents(activePatientId, nextConsents as ConsentState);
+      setFeedbackBanner(
+        isFr
+          ? 'Consentement aux rappels activé. Votre assistant peut maintenant préparer les messages.'
+          : 'Reminder consent enabled. Your assistant can now prepare messages.'
+      );
+      await Promise.all([loadProfile(activePatientId), loadReminders(activePatientId)]);
+    } catch (err: any) {
+      setFeedbackBanner(err?.message || 'Unable to enable reminders.');
     }
   };
 
@@ -570,6 +707,49 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     anonymousStatistics: true,
     existingGenomicResult: false,
   };
+  const profileFlags: any[] = data?.flags || [];
+  const calculations = data?.profile?.calculations;
+  const activePlan = screeningPlan || data?.screeningPlan || null;
+  const activeReminders = reminderPlan || data?.reminderPlan || null;
+  const planItems: any[] = activePlan?.items || [];
+  const todayDate = new Date().toISOString().slice(0, 10);
+  const riskMetrics = [
+    {
+      label: isFr ? 'Risque cardiovasculaire' : 'Cardiovascular risk',
+      value:
+        calculations?.whoCvdModel?.riskPercent !== null &&
+        calculations?.whoCvdModel?.riskPercent !== undefined
+          ? `${calculations.whoCvdModel.riskPercent}%`
+          : '—',
+      hint: isFr ? 'Estimation à 10 ans' : '10-year estimate',
+      Icon: Activity,
+    },
+    {
+      label: isFr ? 'Tension retenue' : 'Retained blood pressure',
+      value:
+        calculations?.bpProtocol?.retainedSys && calculations?.bpProtocol?.retainedDia
+          ? `${calculations.bpProtocol.retainedSys}/${calculations.bpProtocol.retainedDia}`
+          : '—',
+      hint: calculations?.bpProtocol?.bpZoneLabel || (isFr ? 'À mesurer' : 'To measure'),
+      Icon: HeartPulse,
+    },
+    {
+      label: isFr ? 'Indice de masse corporelle' : 'BMI',
+      value: calculations?.anthropometry?.bmi ?? '—',
+      hint: isFr ? 'Poids / taille²' : 'Weight / height²',
+      Icon: Activity,
+    },
+    {
+      label: isFr ? 'Score FINDRISC' : 'FINDRISC score',
+      value:
+        calculations?.findriscModel?.score !== null &&
+        calculations?.findriscModel?.score !== undefined
+          ? calculations.findriscModel.score
+          : '—',
+      hint: calculations?.findriscModel?.levelLabel || (isFr ? 'Questionnaire à compléter' : 'Questionnaire to complete'),
+      Icon: ClipboardList,
+    },
+  ];
 
   return (
     <div className="min-h-screen ambient-mesh text-[#334155] flex flex-col pb-20 lg:pb-0">
@@ -891,6 +1071,16 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 label: isFr ? 'Mon Bilan & Mesures' : 'My Health Check',
                 Icon: CheckCircle2,
               },
+              {
+                id: 'plan',
+                label: isFr ? 'Plan de dépistage' : 'Screening Plan',
+                Icon: ClipboardList,
+              },
+              {
+                id: 'reminders',
+                label: isFr ? 'Assistant rappels' : 'Reminder Assistant',
+                Icon: BellRing,
+              },
               { id: 'journey', label: isFr ? 'Mon parcours' : 'Care Journey', Icon: Calendar },
               { id: 'notifications', label: isFr ? 'Messages' : 'Messages', Icon: Bell },
               { id: 'profile', label: isFr ? 'Préférences' : 'Preferences', Icon: User },
@@ -1073,6 +1263,117 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               {/* TAB 1: HOME */}
               {activeTab === 'home' && (
                 <div className="space-y-6">
+                  {/* Health risk alerts & live calculation summary */}
+                  <GlassCard interactive={false} className="space-y-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
+                          {isFr ? 'Alertes santé & calcul dynamique' : 'Health alerts & live calculation'}
+                        </span>
+                        <h2 className="text-lg font-bold text-[#0B3B3C] font-heading">
+                          {isFr ? 'Votre niveau de risque actuel' : 'Your current risk level'}
+                        </h2>
+                        <p className="text-xs text-[#64748B]">
+                          {profile.primaryReasonSummary}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <LevelBadge level={profile.overallLevel} />
+                        <span className="text-[10px] font-semibold text-[#64748B] uppercase">
+                          {isFr ? 'Certitude' : 'Certainty'}: {profile.overallCertainty}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+                      {riskMetrics.map((metric) => {
+                        const IconComp = metric.Icon;
+                        return (
+                          <div key={metric.label} className="card-3d rounded-2xl p-3 space-y-0.5">
+                            <span className="flex items-center gap-1.5 text-[10px] font-semibold text-[#64748B]">
+                              <IconComp className="w-3.5 h-3.5 text-[#0F6B6B]" />
+                              {metric.label}
+                            </span>
+                            <p className="text-base font-extrabold text-[#0B3B3C] font-heading">
+                              {String(metric.value)}
+                            </p>
+                            <p className="text-[10px] text-[#64748B]">{metric.hint}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {profileFlags.filter((f) => f.level !== 'green').length > 0 ? (
+                      <div className="space-y-2">
+                        <p className="text-xs font-bold text-[#0B3B3C]">
+                          {isFr ? 'Points d’attention actifs' : 'Active attention points'}
+                        </p>
+                        {profileFlags
+                          .filter((f) => f.level !== 'green')
+                          .slice(0, 4)
+                          .map((flag) => (
+                            <div
+                              key={flag.id}
+                              className={`rounded-2xl border p-3 space-y-1 ${
+                                flag.level === 'red'
+                                  ? 'bg-red-50 border-red-200'
+                                  : flag.level === 'orange'
+                                  ? 'bg-orange-50 border-orange-200'
+                                  : flag.level === 'grey'
+                                  ? 'bg-slate-50 border-slate-200'
+                                  : 'bg-amber-50 border-amber-200'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="text-xs font-bold text-[#0B3B3C]">{flag.title}</p>
+                                <LevelBadge level={flag.level as any} size="sm" />
+                              </div>
+                              <p className="text-[11px] text-[#334155]">
+                                {(flag.factors || [])[0]}
+                              </p>
+                              <p className="text-[10px] text-[#64748B]">
+                                {flag.sourceLabel} · {flag.dueDate} ·{' '}
+                                {isFr ? 'Certitude' : 'Certainty'}: {flag.certainty}
+                              </p>
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-[#334155] bg-[#F0FDF4] border border-emerald-200 rounded-2xl px-3.5 py-3">
+                        {isFr
+                          ? 'Aucune alerte active. Continuez votre suivi préventif habituel.'
+                          : 'No active alert. Continue your usual preventive follow-up.'}
+                      </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('checkup')}
+                        className="px-3.5 py-2 rounded-xl btn-liquid-primary text-xs font-bold inline-flex items-center gap-1.5"
+                      >
+                        <Activity className="w-4 h-4" />
+                        <span>{isFr ? 'Mettre à jour mes mesures' : 'Update my measurements'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('plan')}
+                        className="px-3.5 py-2 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] text-xs font-bold inline-flex items-center gap-1.5"
+                      >
+                        <ClipboardList className="w-4 h-4" />
+                        <span>{isFr ? 'Voir mon plan de dépistage' : 'View my screening plan'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('reminders')}
+                        className="px-3.5 py-2 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] text-xs font-bold inline-flex items-center gap-1.5"
+                      >
+                        <BellRing className="w-4 h-4" />
+                        <span>{isFr ? 'Assistant de rappel' : 'Reminder assistant'}</span>
+                      </button>
+                    </div>
+                  </GlassCard>
+
                   {rec && (
                     <GlassCard glow interactive={false} className="space-y-5">
                       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1372,6 +1673,136 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   {riskAnalysisError && (
                     <div className="bg-[#FEF2F2] border border-red-200 text-[#B91C1C] px-4 py-3 rounded-xl text-xs font-semibold">
                       {riskAnalysisError}
+                    </div>
+                  )}
+
+                  {/* Manual-entry affordance: evaluators can start from a blank form
+                      or load a labelled example, instead of being forced to edit
+                      preloaded demo values. */}
+                  <div className="rounded-2xl border border-[#D5F2EE] bg-[#F0FDFA] p-3.5 space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Play className="w-4 h-4 text-[#0F6B6B]" />
+                        <p className="text-xs font-semibold text-[#0B3B3C]">
+                          {manualMode
+                            ? isFr
+                              ? 'Mode saisie libre activé — entrez vos propres valeurs.'
+                              : 'Free-entry mode enabled — enter your own values.'
+                            : isFr
+                            ? 'Chaque champ est modifiable. Vous pouvez aussi partir d’un formulaire vide.'
+                            : 'Every field is editable. You can also start from a blank form.'}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setManualMode(true);
+                            setSelfForm(EMPTY_SELF_FORM);
+                            setLastAssessment(null);
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1] text-[#0B3B3C] text-[11px] font-bold"
+                        >
+                          {isFr ? 'Formulaire vide' : 'Blank form'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setManualMode(true);
+                            setSelfForm(DEMO_SELF_FORM);
+                            setLastAssessment(null);
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1] text-[#64748B] text-[11px] font-bold"
+                        >
+                          {isFr ? 'Charger un exemple' : 'Load an example'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {lastAssessment && (
+                    <div className="rounded-2xl border-2 border-[#0F6B6B]/30 bg-white p-4 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F6B6B]">
+                            {isFr ? 'Résultat du calcul dynamique' : 'Live calculation result'}
+                          </span>
+                          <p className="text-sm font-extrabold text-[#0B3B3C] font-heading">
+                            {isFr
+                              ? 'Votre parcours vient d’être recalculé'
+                              : 'Your pathway has just been recalculated'}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <LevelBadge level={lastAssessment.overallLevel as any} />
+                          <span className="text-[10px] font-semibold text-[#64748B] uppercase">
+                            {isFr ? 'Certitude' : 'Certainty'}: {lastAssessment.overallCertainty}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          {
+                            label: isFr ? 'Risque CV 10 ans' : '10y CV risk',
+                            value:
+                              lastAssessment.calculations?.whoCvdModel?.riskPercent !== null &&
+                              lastAssessment.calculations?.whoCvdModel?.riskPercent !== undefined
+                                ? `${lastAssessment.calculations.whoCvdModel.riskPercent}%`
+                                : '—',
+                          },
+                          {
+                            label: isFr ? 'Tension retenue' : 'Retained BP',
+                            value:
+                              lastAssessment.calculations?.bpProtocol?.retainedSys &&
+                              lastAssessment.calculations?.bpProtocol?.retainedDia
+                                ? `${lastAssessment.calculations.bpProtocol.retainedSys}/${lastAssessment.calculations.bpProtocol.retainedDia}`
+                                : '—',
+                          },
+                          {
+                            label: isFr ? 'Indice de masse corporelle' : 'BMI',
+                            value: lastAssessment.calculations?.anthropometry?.bmi ?? '—',
+                          },
+                          {
+                            label: 'FINDRISC',
+                            value:
+                              lastAssessment.calculations?.findriscModel?.score ?? '—',
+                          },
+                        ].map((metric) => (
+                          <div key={metric.label} className="rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] p-2.5">
+                            <p className="text-[10px] text-[#64748B]">{metric.label}</p>
+                            <p className="text-sm font-extrabold text-[#0B3B3C] font-heading">
+                              {String(metric.value)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                      {(lastAssessment.flags || []).filter((f: any) => f.level !== 'green').length > 0 && (
+                        <div className="space-y-1.5">
+                          {(lastAssessment.flags || [])
+                            .filter((f: any) => f.level !== 'green')
+                            .slice(0, 3)
+                            .map((flag: any) => (
+                              <div
+                                key={flag.ruleId}
+                                className="flex items-start justify-between gap-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2"
+                              >
+                                <div>
+                                  <p className="text-[11px] font-bold text-[#0B3B3C]">{flag.title}</p>
+                                  <p className="text-[10px] text-[#64748B]">{(flag.factors || [])[0]}</p>
+                                </div>
+                                <LevelBadge level={flag.level as any} size="sm" />
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('plan')}
+                        className="px-3.5 py-2 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] text-xs font-bold inline-flex items-center gap-1.5"
+                      >
+                        <ClipboardList className="w-4 h-4" />
+                        <span>{isFr ? 'Voir mon plan recalculé' : 'View my recalculated plan'}</span>
+                      </button>
                     </div>
                   )}
 
@@ -1679,6 +2110,452 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 </GlassCard>
               )}
 
+              {/* TAB 2A: PERSONALIZED SCREENING PLANNER */}
+              {activeTab === 'plan' && (
+                <div className="space-y-5">
+                  <GlassCard interactive={false} className="space-y-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
+                          {isFr ? 'Planificateur personnalisé' : 'Personalized planner'}
+                        </span>
+                        <h2 className="text-lg font-bold text-[#0B3B3C] font-heading">
+                          {isFr ? 'Mon plan de dépistage' : 'My screening plan'}
+                        </h2>
+                        <p className="text-xs text-[#64748B]">
+                          {isFr
+                            ? 'Calculé à partir de vos mesures, des règles cliniques signées et du calendrier national de soins.'
+                            : 'Computed from your measurements, the signed clinical rules and the national care calendar.'}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => loadPlan(activePatientId)}
+                        className="px-3 py-2 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${planLoading ? 'animate-spin' : ''}`} />
+                        <span>{isFr ? 'Recalculer' : 'Recalculate'}</span>
+                      </button>
+                    </div>
+
+                    {activePlan && (
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                        {[
+                          {
+                            key: 'overdue',
+                            label: isFr ? 'En retard' : 'Overdue',
+                            value: activePlan.summary?.overdue ?? 0,
+                            tone: 'bg-red-50 text-[#B91C1C] border-red-200',
+                          },
+                          {
+                            key: 'needsData',
+                            label: isFr ? 'À compléter' : 'To complete',
+                            value: activePlan.summary?.needsData ?? 0,
+                            tone: 'bg-slate-50 text-[#475569] border-slate-200',
+                          },
+                          {
+                            key: 'dueSoon',
+                            label: isFr ? 'Sous 14 jours' : 'Within 14 days',
+                            value: activePlan.summary?.dueSoon ?? 0,
+                            tone: 'bg-amber-50 text-[#92400E] border-amber-200',
+                          },
+                          {
+                            key: 'upcoming',
+                            label: isFr ? 'À venir' : 'Upcoming',
+                            value: activePlan.summary?.upcoming ?? 0,
+                            tone: 'bg-teal-50 text-[#0F6B6B] border-teal-200',
+                          },
+                          {
+                            key: 'upToDate',
+                            label: isFr ? 'À jour' : 'Up to date',
+                            value: activePlan.summary?.upToDate ?? 0,
+                            tone: 'bg-emerald-50 text-[#15803D] border-emerald-200',
+                          },
+                        ].map((chip) => (
+                          <div
+                            key={chip.key}
+                            className={`rounded-xl border px-2.5 py-2 ${chip.tone}`}
+                          >
+                            <p className="text-lg font-extrabold font-heading">{chip.value}</p>
+                            <p className="text-[10px] font-semibold">{chip.label}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {planLoading && planItems.length === 0 ? (
+                      <div className="space-y-2">
+                        <div className="h-16 rounded-2xl bg-[#F1F5F9] animate-pulse" />
+                        <div className="h-16 rounded-2xl bg-[#F1F5F9] animate-pulse" />
+                      </div>
+                    ) : planItems.length > 0 ? (
+                      <div className="space-y-2.5">
+                        {planItems.map((item: any) => (
+                          <div
+                            key={item.id}
+                            className={`rounded-2xl border p-3.5 space-y-1.5 ${
+                              item.status === 'overdue'
+                                ? 'bg-red-50/70 border-red-200'
+                                : item.status === 'needs_data'
+                                ? 'bg-slate-50 border-slate-200'
+                                : item.status === 'due_soon'
+                                ? 'bg-amber-50/70 border-amber-200'
+                                : item.status === 'up_to_date'
+                                ? 'bg-emerald-50/60 border-emerald-200'
+                                : 'bg-white border-[#E2E8F0]'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-[#0B3B3C]">{item.title}</p>
+                                <p className="text-[10px] text-[#64748B]">
+                                  {item.source}
+                                  {item.intervalMonths
+                                    ? ` · ${isFr ? 'tous les' : 'every'} ${item.intervalMonths} ${isFr ? 'mois' : 'months'}`
+                                    : ''}
+                                </p>
+                              </div>
+                              <span className="px-2 py-1 rounded-lg bg-white/90 border border-[#E2E8F0] text-[10px] font-bold text-[#0B3B3C] whitespace-nowrap">
+                                {item.dueLabel}
+                              </span>
+                            </div>
+                            {item.rationale && (
+                              <p className="text-[11px] text-[#334155] leading-relaxed">
+                                {item.rationale}
+                              </p>
+                            )}
+                            {item.lastDoneLabel && (
+                              <p className="text-[10px] text-[#64748B]">{item.lastDoneLabel}</p>
+                            )}
+                            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                              <span className="text-[10px] font-semibold text-[#0F6B6B]">
+                                {item.action}
+                              </span>
+                              {(item.status === 'overdue' ||
+                                item.status === 'due_soon' ||
+                                item.status === 'needs_data') && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setActiveTab(item.status === 'needs_data' ? 'checkup' : 'reminders')
+                                  }
+                                  className="px-3 py-1.5 rounded-xl btn-liquid-primary text-[10px] font-bold inline-flex items-center gap-1"
+                                >
+                                  {item.status === 'needs_data' ? (
+                                    <>
+                                      <Activity className="w-3 h-3" />
+                                      <span>{isFr ? 'Saisir les mesures' : 'Enter measurements'}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CalendarClock className="w-3 h-3" />
+                                      <span>{isFr ? 'Planifier' : 'Schedule'}</span>
+                                    </>
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-[#334155] bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-3.5 py-3">
+                        {isFr
+                          ? 'Le plan est en pause car le consentement d’évaluation a été retiré. Réactivez-le dans l’onglet Consentements.'
+                          : 'The plan is paused because evaluation consent was withdrawn. Re-enable it in the Consents tab.'}
+                      </p>
+                    )}
+                  </GlassCard>
+
+                  <GlassCard interactive={false} className="space-y-3">
+                    <h3 className="text-base font-bold text-[#0B3B3C] font-heading">
+                      {isFr ? 'Planifier ma prochaine visite' : 'Schedule my next visit'}
+                    </h3>
+                    <p className="text-xs text-[#64748B]">
+                      {isFr
+                        ? 'Choisissez une date : elle sera enregistrée dans votre parcours et l’assistant préparera les rappels.'
+                        : 'Choose a date: it will be saved in your pathway and the assistant will prepare reminders.'}
+                    </p>
+                    <div className="flex flex-wrap items-end gap-2">
+                      <label className="text-xs font-semibold text-[#334155]">
+                        <span className="block mb-1">{isFr ? 'Date souhaitée' : 'Preferred date'}</span>
+                        <input
+                          type="date"
+                          min={todayDate}
+                          value={scheduleDate}
+                          onChange={(e) => setScheduleDate(e.target.value)}
+                          className="px-3 py-2 rounded-xl border border-[#CBD5E1] bg-white font-mono text-xs"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleScheduleScreening()}
+                        disabled={reminderBusy}
+                        className="px-4 py-2.5 rounded-xl btn-liquid-primary text-xs font-bold inline-flex items-center gap-1.5 disabled:opacity-60"
+                      >
+                        <CalendarClock className="w-4 h-4" />
+                        <span>
+                          {reminderBusy
+                            ? isFr
+                              ? 'Enregistrement...'
+                              : 'Saving...'
+                            : isFr
+                            ? 'Confirmer la date'
+                            : 'Confirm date'}
+                        </span>
+                      </button>
+                    </div>
+                  </GlassCard>
+                </div>
+              )}
+
+              {/* TAB 2B: SMART REMINDER ASSISTANT */}
+              {activeTab === 'reminders' && (
+                <div className="space-y-5">
+                  <GlassCard interactive={false} className="space-y-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
+                          {isFr ? 'Assistant de rappel intelligent' : 'Smart reminder assistant'}
+                        </span>
+                        <h2 className="text-lg font-bold text-[#0B3B3C] font-heading">
+                          {isFr ? 'Rendez-vous à venir & manqués' : 'Upcoming & missed appointments'}
+                        </h2>
+                        <p className="text-xs text-[#64748B]">
+                          {isFr
+                            ? 'Rappels proposés à J-7, J-3, J-1 et le jour J. En cas de visite manquée : J+1, J+3, J+7.'
+                            : 'Reminders proposed at D-7, D-3, D-1 and on the day. If missed: D+1, D+3, D+7.'}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => loadReminders(activePatientId)}
+                        className="px-3 py-2 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>{isFr ? 'Actualiser' : 'Refresh'}</span>
+                      </button>
+                    </div>
+
+                    {!activeReminders ? (
+                      <div className="h-24 rounded-2xl bg-[#F1F5F9] animate-pulse" />
+                    ) : (
+                      <>
+                        {!activeReminders.consentEnabled && (
+                          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3.5 space-y-2">
+                            <p className="text-xs font-semibold text-[#92400E]">
+                              {activeReminders.safetyMessage}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={handleEnableReminders}
+                              className="px-3.5 py-2 rounded-xl btn-liquid-primary text-xs font-bold inline-flex items-center gap-1.5"
+                            >
+                              <BellRing className="w-4 h-4" />
+                              <span>{isFr ? 'Activer les rappels' : 'Enable reminders'}</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {activeReminders.appointment ? (
+                          <div className="card-3d rounded-2xl p-4 space-y-2">
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[#0F6B6B]">
+                                  {isFr ? 'Prochain rendez-vous' : 'Next appointment'}
+                                </p>
+                                <p className="text-sm font-bold text-[#0B3B3C] font-heading">
+                                  {activeReminders.appointment.title}
+                                </p>
+                                <p className="text-xs text-[#64748B]">
+                                  {activeReminders.appointment.facility}
+                                </p>
+                              </div>
+                              <StatusChip state={activeReminders.appointment.state} />
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 text-xs text-[#334155]">
+                              <span className="inline-flex items-center gap-1.5 font-semibold">
+                                <CalendarClock className="w-4 h-4 text-[#0F6B6B]" />
+                                {activeReminders.appointment.date || (isFr ? 'À planifier' : 'To schedule')}
+                              </span>
+                              {activeReminders.appointment.daysUntil !== null && (
+                                <span>
+                                  {activeReminders.appointment.daysUntil < 0
+                                    ? isFr
+                                      ? `Manquée depuis ${Math.abs(activeReminders.appointment.daysUntil)} jour(s)`
+                                      : `Missed ${Math.abs(activeReminders.appointment.daysUntil)} day(s) ago`
+                                    : activeReminders.appointment.daysUntil === 0
+                                    ? isFr
+                                      ? 'Aujourd’hui'
+                                      : 'Today'
+                                    : isFr
+                                    ? `Dans ${activeReminders.appointment.daysUntil} jour(s)`
+                                    : `In ${activeReminders.appointment.daysUntil} day(s)`}
+                                </span>
+                              )}
+                              <span className="text-[10px] px-2 py-1 rounded-lg bg-white border border-[#E2E8F0] font-semibold">
+                                {activeReminders.channel} · {String(activeReminders.language).toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-[#334155] bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-3.5 py-3">
+                            {isFr
+                              ? 'Aucun rendez-vous planifié. Utilisez le planificateur pour choisir une date.'
+                              : 'No appointment scheduled yet. Use the planner to choose a date.'}
+                          </p>
+                        )}
+
+                        {activeReminders.safetyMessage && activeReminders.consentEnabled && (
+                          <p className="text-xs text-[#92400E] bg-amber-50 border border-amber-200 rounded-2xl px-3.5 py-2.5">
+                            {activeReminders.safetyMessage}
+                          </p>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <h3 className="text-xs font-bold text-[#0B3B3C]">
+                              {isFr ? 'Avant la visite' : 'Before the visit'}
+                            </h3>
+                            {(activeReminders.upcomingReminders || []).length > 0 ? (
+                              (activeReminders.upcomingReminders || []).map((slot: any) => (
+                                <div
+                                  key={slot.id}
+                                  className="rounded-2xl border border-[#E2E8F0] bg-white p-3 space-y-1"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[11px] font-bold text-[#0B3B3C]">
+                                      {slot.label} · {slot.scheduledFor}
+                                    </span>
+                                    <span
+                                      className={`text-[10px] px-2 py-0.5 rounded-lg font-bold ${
+                                        slot.status === 'to_send'
+                                          ? 'bg-amber-50 text-[#92400E] border border-amber-200'
+                                          : 'bg-slate-50 text-[#475569] border border-slate-200'
+                                      }`}
+                                    >
+                                      {slot.status === 'to_send'
+                                        ? isFr
+                                          ? 'À envoyer'
+                                          : 'To send'
+                                        : isFr
+                                        ? 'Planifié'
+                                        : 'Planned'}
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-[#64748B] leading-relaxed">
+                                    {slot.message}
+                                  </p>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-[11px] text-[#64748B]">
+                                {isFr ? 'Aucun rappel à venir.' : 'No upcoming reminder.'}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <h3 className="text-xs font-bold text-[#0B3B3C]">
+                              {isFr ? 'Visite manquée' : 'Missed visit'}
+                            </h3>
+                            {(activeReminders.missedReminders || []).length > 0 ? (
+                              (activeReminders.missedReminders || []).map((slot: any) => (
+                                <div
+                                  key={slot.id}
+                                  className="rounded-2xl border border-amber-200 bg-amber-50/60 p-3 space-y-1"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[11px] font-bold text-[#0B3B3C]">
+                                      {slot.label} · {slot.scheduledFor}
+                                    </span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded-lg font-bold bg-white text-[#92400E] border border-amber-200">
+                                      {slot.status === 'to_send'
+                                        ? isFr
+                                          ? 'À envoyer'
+                                          : 'To send'
+                                        : isFr
+                                        ? 'Planifié'
+                                        : 'Planned'}
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-[#64748B] leading-relaxed">
+                                    {slot.message}
+                                  </p>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-[11px] text-[#64748B]">
+                                {isFr ? 'Aucune visite manquée.' : 'No missed visit.'}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => handleSendReminder('upcoming')}
+                            disabled={!activeReminders.canSend || reminderBusy}
+                            className="px-4 py-2.5 rounded-xl btn-liquid-primary text-xs font-bold inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <Send className="w-4 h-4" />
+                            <span>
+                              {reminderBusy
+                                ? isFr
+                                  ? 'Envoi...'
+                                  : 'Sending...'
+                                : isFr
+                                ? 'Envoyer un rappel maintenant'
+                                : 'Send a reminder now'}
+                            </span>
+                          </button>
+                          {(activeReminders.missedReminders || []).length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => handleSendReminder('missed')}
+                              disabled={!activeReminders.consentEnabled || reminderBusy}
+                              className="px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] text-xs font-bold inline-flex items-center gap-1.5 disabled:opacity-50"
+                            >
+                              <BellRing className="w-4 h-4" />
+                              <span>{isFr ? 'Relancer pour la visite manquée' : 'Follow up on the missed visit'}</span>
+                            </button>
+                          )}
+                          <span className="text-[10px] text-[#64748B]">
+                            {isFr ? 'Rappels envoyés' : 'Reminders sent'}:{' '}
+                            {activeReminders.remindersSentCount}/{activeReminders.maxReminders}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </GlassCard>
+
+                  <GlassCard interactive={false} className="space-y-3">
+                    <h3 className="text-base font-bold text-[#0B3B3C] font-heading">
+                      {isFr ? 'Historique des messages' : 'Message history'}
+                    </h3>
+                    {(activeReminders?.history || []).length > 0 ? (
+                      (activeReminders.history || []).map((item: any) => (
+                        <div key={item.id} className="card-3d rounded-2xl p-3.5 space-y-1">
+                          <div className="flex items-center justify-between gap-2 text-[10px] text-[#64748B]">
+                            <span className="font-bold text-[#0B3B3C]">{item.channel}</span>
+                            <span className="font-mono">{item.sentAt}</span>
+                          </div>
+                          <p className="text-xs font-bold text-[#0B3B3C]">{item.title}</p>
+                          <p className="text-[11px] text-[#334155] leading-relaxed">{item.bodyText}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-[#64748B]">
+                        {isFr
+                          ? 'Aucun message envoyé pour le moment.'
+                          : 'No message sent yet.'}
+                      </p>
+                    )}
+                  </GlassCard>
+                </div>
+              )}
+
               {/* TAB 2: MY CARE JOURNEY */}
               {activeTab === 'journey' && (
                 <GlassCard interactive={false} className="space-y-5">
@@ -1955,10 +2832,12 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 liquid-glass border-t border-white/60 z-30 flex items-center justify-around py-2 px-1 pb-safe">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 liquid-glass border-t border-white/60 z-30 flex items-center gap-1 overflow-x-auto no-scrollbar py-2 px-1 pb-safe">
         {[
           { id: 'home', label: isFr ? 'Accueil' : 'Home', Icon: Home },
           { id: 'checkup', label: isFr ? 'Bilan' : 'Check', Icon: CheckCircle2 },
+          { id: 'plan', label: isFr ? 'Plan' : 'Plan', Icon: ClipboardList },
+          { id: 'reminders', label: isFr ? 'Rappels' : 'Remind', Icon: BellRing },
           { id: 'journey', label: isFr ? 'Parcours' : 'Journey', Icon: Calendar },
           { id: 'notifications', label: isFr ? 'Messages' : 'Messages', Icon: Bell },
           { id: 'privacy', label: isFr ? 'Accès' : 'Consents', Icon: Shield },
@@ -1970,7 +2849,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               key={item.id}
               type="button"
               onClick={() => setActiveTab(item.id as any)}
-              className={`flex flex-col items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] sm:text-[11px] font-semibold transition-colors ${
+              className={`flex flex-col items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] sm:text-[11px] font-semibold transition-colors shrink-0 ${
                 active ? 'text-white bg-[#0B3B3C]' : 'text-[#64748B]'
               }`}
             >

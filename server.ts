@@ -55,6 +55,7 @@ import { CARE_SCHEDULE_METADATA } from './src/server/careSchedules.ts';
 import { GROWTH_REFERENCE_METADATA } from './src/server/growthReference.ts';
 import { resolvePathwayConflict, type PathwayState } from './src/server/syncConflicts.ts';
 import { evaluateInvitationPolicy, isPurposeAllowed } from './src/server/pathwayPolicy.ts';
+import { buildReminderPlan, buildScreeningPlan } from './src/server/screeningPlan.ts';
 
 dotenv.config();
 
@@ -183,6 +184,84 @@ async function startServer() {
   const getConsentRow = async (patientId: string) => {
     const rows = await db.select().from(consents).where(eq(consents.patientId, patientId));
     return rows[0];
+  };
+
+  /**
+   * Builds the personalized screening plan from freshly evaluated signed rules.
+   * Returns null when the patient withdrew the evaluation consent: the portal
+   * must not display a plan computed against a withdrawn purpose.
+   */
+  const computeScreeningPlanFor = async (
+    patientId: string,
+    locale: 'en' | 'fr' | 'ar' = 'en'
+  ) => {
+    const pRows = await db.select().from(patients).where(eq(patients.id, patientId));
+    if (!pRows[0]) return null;
+    const p = pRows[0];
+    const [consentRows, recRows] = await Promise.all([
+      db.select().from(consents).where(eq(consents.patientId, patientId)),
+      db.select().from(recommendations).where(eq(recommendations.patientId, patientId)),
+    ]);
+    if (!isPurposeAllowed(consentRows[0], 'evaluationAndCalendar')) return null;
+
+    const evaluated = evaluatePatientRules(
+      {
+        id: p.id,
+        ageYears: p.ageYears,
+        ageMonths: p.ageMonths,
+        gestationalAgeWeeks: p.gestationalAgeWeeks,
+        sex: p.sex,
+        pathwayType: p.pathwayType,
+        nationalityGroup: p.nationalityGroup,
+        clinicalProfile: p.clinicalProfile,
+      },
+      Boolean(consentRows[0]?.existingGenomicResult)
+    );
+
+    return buildScreeningPlan({
+      patient: {
+        ageYears: p.ageYears,
+        ageMonths: p.ageMonths,
+        sex: p.sex,
+        pathwayType: p.pathwayType,
+        clinicalProfile: (p.clinicalProfile || {}) as Record<string, any>,
+      },
+      flags: evaluated.flags,
+      recommendation: recRows[0] || null,
+      locale,
+    });
+  };
+
+  const computeReminderPlanFor = async (
+    patientId: string,
+    locale: 'en' | 'fr' | 'ar' = 'en'
+  ) => {
+    const pRows = await db.select().from(patients).where(eq(patients.id, patientId));
+    if (!pRows[0]) return null;
+    const p = pRows[0];
+    const [recRows, notifRows, consentRows] = await Promise.all([
+      db.select().from(recommendations).where(eq(recommendations.patientId, patientId)),
+      db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.patientId, patientId))
+        .orderBy(desc(notifications.sentAt)),
+      db.select().from(consents).where(eq(consents.patientId, patientId)),
+    ]);
+
+    return buildReminderPlan({
+      patient: {
+        displayName: p.displayName,
+        preferredLanguage: p.preferredLanguage,
+        preferredChannel: p.preferredChannel,
+        facilityCenter: p.facilityCenter,
+        pathwayType: p.pathwayType,
+      },
+      recommendation: recRows[0] || null,
+      notifications: notifRows,
+      consentEnabled: isPurposeAllowed(consentRows[0], 'channelReminders'),
+      locale,
+    });
   };
   // =========================================================================
   // 1. SYSTEM & GOVERNANCE VERIFICATION ENDPOINTS (Public for Phase 0 checks)
@@ -1676,6 +1755,16 @@ async function startServer() {
         delete sanitizedProfile.genomicSignal;
       }
 
+      const portalLocale = ['en', 'fr', 'ar'].includes(String(req.query.locale))
+        ? (String(req.query.locale) as 'en' | 'fr' | 'ar')
+        : ((p.preferredLanguage as 'en' | 'fr' | 'ar') || 'en');
+      const [screeningPlan, reminderPlan] = evaluationAllowed
+        ? await Promise.all([
+            computeScreeningPlanFor(patientId, portalLocale),
+            computeReminderPlanFor(patientId, portalLocale),
+          ])
+        : [null, computeReminderPlanFor(patientId, portalLocale)];
+
       // Family affiliation context — reuse familyRows from the parallel Promise.all above
       const rootParentId = p.parentUserId || p.id;
       const parentRecord = familyRows.find((row) => row.id === rootParentId) || null;
@@ -1759,7 +1848,23 @@ async function startServer() {
               decisionAidText: pRecs[0].decisionAidText,
             }
           : null,
+        flags: pFlags.map((f) => ({
+          id: f.id,
+          ruleId: f.ruleId,
+          flagType: f.flagType,
+          level: f.level,
+          title: f.title,
+          factors: f.factors,
+          sourceLabel: f.sourceLabel,
+          missingData: f.missingData,
+          dueDate: f.dueDate,
+          certainty: f.certainty,
+          certaintyReason: f.certaintyReason,
+          isEclipseSuspended: f.isEclipseSuspended,
+        })),
         flagsCount: pFlags.length,
+        screeningPlan,
+        reminderPlan,
         consents: pConsents[0] || null,
         notifications: pNotifs,
         usageLogs: pLogs,
@@ -1767,6 +1872,303 @@ async function startServer() {
     } catch (error: any) {
       console.error('Error fetching patient portal profile:', error);
       res.status(500).json({ error: 'Failed to load patient profile' });
+    }
+  });
+
+  // Personalized screening planner (server-computed from signed rules + schedules)
+  app.get('/api/patient/profile/:id/screening-plan', requireAuth, requireRole('patient', 'parent'), requirePatientScope(), async (req: AuthRequest, res) => {
+    try {
+      await ensureInit();
+      const patientId = req.params.id;
+      const consentRow = await getConsentRow(patientId);
+      const locale = ['en', 'fr', 'ar'].includes(String(req.query.locale))
+        ? (String(req.query.locale) as 'en' | 'fr' | 'ar')
+        : 'en';
+      const plan = await computeScreeningPlanFor(patientId, locale);
+      if (plan === null) {
+        const exists = await db.select().from(patients).where(eq(patients.id, patientId));
+        if (!exists[0]) return res.status(404).json({ error: 'Profile not found' });
+      }
+      res.json({
+        plan,
+        evaluationPaused: !isPurposeAllowed(consentRow, 'evaluationAndCalendar'),
+      });
+    } catch (error: any) {
+      console.error('Error building screening plan:', error);
+      res.status(500).json({ error: 'Failed to build screening plan' });
+    }
+  });
+
+  // Smart reminder assistant: upcoming/missed appointment timeline
+  app.get('/api/patient/profile/:id/reminders', requireAuth, requireRole('patient', 'parent'), requirePatientScope(), async (req: AuthRequest, res) => {
+    try {
+      await ensureInit();
+      const patientId = req.params.id;
+      const locale = ['en', 'fr', 'ar'].includes(String(req.query.locale))
+        ? (String(req.query.locale) as 'en' | 'fr' | 'ar')
+        : 'en';
+      const plan = await computeReminderPlanFor(patientId, locale);
+      if (!plan) return res.status(404).json({ error: 'Profile not found' });
+      res.json({ plan });
+    } catch (error: any) {
+      console.error('Error building reminder plan:', error);
+      res.status(500).json({ error: 'Failed to build reminder plan' });
+    }
+  });
+
+  // Smart reminder assistant: schedule the next preventive visit
+  app.post('/api/patient/profile/:id/reminders/schedule', requireAuth, requireRole('patient', 'parent'), requirePatientScope(), async (req: AuthRequest, res) => {
+    try {
+      await ensureInit();
+      const patientId = req.params.id;
+      const date = String(req.body?.date || '');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return res.status(400).json({ error: 'A valid appointment date (YYYY-MM-DD) is required.' });
+      }
+      const today = new Date().toISOString().slice(0, 10);
+      if (date < today) {
+        return res.status(400).json({ error: 'The appointment date must be today or later.' });
+      }
+      const pRows = await db.select().from(patients).where(eq(patients.id, patientId));
+      if (!pRows[0]) return res.status(404).json({ error: 'Profile not found' });
+      const recRows = await db.select().from(recommendations).where(eq(recommendations.patientId, patientId));
+      if (!recRows[0]) return res.status(404).json({ error: 'No care pathway found for this patient' });
+      if (recRows[0].state === 'refused') {
+        return res.status(409).json({
+          error:
+            'This pathway was refused. Scheduling a new visit requires an explicit patient decision in the portal.',
+        });
+      }
+
+      await db
+        .update(recommendations)
+        .set({
+          state: 'scheduled',
+          scheduledDate: date,
+          remindersSentCount: 0,
+          updatedAt: new Date(),
+        })
+        .where(eq(recommendations.patientId, patientId));
+
+      await db.insert(usageLogs).values({
+        patientId,
+        actorName: req.user?.displayName || pRows[0].displayName,
+        actorRole: 'Patient / Family',
+        dataCategory: 'Preventive Appointment Planning',
+        purposeDescription: `Patient selected a screening visit date (${date}) from the personalized planner`,
+        ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
+      });
+
+      const plan = await computeReminderPlanFor(patientId);
+      res.json({ status: 'scheduled', scheduledDate: date, plan });
+    } catch (error: any) {
+      console.error('Error scheduling screening visit:', error);
+      res.status(500).json({ error: 'Failed to schedule the screening visit' });
+    }
+  });
+
+  // Smart reminder assistant: send a consented, safety-checked reminder now
+  app.post('/api/patient/profile/:id/reminders/send', requireAuth, requireRole('patient', 'parent'), requirePatientScope(), async (req: AuthRequest, res) => {
+    try {
+      await ensureInit();
+      const patientId = req.params.id;
+      const requestedKind = req.body?.kind === 'missed' ? 'missed' : 'upcoming';
+      const pRows = await db.select().from(patients).where(eq(patients.id, patientId));
+      if (!pRows[0]) return res.status(404).json({ error: 'Profile not found' });
+
+      const consentRow = await getConsentRow(patientId);
+      if (!isPurposeAllowed(consentRow, 'channelReminders')) {
+        return res.status(403).json({
+          error:
+            'Reminder consent is required: you withdrew the reminders purpose. No message was generated or sent.',
+        });
+      }
+
+      const plan = await computeReminderPlanFor(patientId);
+      if (!plan) return res.status(404).json({ error: 'Profile not found' });
+      if (!plan.canSend) {
+        return res.status(409).json({ error: plan.safetyMessage || 'No reminder can be sent right now.' });
+      }
+
+      const slots = requestedKind === 'missed' ? plan.missedReminders : plan.upcomingReminders;
+      const slot =
+        slots.find((s) => s.status === 'to_send') ||
+        slots[0] ||
+        null;
+      if (!slot) {
+        return res.status(409).json({ error: 'No scheduled reminder slot is available for this appointment.' });
+      }
+
+      const safety = validateM2MessageSafety(slot.message);
+      if (!safety.valid) {
+        return res.status(400).json({
+          error: 'Message blocked by the M2 Responsible AI safety guardrail.',
+          violations: safety.violations,
+        });
+      }
+
+      const notificationId = `NOTIF-${patientId}-REM-${Date.now()}`;
+      const sentAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      await db.insert(notifications).values({
+        id: notificationId,
+        patientId,
+        recommendationId: null,
+        channel: plan.channel,
+        language: plan.language,
+        recipientType:
+          pRows[0].pathwayType === 'child'
+            ? 'parent'
+            : pRows[0].pathwayType === 'adolescent'
+            ? 'adolescent'
+            : 'adult',
+        title:
+          requestedKind === 'missed'
+            ? plan.language === 'fr'
+              ? 'Rappel — visite manquée'
+              : 'Reminder — missed visit'
+            : plan.language === 'fr'
+            ? 'Rappel — visite à venir'
+            : 'Reminder — upcoming visit',
+        bodyText: slot.message,
+        decisionAidSummary:
+          plan.language === 'fr'
+            ? 'Rappel généré par votre assistant, après votre consentement. Aucun diagnostic n’est transmis.'
+            : 'Reminder generated by your assistant after your consent. No diagnosis is transmitted.',
+        isRead: false,
+        requiresAction: true,
+        humanValidatedBy: `${req.user?.displayName || pRows[0].displayName} (patient-initiated reminder)`,
+        sentAt,
+      });
+
+      await db
+        .update(recommendations)
+        .set({
+          remindersSentCount: (plan.remindersSentCount || 0) + 1,
+          updatedAt: new Date(),
+        })
+        .where(eq(recommendations.patientId, patientId));
+
+      await db.insert(usageLogs).values({
+        patientId,
+        actorName: req.user?.displayName || pRows[0].displayName,
+        actorRole: 'Patient / Family',
+        dataCategory: 'Smart Reminder Assistant',
+        purposeDescription: `Consented ${requestedKind} reminder sent through ${plan.channel} (${slot.label})`,
+        ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
+      });
+
+      const refreshed = await computeReminderPlanFor(patientId);
+      res.json({ status: 'sent', notificationId, channel: plan.channel, slot, plan: refreshed });
+    } catch (error: any) {
+      console.error('Error sending smart reminder:', error);
+      res.status(500).json({ error: 'Failed to send the reminder' });
+    }
+  });
+
+  // Coordinator outreach actions: call logging, data completion request,
+  // clinical review escalation and clinician validation request.
+  app.post('/api/coordinator/patients/:id/outreach', requireAuth, requireRole('coordinator'), async (req: AuthRequest, res) => {
+    try {
+      await ensureInit();
+      const patientId = req.params.id;
+      const action = String(req.body?.action || '');
+      const allowedActions = ['call', 'request_data', 'request_validation', 'clinical_review'];
+      if (!allowedActions.includes(action)) {
+        return res.status(400).json({ error: `action must be one of: ${allowedActions.join(', ')}` });
+      }
+      const pRows = await db.select().from(patients).where(eq(patients.id, patientId));
+      if (!pRows[0]) return res.status(404).json({ error: 'Patient not found' });
+      const p = pRows[0];
+      const recRows = await db.select().from(recommendations).where(eq(recommendations.patientId, patientId));
+
+      if (action === 'request_data' || action === 'request_validation') {
+        const consentRow = await getConsentRow(patientId);
+        if (!isPurposeAllowed(consentRow, 'channelReminders')) {
+          return res.status(403).json({
+            error:
+              'Reminder consent is required: the patient withdrew the reminders purpose. No message was sent.',
+          });
+        }
+        if (recRows[0]?.state === 'refused') {
+          return res.status(409).json({
+            error: 'This pathway was refused by the person. Reminders are stopped and require an explicit patient decision.',
+          });
+        }
+        const language = (p.preferredLanguage as 'en' | 'fr' | 'ar') || 'en';
+        const bodyText =
+          action === 'request_data'
+            ? language === 'fr'
+              ? `Bonjour ${p.displayName}. Pour finaliser votre bilan de prévention, il manque quelques mesures de base. Vous pouvez les saisir dans votre portail ou les faire mesurer au centre ${p.facilityCenter}. Aucune conséquence sur votre accès aux soins.`
+              : `Hello ${p.displayName}. A few baseline measurements are still needed to complete your prevention plan. You can enter them in your portal or have them measured at ${p.facilityCenter}. There is no impact on your access to care.`
+            : language === 'fr'
+            ? `Bonjour ${p.displayName}. Votre plan de prévention est en cours de validation par l’équipe de soin. Vous serez informé dès qu’il sera prêt. Aucune conséquence sur votre accès aux soins.`
+            : `Hello ${p.displayName}. Your prevention plan is being validated by the care team. You will be informed as soon as it is ready. There is no impact on your access to care.`;
+
+        const safety = validateM2MessageSafety(bodyText);
+        if (!safety.valid) {
+          return res.status(400).json({
+            error: 'Message blocked by the M2 Responsible AI safety guardrail.',
+            violations: safety.violations,
+          });
+        }
+
+        await db.insert(notifications).values({
+          id: `NOTIF-${patientId}-OUTREACH-${Date.now()}`,
+          patientId,
+          recommendationId: recRows[0]?.id || null,
+          channel: p.preferredChannel,
+          language,
+          recipientType: p.pathwayType === 'child' ? 'parent' : p.pathwayType === 'adolescent' ? 'adolescent' : 'adult',
+          title:
+            action === 'request_data'
+              ? language === 'fr'
+                ? 'Mesures de base à compléter'
+                : 'Baseline measurements to complete'
+              : language === 'fr'
+              ? 'Plan de prévention en validation'
+              : 'Prevention plan under validation',
+          bodyText,
+          decisionAidSummary:
+            language === 'fr'
+              ? 'Message de coordination validé par un humain. Aucun diagnostic n’est transmis.'
+              : 'Human-validated coordination message. No diagnosis is transmitted.',
+          isRead: false,
+          requiresAction: false,
+          humanValidatedBy: req.user?.displayName || 'Care Coordinator',
+          sentAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+        });
+
+        await db
+          .update(recommendations)
+          .set({ remindersSentCount: (recRows[0]?.remindersSentCount || 0) + 1, updatedAt: new Date() })
+          .where(eq(recommendations.patientId, patientId));
+      }
+
+      const actionLabels: Record<string, string> = {
+        call: 'Phone outreach logged',
+        request_data: 'Baseline data completion requested',
+        request_validation: 'Clinician validation requested',
+        clinical_review: 'Urgent clinical review escalated',
+      };
+
+      await db.insert(usageLogs).values({
+        patientId,
+        actorName: req.user?.displayName || 'Care Coordinator',
+        actorRole: 'Care Coordinator',
+        dataCategory: 'Care Coordination Outreach',
+        purposeDescription: `${actionLabels[action]}${req.body?.note ? ` — ${String(req.body.note).slice(0, 180)}` : ''}`,
+        ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
+      });
+
+      res.json({
+        status: 'logged',
+        action,
+        label: actionLabels[action],
+        loggedAt: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      console.error('Error logging coordinator outreach:', error);
+      res.status(500).json({ error: 'Failed to log outreach action' });
     }
   });
 
@@ -2235,6 +2637,7 @@ async function startServer() {
         status: 'recalculated',
         overallLevel: evaluated.overallLevel,
         overallCertainty: evaluated.overallCertainty,
+        flags: evaluated.flags,
         calculations: evaluated.calculations,
       });
     } catch (error: any) {

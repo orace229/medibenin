@@ -111,16 +111,50 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
     }
   };
 
+  const handleCoordinatorOutreach = async (
+    item: any,
+    action: 'call' | 'request_data' | 'request_validation' | 'clinical_review'
+  ) => {
+    try {
+      const res = await apiClient.coordinatorOutreach(item.patientId, action);
+      setFeedback(`${res.label} · ${item.displayName}`);
+      await loadData();
+    } catch (err: any) {
+      setFeedback(err.message || 'Outreach action failed.');
+    }
+  };
+
+  /**
+   * Safety-preserving alternative to a disabled button.
+   * Red and Grey pathways still cannot be invited (clinical safety), but the
+   * coordinator now has a real, persisted action instead of a dead label.
+   */
+  const coordinatorBlockedAction = (item: any): {
+    action: 'request_data' | 'request_validation' | 'clinical_review';
+    label: string;
+  } => {
+    if (item.overallLevel === 'red') {
+      return {
+        action: 'clinical_review',
+        label: isFr ? 'Revue clinique' : 'Clinical review',
+      };
+    }
+    if (item.overallLevel === 'grey') {
+      return {
+        action: 'request_data',
+        label: isFr ? 'Demander les données' : 'Request data',
+      };
+    }
+    return {
+      action: 'request_validation',
+      label: isFr ? 'Relancer le clinicien' : 'Prompt clinician',
+    };
+  };
+
   const canSendInvitation = (item: any) =>
     item.overallLevel !== 'red' &&
     item.overallLevel !== 'grey' &&
     (item.recommendationState === 'validated' || item.recommendationState === 'invited');
-
-  const invitationBlockedLabel = (item: any) => {
-    if (item.overallLevel === 'red') return isFr ? 'Revue clinique requise' : 'Clinical review required';
-    if (item.overallLevel === 'grey') return isFr ? 'Compléter les données' : 'Complete data first';
-    return isFr ? 'Valider le plan' : 'Validate plan first';
-  };
 
   const handleCoordinatorApproveDetachment = async (childId: string, childName: string) => {
     try {
@@ -667,16 +701,20 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                               <span>Invite</span>
                             </button>
                           ) : (
-                            <span className="px-2.5 py-1.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[10px] font-semibold text-[#64748B]">
-                              {invitationBlockedLabel(item)}
-                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleCoordinatorOutreach(item, coordinatorBlockedAction(item).action)
+                              }
+                              className="px-2.5 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[10px] font-semibold text-[#0B3B3C] hover:bg-[#F0FDFA] cursor-pointer"
+                            >
+                              {coordinatorBlockedAction(item).label}
+                            </button>
                           )}
                           <button
                             type="button"
-                            onClick={() =>
-                              setFeedback(`Logged coordinator call for ${item.displayName}.`)
-                            }
-                            className="px-3 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] font-semibold inline-flex items-center gap-1"
+                            onClick={() => handleCoordinatorOutreach(item, 'call')}
+                            className="px-3 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] font-semibold inline-flex items-center gap-1 cursor-pointer"
                           >
                             <PhoneCall className="w-3 h-3" />
                             <span>Call</span>
@@ -749,16 +787,20 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                                   <span>Invite</span>
                                 </button>
                               ) : (
-                                <span className="px-2.5 py-1.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[10px] font-semibold text-[#64748B]">
-                                  {invitationBlockedLabel(item)}
-                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleCoordinatorOutreach(item, coordinatorBlockedAction(item).action)
+                                  }
+                                  className="px-2.5 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[10px] font-semibold text-[#0B3B3C] hover:bg-[#F0FDFA] cursor-pointer"
+                                >
+                                  {coordinatorBlockedAction(item).label}
+                                </button>
                               )}
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setFeedback(`Logged coordinator call for ${item.displayName}.`)
-                                }
-                                className="px-3 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] font-semibold inline-flex items-center gap-1"
+                                onClick={() => handleCoordinatorOutreach(item, 'call')}
+                                className="px-3 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] font-semibold inline-flex items-center gap-1 cursor-pointer"
                               >
                                 <PhoneCall className="w-3 h-3" />
                                 <span>Call</span>

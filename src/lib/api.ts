@@ -190,6 +190,29 @@ export const apiClient = {
       body: JSON.stringify(payload),
     }),
 
+  // Personalized screening planner & smart reminder assistant
+  getScreeningPlan: (id: string, locale?: Locale) =>
+    apiFetch<{ plan: any; evaluationPaused: boolean }>(
+      `/api/patient/profile/${id}/screening-plan${locale ? `?locale=${locale}` : ''}`
+    ),
+
+  getReminderPlan: (id: string, locale?: Locale) =>
+    apiFetch<{ plan: any }>(
+      `/api/patient/profile/${id}/reminders${locale ? `?locale=${locale}` : ''}`
+    ),
+
+  scheduleScreening: (id: string, date: string) =>
+    apiFetch<{ status: string; scheduledDate: string; plan: any }>(
+      `/api/patient/profile/${id}/reminders/schedule`,
+      { method: 'POST', body: JSON.stringify({ date }) }
+    ),
+
+  sendSmartReminder: (id: string, kind: 'upcoming' | 'missed') =>
+    apiFetch<any>(`/api/patient/profile/${id}/reminders/send`, {
+      method: 'POST',
+      body: JSON.stringify({ kind }),
+    }),
+
   // Family Affiliation, Parent DB Search, SMS OTP & 18y Majority Detachment
   searchParents: (query = '') =>
     apiFetch<{
@@ -272,6 +295,16 @@ export const apiClient = {
 
   // Coordinator Screen 1 & Public Health Observatory
   getCoordinatorQueue: () => apiFetch<any>('/api/coordinator/queue'),
+
+  coordinatorOutreach: (
+    patientId: string,
+    action: 'call' | 'request_data' | 'request_validation' | 'clinical_review',
+    note?: string
+  ) =>
+    apiFetch<{ status: string; action: string; label: string; loggedAt: string }>(
+      `/api/coordinator/patients/${encodeURIComponent(patientId)}/outreach`,
+      { method: 'POST', body: JSON.stringify({ action, note }) }
+    ),
 
   simulateLogistics: (payload: Record<string, any>) =>
     apiFetch<any>('/api/coordinator/simulate-logistics', {
