@@ -155,6 +155,9 @@ export const apiClient = {
   getPatientPortalProfile: (id: string) =>
     apiFetch<any>(`/api/patient/profile/${id}`),
 
+  exportPatientData: (id: string, locale?: Locale) =>
+    apiFetch<any>(`/api/patient/profile/${id}/export${locale ? `?locale=${locale}` : ''}`),
+
   submitSelfAssessment: (id: string, payload: Record<string, any>) =>
     apiFetch<any>(`/api/patient/profile/${id}/self-assessment`, {
       method: 'POST',
@@ -314,4 +317,6 @@ export const apiClient = {
 
   getObservatorySummary: (seed = 20261120, scenario = 'baseline') =>
     apiFetch<any>(`/api/observatory/summary?seed=${seed}&scenario=${encodeURIComponent(scenario)}`),
+
+  getLiveOperations: () => apiFetch<any>('/api/observatory/live'),
 };

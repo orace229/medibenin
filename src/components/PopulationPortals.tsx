@@ -37,6 +37,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
 
   const [coordData, setCoordData] = useState<any>(null);
   const [obsData, setObsData] = useState<any>(null);
+  const [liveOps, setLiveOps] = useState<any>(null);
   const [obsScenario, setObsScenario] = useState<string>('baseline');
   const [activeQueueTab, setActiveQueueTab] = useState<'prioritized' | 'red' | 'grey'>('prioritized');
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -79,8 +80,12 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
         setCoordData(c);
         setFamilyData(fam);
       } else {
-        const o = await apiClient.getObservatorySummary(seedRef, obsScenario);
+        const [o, live] = await Promise.all([
+          apiClient.getObservatorySummary(seedRef, obsScenario),
+          apiClient.getLiveOperations().catch(() => null),
+        ]);
         setObsData(o);
+        setLiveOps(live);
       }
     } catch (err) {
       console.error(err);
@@ -132,22 +137,34 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
   const coordinatorBlockedAction = (item: any): {
     action: 'request_data' | 'request_validation' | 'clinical_review';
     label: string;
+    className: string;
+    tooltip: string;
+    stepBadge: string;
   } => {
     if (item.overallLevel === 'red') {
       return {
         action: 'clinical_review',
-        label: isFr ? 'Revue clinique' : 'Clinical review',
+        label: isFr ? '⚕️ Revue clinique' : '⚕️ Clinical review',
+        className: 'px-3 py-1.5 rounded-xl bg-red-50 border-2 border-red-300 text-red-800 text-[11px] font-bold hover:bg-red-100 cursor-pointer inline-flex items-center gap-1.5 transition-colors active:scale-95',
+        tooltip: isFr ? 'Patient Rouge : revue clinique obligatoire avant invitation' : 'Red-level patient: clinical review required before invitation',
+        stepBadge: isFr ? 'Revue clinique requise' : 'Clinical review required',
       };
     }
     if (item.overallLevel === 'grey') {
       return {
         action: 'request_data',
-        label: isFr ? 'Demander les données' : 'Request data',
+        label: isFr ? '📋 Demander les données' : '📋 Request data',
+        className: 'px-3 py-1.5 rounded-xl bg-slate-100 border-2 border-slate-300 text-slate-800 text-[11px] font-bold hover:bg-slate-200 cursor-pointer inline-flex items-center gap-1.5 transition-colors active:scale-95',
+        tooltip: isFr ? 'Données de base manquantes : collecte requise avant invitation' : 'Missing baseline data: collection required before invitation',
+        stepBadge: isFr ? 'Données manquantes' : 'Data needed',
       };
     }
     return {
       action: 'request_validation',
-      label: isFr ? 'Relancer le clinicien' : 'Prompt clinician',
+      label: isFr ? '✓ Relancer le clinicien' : '✓ Prompt clinician',
+      className: 'px-3 py-1.5 rounded-xl bg-amber-50 border-2 border-amber-300 text-amber-800 text-[11px] font-bold hover:bg-amber-100 cursor-pointer inline-flex items-center gap-1.5 transition-colors active:scale-95',
+      tooltip: isFr ? 'Validation clinique nécessaire avant envoi d\'invitation' : 'Clinical validation required before sending invitation',
+      stepBadge: isFr ? 'Validation requise' : 'Validation needed',
     };
   };
 
@@ -247,6 +264,15 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
   const falseNegativeRange = falseNegativeProps.length
     ? `${Math.min(...falseNegativeProps)}–${Math.max(...falseNegativeProps)}%`
     : '—';
+
+  const funnelLabels: Record<string, string> = {
+    evaluated: isFr ? 'Évalués' : 'Evaluated',
+    flagged: isFr ? 'Alertés' : 'Flagged',
+    validated: isFr ? 'Validés clinicien' : 'Clinician-validated',
+    invited: isFr ? 'Invités' : 'Invited',
+    responded: isFr ? 'Réponse patient' : 'Patient responded',
+    completed: isFr ? 'Visites complétées' : 'Completed visits',
+  };
 
   return (
     <div className="min-h-screen ambient-mesh text-[#334155] flex flex-col">
@@ -688,8 +714,21 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                         </span>
                       </div>
 
-                      <div className="pt-2 border-t border-[#E2E8F0] flex items-center justify-between gap-2">
-                        <StatusChip state={item.recommendationState} />
+                      <div className="pt-2 border-t border-[#E2E8F0] space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <StatusChip state={item.recommendationState} />
+                            {!canSendInvitation(item) && (
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap ${
+                                item.overallLevel === 'red' ? 'bg-red-100 text-red-800 border border-red-200' :
+                                item.overallLevel === 'grey' ? 'bg-slate-100 text-slate-700 border border-slate-200' :
+                                'bg-amber-100 text-amber-800 border border-amber-200'
+                              }`}>
+                                {coordinatorBlockedAction(item).stepBadge}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                         <div className="flex items-center gap-1.5">
                           {canSendInvitation(item) ? (
                             <button
@@ -706,7 +745,8 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                               onClick={() =>
                                 handleCoordinatorOutreach(item, coordinatorBlockedAction(item).action)
                               }
-                              className="px-2.5 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[10px] font-semibold text-[#0B3B3C] hover:bg-[#F0FDFA] cursor-pointer"
+                              className={coordinatorBlockedAction(item).className}
+                              title={coordinatorBlockedAction(item).tooltip}
                             >
                               {coordinatorBlockedAction(item).label}
                             </button>
@@ -714,7 +754,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                           <button
                             type="button"
                             onClick={() => handleCoordinatorOutreach(item, 'call')}
-                            className="px-3 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] font-semibold inline-flex items-center gap-1 cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] font-semibold inline-flex items-center gap-1 cursor-pointer hover:bg-[#F0FDFA] transition-colors"
                           >
                             <PhoneCall className="w-3 h-3" />
                             <span>Call</span>
@@ -773,7 +813,18 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                             </span>
                           </td>
                           <td className="py-3 px-3">
-                            <StatusChip state={item.recommendationState} />
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <StatusChip state={item.recommendationState} />
+                              {!canSendInvitation(item) && (
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap ${
+                                  item.overallLevel === 'red' ? 'bg-red-100 text-red-800 border border-red-200' :
+                                  item.overallLevel === 'grey' ? 'bg-slate-100 text-slate-700 border border-slate-200' :
+                                  'bg-amber-100 text-amber-800 border border-amber-200'
+                                }`}>
+                                  {coordinatorBlockedAction(item).stepBadge}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="py-3 px-3 text-end">
                             <div className="inline-flex items-center gap-1.5">
@@ -792,7 +843,8 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                                   onClick={() =>
                                     handleCoordinatorOutreach(item, coordinatorBlockedAction(item).action)
                                   }
-                                  className="px-2.5 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[10px] font-semibold text-[#0B3B3C] hover:bg-[#F0FDFA] cursor-pointer"
+                                  className={coordinatorBlockedAction(item).className}
+                                  title={coordinatorBlockedAction(item).tooltip}
                                 >
                                   {coordinatorBlockedAction(item).label}
                                 </button>
@@ -800,7 +852,7 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleCoordinatorOutreach(item, 'call')}
-                                className="px-3 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] font-semibold inline-flex items-center gap-1 cursor-pointer"
+                                className="px-3 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] font-semibold inline-flex items-center gap-1 cursor-pointer hover:bg-[#F0FDFA] transition-colors"
                               >
                                 <PhoneCall className="w-3 h-3" />
                                 <span>Call</span>
@@ -848,6 +900,121 @@ export const PopulationPortals: React.FC<PopulationPortalsProps> = ({
                   </select>
                 </label>
               </div>
+
+              {liveOps && (
+                <GlassCard interactive={false} className="space-y-4 border border-[#0F6B6B]/30">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
+                        {isFr
+                          ? 'Opérations réelles (base de démonstration)'
+                          : 'Live operations (demo database)'}
+                      </span>
+                      <h2 className="text-base font-bold text-[#0B3B3C] font-heading">
+                        {isFr ? 'Funnel du parcours préventif' : 'Preventive pathway funnel'}
+                      </h2>
+                      <p className="text-xs text-[#64748B] max-w-2xl">
+                        {isFr
+                          ? 'Calculé sur les dossiers de la base courante, séparément du benchmark synthétique ci-dessous. Agrégats uniquement — aucun identifiant patient.'
+                          : 'Computed from the current database records, separately from the synthetic benchmark below. Aggregates only — no patient identifiers.'}
+                      </p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-lg bg-[#F0FDFA] border border-[#D5F2EE] text-[10px] font-bold text-[#0B3B3C]">
+                      n={liveOps.cohort.totalPatients} · {String(liveOps.generatedAt).slice(0, 10)}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+                    {(liveOps.funnel || []).slice(1).map((step: any) => (
+                      <div
+                        key={step.key}
+                        className="rounded-2xl border border-[#E2E8F0] bg-white p-3 space-y-1"
+                      >
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
+                          {funnelLabels[step.key] || step.key}
+                        </p>
+                        <p className="text-xl font-extrabold text-[#0B3B3C] font-heading tabular-nums">
+                          {step.count}
+                        </p>
+                        <p className="text-[11px] text-[#64748B] tabular-nums">
+                          {step.ratePct}% [{step.wilson.lower}–{step.wilson.upper}%]
+                          {step.conversionFromPreviousPct !== null
+                            ? ` · ${isFr ? 'conv.' : 'conv.'} ${step.conversionFromPreviousPct}%`
+                            : ''}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                    <div className="rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
+                        {isFr ? 'Visites complétées' : 'Completed visits'}
+                      </p>
+                      <p className="text-lg font-extrabold text-[#0B3B3C] font-heading tabular-nums">
+                        {liveOps.outcomes.completedVisits}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
+                        {isFr ? 'Refus informés' : 'Informed refusals'}
+                      </p>
+                      <p className="text-lg font-extrabold text-[#0B3B3C] font-heading tabular-nums">
+                        {liveOps.outcomes.informedRefusals}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
+                        {isFr ? 'Dossiers en retard' : 'Open cases past due'}
+                      </p>
+                      <p className="text-lg font-extrabold text-[#B45309] font-heading tabular-nums">
+                        {liveOps.outcomes.openCasesPastDue}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
+                        {isFr ? 'Délai médian de clôture' : 'Median closure time'}
+                      </p>
+                      <p className="text-lg font-extrabold text-[#0B3B3C] font-heading tabular-nums">
+                        {liveOps.timeToClosure.medianDays === null
+                          ? '—'
+                          : `${liveOps.timeToClosure.medianDays} ${isFr ? 'j' : 'd'}`}
+                      </p>
+                      <p className="text-[10px] text-[#64748B]">
+                        n={liveOps.timeToClosure.completedCases} · {isFr ? 'proxy' : 'proxy'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] text-[#64748B]">
+                    <span>
+                      {isFr ? 'Rappels enregistrés' : 'Reminders recorded'}:{' '}
+                      <strong className="text-[#0B3B3C]">
+                        {liveOps.reminders.totalRemindersSentCount}
+                      </strong>{' '}
+                      ({liveOps.reminders.patientsWithReminders} {isFr ? 'patients' : 'patients'})
+                    </span>
+                    <span>
+                      {isFr ? 'Consentement rappels' : 'Reminder consent'}:{' '}
+                      <strong className="text-[#0B3B3C]">
+                        {liveOps.consentCoverage.channelReminders}%
+                      </strong>
+                    </span>
+                    <span>
+                      {isFr ? 'Consentement partage' : 'Sharing consent'}:{' '}
+                      <strong className="text-[#0B3B3C]">
+                        {liveOps.consentCoverage.shareWithFacility}%
+                      </strong>
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] leading-relaxed text-[#64748B]">
+                    {isFr
+                      ? 'Limites : délai de clôture approximé par le dernier horodatage de mise à jour ; base amorcée avec des personas synthétiques ; les consentements manquants suivent les valeurs par défaut de l’application.'
+                      : 'Limitations: closure time approximated by the latest state-update timestamp; database seeded with synthetic personas; missing consent rows follow the application defaults.'}
+                  </p>
+                </GlassCard>
+              )}
 
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                 <StatCard

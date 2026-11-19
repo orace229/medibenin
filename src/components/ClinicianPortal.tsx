@@ -153,71 +153,71 @@ interface GuidedAnalysisFormState {
 }
 
 const DEFAULT_ANALYSIS_FORM: GuidedAnalysisFormState = {
-  parentPatientId: 'PT-36Y-TARIQ',
-  displayName: 'Karim Al-Mansoori (Bilan Personnalisé)',
+  parentPatientId: '',
+  displayName: '',
   pathwayType: 'adult',
-  ageYears: '52',
-  ageMonths: '624',
-  gestationalAgeWeeks: '39',
-  sex: 'male',
-  nationalityGroup: 'South Asia',
-  region: 'Abu Dhabi Region',
-  facilityCenter: 'Abu Dhabi Preventive Health Centre',
+  ageYears: '',
+  ageMonths: '',
+  gestationalAgeWeeks: '',
+  sex: '',
+  nationalityGroup: '',
+  region: '',
+  facilityCenter: '',
   preferredLanguage: 'fr',
-  systolicBp1: '148',
-  diastolicBp1: '92',
-  systolicBp2: '134',
-  diastolicBp2: '84',
-  systolicBp3: '136',
-  diastolicBp3: '86',
-  weightKg: '86',
-  heightCm: '172',
-  waistCm: '101',
-  smokingStatus: true,
+  systolicBp1: '',
+  diastolicBp1: '',
+  systolicBp2: '',
+  diastolicBp2: '',
+  systolicBp3: '',
+  diastolicBp3: '',
+  weightKg: '',
+  heightCm: '',
+  waistCm: '',
+  smokingStatus: false,
   dailyPhysicalActivity: false,
   dailyFruitsVeg: false,
-  antihypertensiveMedHistory: true,
+  antihypertensiveMedHistory: false,
   highBloodGlucoseHistory: false,
   familyHistoryDiabetesLevel: 'unknown',
-  hba1cPercent: '6.1',
-  monthsSinceLastGlycemicScreening: '48',
+  hba1cPercent: '',
+  monthsSinceLastGlycemicScreening: '',
   isPregnant: false,
   pregnancyWeeks: '',
-  familyPrematureCvd: true,
+  familyPrematureCvd: false,
   familyBreastOrColorectalCancer: false,
-  colorectalScreeningOverdueMonths: '30',
-  breastScreeningOverdueMonths: '0',
-  cervicalScreeningOverdueMonths: '40',
-  mammographyScreeningOverdueMonths: '30',
+  colorectalScreeningOverdueMonths: '',
+  breastScreeningOverdueMonths: '',
+  cervicalScreeningOverdueMonths: '',
+  mammographyScreeningOverdueMonths: '',
   ifhasFullScreeningDone: 'unknown',
-  ifhasMonthsSinceLast: '18',
+  ifhasMonthsSinceLast: '',
   fallOrSensoryRisk: 'unknown',
-  chronicFollowupInterruptedMonths: '0',
+  chronicFollowupInterruptedMonths: '',
   activeSpecialistFollowup: false,
   orientationLevel: 'none',
   orientationNotAttended: false,
-  daysSinceOrientation: '0',
-  weightForAgeZ: '0.0',
-  heightForAgeZ: '0.0',
-  bmiForAgeZ: '0.0',
-  muacMm: '145',
-  mchatScore: '0',
+  daysSinceOrientation: '',
+  weightForAgeZ: '',
+  heightForAgeZ: '',
+  bmiForAgeZ: '',
+  muacMm: '',
+  mchatScore: '',
   mchatFollowUpScore: '',
-  hearingScreeningDone: true,
-  visionScreeningDone: true,
-  hemoglobinGdl: '13.4',
+  hearingScreeningDone: false,
+  visionScreeningDone: false,
+  hemoglobinGdl: '',
   anemiaScreeningDone: 'unknown',
   adolescentVaccinesUpToDate: 'unknown',
   isZeroDoseChild: 'unknown',
   missedVaccineDoses: '',
-  overdueMonthsWcv: '0',
+  overdueMonthsWcv: '',
   lastWcvAgeMonths: '',
   phqAStatus: 'negative',
-  existingGenomicResult: true,
-  genomicDomain: 'cvd',
+  existingGenomicResult: false,
+  genomicDomain: 'none',
   redFlagWarningSymptom: false,
   redFlagSymptomLabel: '',
-  oldestMeasureMonths: '0',
+  oldestMeasureMonths: '',
   provenanceMode: 'M',
 };
 
@@ -254,6 +254,7 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
   const [showNewAnalysisModal, setShowNewAnalysisModal] = useState(false);
   const [analysisForm, setAnalysisForm] = useState<GuidedAnalysisFormState>(DEFAULT_ANALYSIS_FORM);
   const [submittingAnalysis, setSubmittingAnalysis] = useState(false);
+  const [showExampleScenarios, setShowExampleScenarios] = useState(false);
 
   // Live Parent Database Search (< 18y affiliation) & Majority Detachment Validation (18y+)
   const [parentSearchQuery, setParentSearchQuery] = useState('');
@@ -272,10 +273,10 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const [sysInput, setSysInput] = useState('126');
-  const [diaInput, setDiaInput] = useState('82');
-  const [weightInput, setWeightInput] = useState('68');
-  const [heightInput, setHeightInput] = useState('164');
+  const [sysInput, setSysInput] = useState('');
+  const [diaInput, setDiaInput] = useState('');
+  const [weightInput, setWeightInput] = useState('');
+  const [heightInput, setHeightInput] = useState('');
   const [aiSummaryText, setAiSummaryText] = useState<string | null>(null);
   const [pathwayActionType, setPathwayActionType] = useState<'validate' | 'adapt' | 'defer'>('validate');
   const [pathwayReason, setPathwayReason] = useState('');
@@ -491,6 +492,35 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
       ? Math.abs(Number(analysisForm.diastolicBp1) - Number(analysisForm.diastolicBp2))
       : 0;
   const formRequiresBp3 = bpSpreadSys > 10 || bpSpreadDia > 6;
+
+  // Live BMI preview: computed client-side as the clinician types weight/height
+  const liveBmi =
+    analysisForm.weightKg && analysisForm.heightCm && Number(analysisForm.heightCm) > 0
+      ? (Number(analysisForm.weightKg) / Math.pow(Number(analysisForm.heightCm) / 100, 2)).toFixed(1)
+      : null;
+  const liveBmiCategory = liveBmi
+    ? Number(liveBmi) < 18.5
+      ? { label: isFr ? 'Insuffisance pondérale' : 'Underweight', color: 'text-amber-700 bg-amber-50 border-amber-200' }
+      : Number(liveBmi) < 25
+      ? { label: isFr ? 'Normal' : 'Normal', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' }
+      : Number(liveBmi) < 30
+      ? { label: isFr ? 'Surpoids' : 'Overweight', color: 'text-orange-700 bg-orange-50 border-orange-200' }
+      : { label: isFr ? 'Obésité' : 'Obese', color: 'text-red-700 bg-red-50 border-red-200' }
+    : null;
+
+  // Live BP retained mean preview
+  const liveBpRetainedSys =
+    analysisForm.systolicBp1 && analysisForm.systolicBp2
+      ? formRequiresBp3 && analysisForm.systolicBp3
+        ? Math.round((Number(analysisForm.systolicBp2) + Number(analysisForm.systolicBp3)) / 2)
+        : Math.round((Number(analysisForm.systolicBp1) + Number(analysisForm.systolicBp2)) / 2)
+      : null;
+  const liveBpRetainedDia =
+    analysisForm.diastolicBp1 && analysisForm.diastolicBp2
+      ? formRequiresBp3 && analysisForm.diastolicBp3
+        ? Math.round((Number(analysisForm.diastolicBp2) + Number(analysisForm.diastolicBp3)) / 2)
+        : Math.round((Number(analysisForm.diastolicBp1) + Number(analysisForm.diastolicBp2)) / 2)
+      : null;
 
   const applyPresetScenario = (preset: 'adult_cvd' | 'south_asia_findrisc' | 'child_preterm' | 'red_escape') => {
     if (preset === 'adult_cvd') {
@@ -877,38 +907,59 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
         </div>
 
         {!analysisForm.patientId && (
-          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-            <span className="font-semibold text-[#64748B] me-1">
-              {isFr ? 'Cas types rapides :' : 'Quick presets:'}
-            </span>
+          <div className="space-y-2">
+            {/* Manual entry mode indicator */}
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#F0FDF4] border border-emerald-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="text-[11px] font-bold text-emerald-800">
+                {isFr
+                  ? '✏️ Mode saisie manuelle — entrez les données du patient ci-dessous pour un calcul dynamique des risques'
+                  : '✏️ Manual entry mode — enter patient data below for dynamic risk calculation'}
+              </span>
+            </div>
+
+            {/* Collapsible example scenarios */}
             <button
               type="button"
-              onClick={() => applyPresetScenario('adult_cvd')}
-              className="px-2.5 py-1 rounded-lg bg-[#F0FDFA] border border-[#99F6E4] text-[#0B3B3C] font-semibold hover:bg-[#CCFBF1]"
+              onClick={() => setShowExampleScenarios(!showExampleScenarios)}
+              className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#64748B] hover:text-[#0B3B3C] transition-colors"
             >
-              {isFr ? 'Adulte CV + FINDRISC' : 'Adult CVD + FINDRISC'}
+              <span>{showExampleScenarios ? '▼' : '▶'}</span>
+              <span>{isFr ? '📋 Exemples cliniques (optionnel)' : '📋 Clinical examples (optional)'}</span>
             </button>
-            <button
-              type="button"
-              onClick={() => applyPresetScenario('south_asia_findrisc')}
-              className="px-2.5 py-1 rounded-lg bg-[#F0FDFA] border border-[#99F6E4] text-[#0B3B3C] font-semibold hover:bg-[#CCFBF1]"
-            >
-              {isFr ? 'Asie du Sud (Âge <40 ans)' : 'South Asia (Age <40y)'}
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPresetScenario('child_preterm')}
-              className="px-2.5 py-1 rounded-lg bg-[#F0FDFA] border border-[#99F6E4] text-[#0B3B3C] font-semibold hover:bg-[#CCFBF1]"
-            >
-              {isFr ? 'Enfant Prématuré 32 SA (<18a Affilié)' : 'Preterm Child 32w (<18y Affiliated)'}
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPresetScenario('red_escape')}
-              className="px-2.5 py-1 rounded-lg bg-[#FEF2F2] border border-red-200 text-[#991B1B] font-semibold hover:bg-red-100"
-            >
-              {isFr ? 'Urgence Rouge' : 'Red Flag'}
-            </button>
+
+            {showExampleScenarios && (
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px] ps-4">
+                <button
+                  type="button"
+                  onClick={() => applyPresetScenario('adult_cvd')}
+                  className="px-2.5 py-1 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] font-semibold hover:bg-[#F0FDFA] hover:border-[#99F6E4] hover:text-[#0B3B3C] transition-colors"
+                >
+                  {isFr ? 'Adulte CV + FINDRISC' : 'Adult CVD + FINDRISC'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPresetScenario('south_asia_findrisc')}
+                  className="px-2.5 py-1 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] font-semibold hover:bg-[#F0FDFA] hover:border-[#99F6E4] hover:text-[#0B3B3C] transition-colors"
+                >
+                  {isFr ? 'Asie du Sud (Âge <40 ans)' : 'South Asia (Age <40y)'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPresetScenario('child_preterm')}
+                  className="px-2.5 py-1 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] font-semibold hover:bg-[#F0FDFA] hover:border-[#99F6E4] hover:text-[#0B3B3C] transition-colors"
+                >
+                  {isFr ? 'Enfant Prématuré 32 SA (<18a Affilié)' : 'Preterm Child 32w (<18y Affiliated)'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPresetScenario('red_escape')}
+                  className="px-2.5 py-1 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] font-semibold hover:bg-[#FEF2F2] hover:border-red-200 hover:text-[#991B1B] transition-colors"
+                >
+                  {isFr ? 'Urgence Rouge' : 'Red Flag'}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1260,6 +1311,30 @@ export const ClinicianPortal: React.FC<ClinicianPortalProps> = ({
               </select>
             </div>
           </div>
+
+          {/* Live BMI & BP preview chips */}
+          {(liveBmi || liveBpRetainedSys) && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {liveBmi && liveBmiCategory && (
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold ${liveBmiCategory.color}`}>
+                  <Calculator className="w-3.5 h-3.5" />
+                  IMC: {liveBmi} kg/m² — {liveBmiCategory.label}
+                </span>
+              )}
+              {liveBpRetainedSys && liveBpRetainedDia && (
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold ${
+                  liveBpRetainedSys >= 140 || liveBpRetainedDia >= 90
+                    ? 'text-red-700 bg-red-50 border-red-200'
+                    : liveBpRetainedSys >= 130 || liveBpRetainedDia >= 85
+                    ? 'text-amber-700 bg-amber-50 border-amber-200'
+                    : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                }`}>
+                  <HeartPulse className="w-3.5 h-3.5" />
+                  {isFr ? 'TA retenue' : 'Retained BP'}: {liveBpRetainedSys}/{liveBpRetainedDia} mmHg
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

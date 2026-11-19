@@ -1,5 +1,10 @@
 import 'dotenv/config';
 import express from 'express';
+import type { Response } from 'express';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import cors from 'cors';
+import { z } from 'zod';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as dotenv from 'dotenv';
@@ -56,17 +61,110 @@ import { GROWTH_REFERENCE_METADATA } from './src/server/growthReference.ts';
 import { resolvePathwayConflict, type PathwayState } from './src/server/syncConflicts.ts';
 import { evaluateInvitationPolicy, isPurposeAllowed } from './src/server/pathwayPolicy.ts';
 import { buildReminderPlan, buildScreeningPlan } from './src/server/screeningPlan.ts';
+import { computeLiveOperations } from './src/server/liveOperations.ts';
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ── Request validation schemas (mutating endpoints) ──────────────────────────
+// Zod strips unknown keys by default: the patient portal may send the full
+// consent row back, and only the recognised purposes are persisted.
+const consentUpdateSchema = z.object({
+  evaluationAndCalendar: z.boolean().optional(),
+  channelReminders: z.boolean().optional(),
+  shareWithFacility: z.boolean().optional(),
+  anonymousStatistics: z.boolean().optional(),
+  existingGenomicResult: z.boolean().optional(),
+});
+
+const preferencesUpdateSchema = z.object({
+  preferredLanguage: z.enum(['en', 'fr', 'ar']).optional(),
+  preferredChannel: z.enum(['SMS', 'WhatsApp', 'App']).optional(),
+  preferFemalePractitioner: z.boolean().optional(),
+});
+
+const scheduleReminderSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'date must use YYYY-MM-DD'),
+});
+
+const sendReminderSchema = z.object({
+  kind: z.enum(['upcoming', 'missed']).optional(),
+});
+
+const outreachSchema = z.object({
+  action: z.enum(['call', 'request_data', 'request_validation', 'clinical_review']),
+  note: z.string().max(500).optional(),
+});
+
+const recommendationResponseSchema = z.object({
+  responseType: z.enum(['confirm', 'postpone', 'refuse']),
+  newDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+
+function validateBody<T>(schema: z.ZodType<T>, body: unknown, res: Response): T | null {
+  const parsed = schema.safeParse(body ?? {});
+  if (!parsed.success) {
+    res.status(400).json({
+      error: 'Invalid request body',
+      details: parsed.error.issues.map((issue) => ({
+        path: issue.path.join('.'),
+        message: issue.message,
+      })),
+    });
+    return null;
+  }
+  return parsed.data;
+}
+
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT || 3000);
 
-  app.use(express.json());
+  app.disable('x-powered-by');
+  app.set('trust proxy', 1);
+
+  // Security headers. CSP is disabled because the Vite dev middleware injects
+  // inline bootstrap scripts; production can enable a strict policy once the
+  // bundle is served statically. COEP is disabled so the local Vite client can
+  // load its assets without cross-origin isolation errors.
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+    })
+  );
+
+  // CORS is deny-by-default. Same-origin requests do not need CORS at all;
+  // deployments that need a separate frontend can set CORS_ORIGINS as a
+  // comma-separated allowlist.
+  const corsAllowlist = (process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  app.use(
+    cors({
+      origin: corsAllowlist.length > 0 ? corsAllowlist : false,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      maxAge: 600,
+    })
+  );
+
+  // Simple abuse guard for the API. The demo/jury workload is far below this.
+  app.use(
+    '/api',
+    rateLimit({
+      windowMs: 60_000,
+      limit: 300,
+      standardHeaders: 'draft-8',
+      legacyHeaders: false,
+      message: { error: 'Too many requests. Please retry shortly.' },
+    })
+  );
+
+  app.use(express.json({ limit: '1mb' }));
 
   // In-memory store for 6-digit SMS OTP family verification codes
   const familySmsOtpStore = new Map<string, { code: string; expiresAt: number }>();
@@ -1875,6 +1973,120 @@ async function startServer() {
     }
   });
 
+  // Patient right of access: a real, downloadable JSON copy of the record.
+  // Unlike the old simulated download, this endpoint returns an actual bundle,
+  // writes an access log entry, and never exports the referral HMAC secret.
+  app.get('/api/patient/profile/:id/export', requireAuth, requireRole('patient', 'parent'), requirePatientScope(), async (req: AuthRequest, res) => {
+    try {
+      await ensureInit();
+      const patientId = req.params.id;
+      const [pRows, pFlags, pRecs, pConsents, pNotifs, pLogs] = await Promise.all([
+        db.select().from(patients).where(eq(patients.id, patientId)),
+        db.select().from(flags).where(eq(flags.patientId, patientId)),
+        db.select().from(recommendations).where(eq(recommendations.patientId, patientId)),
+        db.select().from(consents).where(eq(consents.patientId, patientId)),
+        db
+          .select()
+          .from(notifications)
+          .where(eq(notifications.patientId, patientId))
+          .orderBy(desc(notifications.sentAt)),
+        db
+          .select()
+          .from(usageLogs)
+          .where(eq(usageLogs.patientId, patientId))
+          .orderBy(desc(usageLogs.id)),
+      ]);
+      const p = pRows[0];
+      if (!p) return res.status(404).json({ error: 'Profile not found' });
+
+      const consentRow = pConsents[0] || null;
+      const evaluationAllowed = isPurposeAllowed(consentRow, 'evaluationAndCalendar');
+      const clinicalProfile = { ...(p.clinicalProfile as Record<string, any>) };
+      if (!consentRow?.existingGenomicResult) {
+        delete clinicalProfile.genomicSignal;
+      }
+
+      const exportedAt = new Date().toISOString();
+      const locale = ['en', 'fr', 'ar'].includes(String(req.query.locale))
+        ? (String(req.query.locale) as 'en' | 'fr' | 'ar')
+        : ((p.preferredLanguage as 'en' | 'fr' | 'ar') || 'en');
+
+      const screeningPlan = evaluationAllowed
+        ? await computeScreeningPlanFor(patientId, locale)
+        : null;
+      const reminderPlan = await computeReminderPlanFor(patientId, locale);
+
+      const bundle = {
+        schema: 'medibenin.patient-export.v1',
+        exportedAt,
+        requestedBy: {
+          role: (req.user as any)?.role || 'patient',
+          displayName: req.user?.displayName || 'Patient / Family',
+        },
+        subject: {
+          id: p.id,
+          displayName: p.displayName,
+          ageYears: p.ageYears,
+          ageMonths: p.ageMonths,
+          sex: p.sex,
+          pathwayType: p.pathwayType,
+          region: p.region,
+          preferredLanguage: p.preferredLanguage,
+          preferredChannel: p.preferredChannel,
+          facilityCenter: p.facilityCenter,
+          overallLevel: p.overallLevel,
+          overallCertainty: p.overallCertainty,
+          nextDueDate: p.nextDueDate,
+        },
+        consents: consentRow,
+        clinicalProfile,
+        flags: pFlags,
+        recommendation: pRecs[0]
+          ? {
+              id: pRecs[0].id,
+              pathwayTitle: pRecs[0].pathwayTitle,
+              groupedActions: pRecs[0].groupedActions,
+              state: pRecs[0].state,
+              dueDate: pRecs[0].dueDate,
+              scheduledDate: pRecs[0].scheduledDate,
+              facilityName: pRecs[0].facilityName,
+              // Display code only: the HMAC secret is never exported.
+              referralCodeDisplay: pRecs[0].referralCodeDisplay,
+              decisionAidText: pRecs[0].decisionAidText,
+            }
+          : null,
+        screeningPlan,
+        reminderPlan,
+        notifications: pNotifs,
+        accessLog: pLogs,
+        limitations: [
+          'Synthetic demo data; this is not a certified medical record.',
+          'The 8-character referral pass is included for continuity; its HMAC secret is never exported.',
+          'Clinical decisions remain with a licensed clinician.',
+        ],
+      };
+
+      await db.insert(usageLogs).values({
+        patientId,
+        actorName: req.user?.displayName || 'Patient / Family',
+        actorRole: 'Patient / Family',
+        dataCategory: 'Patient Data Portability Export',
+        purposeDescription:
+          'Downloaded a complete JSON copy of the personal record (right of access)',
+        ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
+      });
+
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="medibenin-${p.id}-${exportedAt.slice(0, 10)}.json"`
+      );
+      res.type('application/json').send(JSON.stringify(bundle, null, 2));
+    } catch (error: any) {
+      console.error('Error exporting patient data:', error);
+      res.status(500).json({ error: 'Failed to export patient data' });
+    }
+  });
+
   // Personalized screening planner (server-computed from signed rules + schedules)
   app.get('/api/patient/profile/:id/screening-plan', requireAuth, requireRole('patient', 'parent'), requirePatientScope(), async (req: AuthRequest, res) => {
     try {
@@ -1921,7 +2133,9 @@ async function startServer() {
     try {
       await ensureInit();
       const patientId = req.params.id;
-      const date = String(req.body?.date || '');
+      const payload = validateBody(scheduleReminderSchema, req.body, res);
+      if (!payload) return;
+      const date = payload.date;
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
         return res.status(400).json({ error: 'A valid appointment date (YYYY-MM-DD) is required.' });
       }
@@ -1972,7 +2186,9 @@ async function startServer() {
     try {
       await ensureInit();
       const patientId = req.params.id;
-      const requestedKind = req.body?.kind === 'missed' ? 'missed' : 'upcoming';
+      const payload = validateBody(sendReminderSchema, req.body, res);
+      if (!payload) return;
+      const requestedKind = payload.kind === 'missed' ? 'missed' : 'upcoming';
       const pRows = await db.select().from(patients).where(eq(patients.id, patientId));
       if (!pRows[0]) return res.status(404).json({ error: 'Profile not found' });
 
@@ -2058,7 +2274,14 @@ async function startServer() {
       });
 
       const refreshed = await computeReminderPlanFor(patientId);
-      res.json({ status: 'sent', notificationId, channel: plan.channel, slot, plan: refreshed });
+      res.json({
+        status: 'sent',
+        delivery: 'simulated',
+        notificationId,
+        channel: plan.channel,
+        slot,
+        plan: refreshed,
+      });
     } catch (error: any) {
       console.error('Error sending smart reminder:', error);
       res.status(500).json({ error: 'Failed to send the reminder' });
@@ -2071,11 +2294,9 @@ async function startServer() {
     try {
       await ensureInit();
       const patientId = req.params.id;
-      const action = String(req.body?.action || '');
-      const allowedActions = ['call', 'request_data', 'request_validation', 'clinical_review'];
-      if (!allowedActions.includes(action)) {
-        return res.status(400).json({ error: `action must be one of: ${allowedActions.join(', ')}` });
-      }
+      const payload = validateBody(outreachSchema, req.body, res);
+      if (!payload) return;
+      const action = payload.action;
       const pRows = await db.select().from(patients).where(eq(patients.id, patientId));
       if (!pRows[0]) return res.status(404).json({ error: 'Patient not found' });
       const p = pRows[0];
@@ -2156,7 +2377,7 @@ async function startServer() {
         actorName: req.user?.displayName || 'Care Coordinator',
         actorRole: 'Care Coordinator',
         dataCategory: 'Care Coordination Outreach',
-        purposeDescription: `${actionLabels[action]}${req.body?.note ? ` — ${String(req.body.note).slice(0, 180)}` : ''}`,
+        purposeDescription: `${actionLabels[action]}${payload.note ? ` — ${String(payload.note).slice(0, 180)}` : ''}`,
         ruleVersionRef: 'ABU_DHABI_WCV_IFHAS_V8 (Signed)',
       });
 
@@ -2651,10 +2872,9 @@ async function startServer() {
     try {
       await ensureInit();
       const patientId = req.params.id;
-      const { responseType, newDate } = req.body; // 'confirm' | 'postpone' | 'refuse'
-      if (!['confirm', 'postpone', 'refuse'].includes(responseType)) {
-        return res.status(400).json({ error: 'responseType must be confirm, postpone or refuse.' });
-      }
+      const payload = validateBody(recommendationResponseSchema, req.body, res);
+      if (!payload) return;
+      const { responseType, newDate } = payload;
 
       const nextState =
         responseType === 'confirm'
@@ -2706,13 +2926,15 @@ async function startServer() {
     try {
       await ensureInit();
       const patientId = req.params.id;
+      const payload = validateBody(consentUpdateSchema, req.body, res);
+      if (!payload) return;
       const {
         evaluationAndCalendar,
         channelReminders,
         shareWithFacility,
         anonymousStatistics,
         existingGenomicResult,
-      } = req.body;
+      } = payload;
 
       const currentConsent = await getConsentRow(patientId);
       const nextConsents = {
@@ -2860,7 +3082,9 @@ async function startServer() {
     try {
       await ensureInit();
       const patientId = req.params.id;
-      const { preferredLanguage, preferredChannel, preferFemalePractitioner } = req.body;
+      const payload = validateBody(preferencesUpdateSchema, req.body, res);
+      if (!payload) return;
+      const { preferredLanguage, preferredChannel, preferFemalePractitioner } = payload;
       const updated = await db
         .update(patients)
         .set({
@@ -3021,6 +3245,65 @@ async function startServer() {
     } catch (error: any) {
       console.error('Error building observatory summary:', error);
       res.status(500).json({ error: 'Failed to load observatory data' });
+    }
+  });
+
+  // Live operational funnel from the current database. Aggregates only: this
+  // endpoint never returns a patient identifier and is restricted to the
+  // public_health role (same deny-by-default policy as the observatory).
+  app.get('/api/observatory/live', requireAuth, requireRole('public_health'), async (_req: AuthRequest, res) => {
+    try {
+      await ensureInit();
+      const [pRows, rRows, nRows, cRows, fRows] = await Promise.all([
+        db
+          .select({
+            id: patients.id,
+            pathwayType: patients.pathwayType,
+            overallLevel: patients.overallLevel,
+          })
+          .from(patients),
+        db
+          .select({
+            patientId: recommendations.patientId,
+            state: recommendations.state,
+            level: recommendations.level,
+            dueDate: recommendations.dueDate,
+            scheduledDate: recommendations.scheduledDate,
+            updatedAt: recommendations.updatedAt,
+            remindersSentCount: recommendations.remindersSentCount,
+          })
+          .from(recommendations),
+        db
+          .select({
+            patientId: notifications.patientId,
+            channel: notifications.channel,
+            sentAt: notifications.sentAt,
+          })
+          .from(notifications),
+        db
+          .select({
+            patientId: consents.patientId,
+            evaluationAndCalendar: consents.evaluationAndCalendar,
+            channelReminders: consents.channelReminders,
+            shareWithFacility: consents.shareWithFacility,
+            anonymousStatistics: consents.anonymousStatistics,
+          })
+          .from(consents),
+        db.select({ patientId: flags.patientId, level: flags.level }).from(flags),
+      ]);
+
+      res.json(
+        computeLiveOperations({
+          patients: pRows,
+          recommendations: rRows,
+          notifications: nRows,
+          consents: cRows,
+          flags: fRows,
+        })
+      );
+    } catch (error: any) {
+      console.error('Error building live operations snapshot:', error);
+      res.status(500).json({ error: 'Failed to load live operations data' });
     }
   });
   // =========================================================================

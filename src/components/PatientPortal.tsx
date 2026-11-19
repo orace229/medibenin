@@ -25,6 +25,7 @@ import {
   Send,
   CalendarClock,
   Play,
+  Calculator,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -329,7 +330,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [loading, setLoading] = useState(true);
   const [showDecisionAid, setShowDecisionAid] = useState(false);
   const [showReschedulePicker, setShowReschedulePicker] = useState(false);
-  const [rescheduleDate, setRescheduleDate] = useState('2026-12-04');
+  const [rescheduleDate, setRescheduleDate] = useState('');
   const [feedbackBanner, setFeedbackBanner] = useState<string | null>(null);
   const [notifFilter, setNotifFilter] = useState<'all' | 'unread' | 'action'>('all');
   const [isAnalyzingRisk, setIsAnalyzingRisk] = useState(false);
@@ -341,9 +342,10 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [reminderPlan, setReminderPlan] = useState<any>(null);
   const [planLoading, setPlanLoading] = useState(false);
   const [reminderBusy, setReminderBusy] = useState(false);
-  const [scheduleDate, setScheduleDate] = useState('2026-12-04');
+  const [scheduleDate, setScheduleDate] = useState('');
   const [manualMode, setManualMode] = useState(false);
   const [lastAssessment, setLastAssessment] = useState<any>(null);
+  const [exporting, setExporting] = useState(false);
 
   // SMS OTP Gate for accessing affiliated children (<18y or attached 18y)
   const [verifiedChildIds, setVerifiedChildIds] = useState<string[]>([]);
@@ -652,6 +654,34 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     }
   };
 
+  const handleExportData = async () => {
+    try {
+      setExporting(true);
+      const bundle = await apiClient.exportPatientData(activePatientId, locale);
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `medibenin-${activePatientId}-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setFeedbackBanner(
+        isFr
+          ? 'Votre export de données a été téléchargé (JSON). Une entrée a été ajoutée à votre journal d’accès.'
+          : 'Your data export has been downloaded (JSON). An entry was added to your access log.'
+      );
+      await loadProfile(activePatientId);
+    } catch (err: any) {
+      setFeedbackBanner(
+        err?.message || (isFr ? 'Échec de l’export des données.' : 'Data export failed.')
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handlePatientChoice = async (choice: 'confirm' | 'postpone' | 'refuse') => {
     try {
       await apiClient.respondToRecommendation(
@@ -713,6 +743,39 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const activeReminders = reminderPlan || data?.reminderPlan || null;
   const planItems: any[] = activePlan?.items || [];
   const todayDate = new Date().toISOString().slice(0, 10);
+
+  // Live BMI preview from self-assessment form
+  const selfLiveBmi = (() => {
+    const w = parseFloat(selfForm.weightKg);
+    const h = parseFloat(selfForm.heightCm);
+    if (!w || !h || w <= 0 || h <= 0) return null;
+    const hm = h / 100;
+    return Math.round((w / (hm * hm)) * 10) / 10;
+  })();
+  const selfLiveBmiCategory = selfLiveBmi
+    ? selfLiveBmi < 18.5
+      ? { label: isFr ? 'Insuffisance pondérale' : 'Underweight', color: 'text-blue-700 bg-blue-50 border-blue-200' }
+      : selfLiveBmi < 25
+      ? { label: isFr ? 'Normal' : 'Normal', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' }
+      : selfLiveBmi < 30
+      ? { label: isFr ? 'Surpoids' : 'Overweight', color: 'text-amber-700 bg-amber-50 border-amber-200' }
+      : { label: isFr ? 'Obésité' : 'Obese', color: 'text-red-700 bg-red-50 border-red-200' }
+    : null;
+
+  // Live BP retained mean from self-assessment form
+  const selfLiveBpSys = (() => {
+    const s1 = parseFloat(selfForm.systolicBp1);
+    const s2 = parseFloat(selfForm.systolicBp2);
+    if (!s1 || !s2) return null;
+    return Math.round((s1 + s2) / 2);
+  })();
+  const selfLiveBpDia = (() => {
+    const d1 = parseFloat(selfForm.diastolicBp1);
+    const d2 = parseFloat(selfForm.diastolicBp2);
+    if (!d1 || !d2) return null;
+    return Math.round((d1 + d2) / 2);
+  })();
+
   const riskMetrics = [
     {
       label: isFr ? 'Risque cardiovasculaire' : 'Cardiovascular risk',
@@ -1263,6 +1326,101 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               {/* TAB 1: HOME */}
               {activeTab === 'home' && (
                 <div className="space-y-6">
+                  {/* Critical risk alert banner — prominent animated alert for RED/ORANGE levels */}
+                  {profile.overallLevel === 'red' && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="rounded-2xl border-2 border-red-400 bg-red-50 p-4 flex items-start gap-3"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-red-100 border border-red-300 flex items-center justify-center shrink-0">
+                        <AlertTriangle className="w-5 h-5 text-red-700 animate-pulse" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <p className="text-sm font-extrabold text-red-900 font-heading">
+                          {isFr ? '⚠️ Alerte critique — Action immédiate requise' : '⚠️ Critical Alert — Immediate Action Required'}
+                        </p>
+                        <p className="text-xs text-red-800 leading-relaxed">
+                          {profile.primaryReasonSummary}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('checkup')}
+                          className="mt-2 px-3.5 py-1.5 rounded-xl bg-red-700 text-white text-xs font-bold inline-flex items-center gap-1.5 hover:bg-red-800 transition-colors cursor-pointer"
+                        >
+                          <Activity className="w-3.5 h-3.5" />
+                          <span>{isFr ? 'Mettre à jour mes mesures' : 'Update my measurements'}</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {profile.overallLevel === 'orange' && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="rounded-2xl border-2 border-orange-300 bg-orange-50 p-4 flex items-start gap-3"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-orange-100 border border-orange-300 flex items-center justify-center shrink-0">
+                        <AlertTriangle className="w-5 h-5 text-orange-700" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <p className="text-sm font-extrabold text-orange-900 font-heading">
+                          {isFr ? '🔶 Risque élevé détecté — Suivi recommandé' : '🔶 Elevated Risk Detected — Follow-up Recommended'}
+                        </p>
+                        <p className="text-xs text-orange-800 leading-relaxed">
+                          {profile.primaryReasonSummary}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab('plan')}
+                            className="px-3 py-1.5 rounded-xl bg-orange-700 text-white text-xs font-bold inline-flex items-center gap-1.5 hover:bg-orange-800 transition-colors cursor-pointer"
+                          >
+                            <ClipboardList className="w-3.5 h-3.5" />
+                            <span>{isFr ? 'Voir mon plan' : 'View my plan'}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab('reminders')}
+                            className="px-3 py-1.5 rounded-xl bg-white border border-orange-300 text-orange-800 text-xs font-bold inline-flex items-center gap-1.5 hover:bg-orange-50 transition-colors cursor-pointer"
+                          >
+                            <BellRing className="w-3.5 h-3.5" />
+                            <span>{isFr ? 'Planifier un rendez-vous' : 'Schedule appointment'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Family prevention score — consolidated view */}
+                  {!isViewingChild && affiliatedChildren.length > 0 && (
+                    <GlassCard interactive={false} className="p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
+                            {isFr ? '👨‍👩‍👧‍👦 Tableau de bord familial' : '👨‍👩‍👧‍👦 Family Health Dashboard'}
+                          </span>
+                          <p className="text-xs text-[#64748B]">
+                            {isFr
+                              ? `${affiliatedChildren.length + 1} membre(s) · Score prévention : ${profile.preventionProgressDone}/${profile.preventionProgressTotal}`
+                              : `${affiliatedChildren.length + 1} member(s) · Prevention score: ${profile.preventionProgressDone}/${profile.preventionProgressTotal}`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1">
+                            <LevelBadge level={profile.overallLevel} size="sm" />
+                            {affiliatedChildren.slice(0, 3).map((ch) => (
+                              <span key={ch.id} className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#F1F5F9] border border-[#E2E8F0] text-[#334155]">
+                                {ch.displayName.split(' ')[0]}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </GlassCard>
+                  )}
+
                   {/* Health risk alerts & live calculation summary */}
                   <GlassCard interactive={false} className="space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1872,6 +2030,27 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           </div>
                         </div>
 
+                        {/* Live BP preview chip */}
+                        {selfLiveBpSys && selfLiveBpDia && (
+                          <div className="flex flex-wrap items-center gap-2 -mt-1">
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[11px] font-bold ${
+                              selfLiveBpSys >= 140 || selfLiveBpDia >= 90
+                                ? 'text-red-700 bg-red-50 border-red-200'
+                                : selfLiveBpSys >= 130 || selfLiveBpDia >= 85
+                                ? 'text-amber-700 bg-amber-50 border-amber-200'
+                                : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                            }`}>
+                              <HeartPulse className="w-3.5 h-3.5" />
+                              {isFr ? 'TA moyenne retenue' : 'Retained mean BP'}: {selfLiveBpSys}/{selfLiveBpDia} mmHg
+                              {selfLiveBpSys >= 140 || selfLiveBpDia >= 90
+                                ? ` — ${isFr ? '⚠️ Élevée' : '⚠️ Elevated'}`
+                                : selfLiveBpSys >= 130 || selfLiveBpDia >= 85
+                                ? ` — ${isFr ? 'Pré-hypertension' : 'Pre-hypertension'}`
+                                : ` — ${isFr ? '✓ Normale' : '✓ Normal'}`}
+                            </span>
+                          </div>
+                        )}
+
                         <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
                           <h3 className="font-bold text-[#0B3B3C]">
                             {isFr
@@ -1916,6 +2095,33 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               />
                             </div>
                           </div>
+
+                          {/* Live BMI preview chip */}
+                          {selfLiveBmi && selfLiveBmiCategory && (
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[11px] font-bold ${selfLiveBmiCategory.color}`}>
+                                <Calculator className="w-3.5 h-3.5" />
+                                IMC: {selfLiveBmi} kg/m² — {selfLiveBmiCategory.label}
+                              </span>
+                              {selfForm.waistCm && parseFloat(selfForm.waistCm) > 0 && (
+                                <span className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[11px] font-bold ${
+                                  parseFloat(selfForm.waistCm) > 102
+                                    ? 'text-red-700 bg-red-50 border-red-200'
+                                    : parseFloat(selfForm.waistCm) > 88
+                                    ? 'text-amber-700 bg-amber-50 border-amber-200'
+                                    : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                                }`}>
+                                  <Activity className="w-3.5 h-3.5" />
+                                  {isFr ? 'Tour de taille' : 'Waist'}: {selfForm.waistCm} cm
+                                  {parseFloat(selfForm.waistCm) > 102
+                                    ? ` — ${isFr ? '⚠️ Risque élevé' : '⚠️ High risk'}`
+                                    : parseFloat(selfForm.waistCm) > 88
+                                    ? ` — ${isFr ? 'Risque modéré' : 'Moderate risk'}`
+                                    : ` — ${isFr ? '✓ Normal' : '✓ Normal'}`}
+                                </span>
+                              )}
+                            </div>
+                          )}
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
                             <label className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-[#E2E8F0] cursor-pointer">
@@ -2113,6 +2319,61 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               {/* TAB 2A: PERSONALIZED SCREENING PLANNER */}
               {activeTab === 'plan' && (
                 <div className="space-y-5">
+                  {/* Prevention Score Bar */}
+                  {activePlan && (
+                    <GlassCard interactive={false} className="p-4 space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F6B6B] block">
+                            {isFr ? '🎯 Score de prévention personnel' : '🎯 Personal prevention score'}
+                          </span>
+                          <p className="text-xs text-[#64748B]">
+                            {isFr
+                              ? `${activePlan.summary?.upToDate ?? 0} dépistage(s) à jour sur ${planItems.length}`
+                              : `${activePlan.summary?.upToDate ?? 0} of ${planItems.length} screening(s) up to date`}
+                          </p>
+                        </div>
+                        <span className="text-2xl font-extrabold text-[#0B3B3C] font-heading">
+                          {planItems.length > 0
+                            ? `${Math.round(((activePlan.summary?.upToDate ?? 0) / planItems.length) * 100)}%`
+                            : '—'}
+                        </span>
+                      </div>
+                      <div className="w-full h-3 rounded-full bg-[#F1F5F9] border border-[#E2E8F0] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-[#0F6B6B] to-[#14A39A] transition-all duration-700"
+                          style={{ width: planItems.length > 0 ? `${((activePlan.summary?.upToDate ?? 0) / planItems.length) * 100}%` : '0%' }}
+                        />
+                      </div>
+                      <div className="flex items-center gap-3 text-[10px] font-semibold">
+                        {(activePlan.summary?.overdue ?? 0) > 0 && (
+                          <span className="inline-flex items-center gap-1 text-red-700">
+                            <span className="w-2 h-2 rounded-full bg-red-500" />
+                            {activePlan.summary.overdue} {isFr ? 'en retard' : 'overdue'}
+                          </span>
+                        )}
+                        {(activePlan.summary?.dueSoon ?? 0) > 0 && (
+                          <span className="inline-flex items-center gap-1 text-amber-700">
+                            <span className="w-2 h-2 rounded-full bg-amber-500" />
+                            {activePlan.summary.dueSoon} {isFr ? 'sous 14j' : 'within 14d'}
+                          </span>
+                        )}
+                        {(activePlan.summary?.needsData ?? 0) > 0 && (
+                          <span className="inline-flex items-center gap-1 text-slate-600">
+                            <span className="w-2 h-2 rounded-full bg-slate-400" />
+                            {activePlan.summary.needsData} {isFr ? 'données manquantes' : 'missing data'}
+                          </span>
+                        )}
+                        {(activePlan.summary?.upToDate ?? 0) > 0 && (
+                          <span className="inline-flex items-center gap-1 text-emerald-700">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                            {activePlan.summary.upToDate} {isFr ? 'à jour' : 'up to date'}
+                          </span>
+                        )}
+                      </div>
+                    </GlassCard>
+                  )}
+
                   <GlassCard interactive={false} className="space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="space-y-1">
@@ -2189,74 +2450,94 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         <div className="h-16 rounded-2xl bg-[#F1F5F9] animate-pulse" />
                       </div>
                     ) : planItems.length > 0 ? (
-                      <div className="space-y-2.5">
-                        {planItems.map((item: any) => (
-                          <div
-                            key={item.id}
-                            className={`rounded-2xl border p-3.5 space-y-1.5 ${
-                              item.status === 'overdue'
-                                ? 'bg-red-50/70 border-red-200'
-                                : item.status === 'needs_data'
-                                ? 'bg-slate-50 border-slate-200'
-                                : item.status === 'due_soon'
-                                ? 'bg-amber-50/70 border-amber-200'
-                                : item.status === 'up_to_date'
-                                ? 'bg-emerald-50/60 border-emerald-200'
-                                : 'bg-white border-[#E2E8F0]'
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0">
-                                <p className="text-xs font-bold text-[#0B3B3C]">{item.title}</p>
-                                <p className="text-[10px] text-[#64748B]">
-                                  {item.source}
-                                  {item.intervalMonths
-                                    ? ` · ${isFr ? 'tous les' : 'every'} ${item.intervalMonths} ${isFr ? 'mois' : 'months'}`
-                                    : ''}
-                                </p>
-                              </div>
-                              <span className="px-2 py-1 rounded-lg bg-white/90 border border-[#E2E8F0] text-[10px] font-bold text-[#0B3B3C] whitespace-nowrap">
-                                {item.dueLabel}
-                              </span>
-                            </div>
-                            {item.rationale && (
-                              <p className="text-[11px] text-[#334155] leading-relaxed">
-                                {item.rationale}
-                              </p>
-                            )}
-                            {item.lastDoneLabel && (
-                              <p className="text-[10px] text-[#64748B]">{item.lastDoneLabel}</p>
-                            )}
-                            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                              <span className="text-[10px] font-semibold text-[#0F6B6B]">
-                                {item.action}
-                              </span>
-                              {(item.status === 'overdue' ||
-                                item.status === 'due_soon' ||
-                                item.status === 'needs_data') && (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setActiveTab(item.status === 'needs_data' ? 'checkup' : 'reminders')
-                                  }
-                                  className="px-3 py-1.5 rounded-xl btn-liquid-primary text-[10px] font-bold inline-flex items-center gap-1"
-                                >
-                                  {item.status === 'needs_data' ? (
-                                    <>
-                                      <Activity className="w-3 h-3" />
-                                      <span>{isFr ? 'Saisir les mesures' : 'Enter measurements'}</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <CalendarClock className="w-3 h-3" />
-                                      <span>{isFr ? 'Planifier' : 'Schedule'}</span>
-                                    </>
+                      <div className="relative">
+                        {/* Timeline vertical line */}
+                        <div className="absolute left-[15px] top-4 bottom-4 w-0.5 bg-gradient-to-b from-red-300 via-amber-300 via-teal-300 to-emerald-300 rounded-full" />
+                        <div className="space-y-3">
+                          {planItems.map((item: any, idx: number) => {
+                            const dotColor =
+                              item.status === 'overdue' ? 'bg-red-500 ring-red-200'
+                              : item.status === 'needs_data' ? 'bg-slate-400 ring-slate-200'
+                              : item.status === 'due_soon' ? 'bg-amber-500 ring-amber-200'
+                              : item.status === 'up_to_date' ? 'bg-emerald-500 ring-emerald-200'
+                              : 'bg-teal-400 ring-teal-200';
+                            const cardBg =
+                              item.status === 'overdue' ? 'bg-red-50/70 border-red-200'
+                              : item.status === 'needs_data' ? 'bg-slate-50 border-slate-200'
+                              : item.status === 'due_soon' ? 'bg-amber-50/70 border-amber-200'
+                              : item.status === 'up_to_date' ? 'bg-emerald-50/60 border-emerald-200'
+                              : 'bg-white border-[#E2E8F0]';
+                            const statusIcon =
+                              item.status === 'overdue' ? '🔴'
+                              : item.status === 'needs_data' ? '📋'
+                              : item.status === 'due_soon' ? '🟠'
+                              : item.status === 'up_to_date' ? '✅'
+                              : '🔵';
+                            return (
+                              <div key={item.id} className="flex gap-3 relative">
+                                {/* Timeline dot */}
+                                <div className="relative z-10 mt-4 shrink-0">
+                                  <div className={`w-[11px] h-[11px] rounded-full ring-[3px] ${dotColor} ${item.status === 'overdue' ? 'animate-pulse' : ''}`} />
+                                </div>
+                                {/* Card */}
+                                <div className={`flex-1 rounded-2xl border p-3.5 space-y-1.5 ${cardBg}`}>
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-bold text-[#0B3B3C]">
+                                        {statusIcon} {item.title}
+                                      </p>
+                                      <p className="text-[10px] text-[#64748B]">
+                                        {item.source}
+                                        {item.intervalMonths
+                                          ? ` · ${isFr ? 'tous les' : 'every'} ${item.intervalMonths} ${isFr ? 'mois' : 'months'}`
+                                          : ''}
+                                      </p>
+                                    </div>
+                                    <span className="px-2 py-1 rounded-lg bg-white/90 border border-[#E2E8F0] text-[10px] font-bold text-[#0B3B3C] whitespace-nowrap">
+                                      {item.dueLabel}
+                                    </span>
+                                  </div>
+                                  {item.rationale && (
+                                    <p className="text-[11px] text-[#334155] leading-relaxed">
+                                      {item.rationale}
+                                    </p>
                                   )}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                                  {item.lastDoneLabel && (
+                                    <p className="text-[10px] text-[#64748B]">{item.lastDoneLabel}</p>
+                                  )}
+                                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                                    <span className="text-[10px] font-semibold text-[#0F6B6B]">
+                                      {item.action}
+                                    </span>
+                                    {(item.status === 'overdue' ||
+                                      item.status === 'due_soon' ||
+                                      item.status === 'needs_data') && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setActiveTab(item.status === 'needs_data' ? 'checkup' : 'reminders')
+                                        }
+                                        className="px-3 py-1.5 rounded-xl btn-liquid-primary text-[10px] font-bold inline-flex items-center gap-1"
+                                      >
+                                        {item.status === 'needs_data' ? (
+                                          <>
+                                            <Activity className="w-3 h-3" />
+                                            <span>{isFr ? 'Saisir les mesures' : 'Enter measurements'}</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <CalendarClock className="w-3 h-3" />
+                                            <span>{isFr ? 'Planifier' : 'Schedule'}</span>
+                                          </>
+                                        )}
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     ) : (
                       <p className="text-xs text-[#334155] bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-3.5 py-3">
@@ -2326,6 +2607,12 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             ? 'Rappels proposés à J-7, J-3, J-1 et le jour J. En cas de visite manquée : J+1, J+3, J+7.'
                             : 'Reminders proposed at D-7, D-3, D-1 and on the day. If missed: D+1, D+3, D+7.'}
                         </p>
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-[#92400E]">
+                          <BellRing className="w-3 h-3" />
+                          {isFr
+                            ? 'Canal simulé (démo) — aucun SMS/WhatsApp externe n’est envoyé'
+                            : 'Simulated channel (demo) — no external SMS/WhatsApp is sent'}
+                        </span>
                       </div>
                       <button
                         type="button"
@@ -2355,6 +2642,77 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               <span>{isFr ? 'Activer les rappels' : 'Enable reminders'}</span>
                             </button>
                           </div>
+                        )}
+
+                        {/* Missed appointment critical alert */}
+                        {activeReminders.appointment && activeReminders.appointment.daysUntil !== null && activeReminders.appointment.daysUntil < 0 && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="rounded-2xl border-2 border-red-300 bg-red-50 p-4 space-y-2"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-red-100 border border-red-300 flex items-center justify-center shrink-0">
+                                <AlertTriangle className="w-4.5 h-4.5 text-red-700 animate-pulse" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-xs font-extrabold text-red-900">
+                                  {isFr
+                                    ? `⚠️ Rendez-vous manqué depuis ${Math.abs(activeReminders.appointment.daysUntil)} jour(s)`
+                                    : `⚠️ Appointment missed ${Math.abs(activeReminders.appointment.daysUntil)} day(s) ago`}
+                                </p>
+                                <p className="text-[11px] text-red-800 mt-0.5">
+                                  {activeReminders.appointment.title} — {activeReminders.appointment.facility}
+                                </p>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setActiveTab('plan')}
+                                    className="px-3 py-1.5 rounded-xl bg-red-700 text-white text-[11px] font-bold inline-flex items-center gap-1.5 hover:bg-red-800 transition-colors cursor-pointer"
+                                  >
+                                    <CalendarClock className="w-3.5 h-3.5" />
+                                    <span>{isFr ? 'Reprogrammer maintenant' : 'Reschedule now'}</span>
+                                  </button>
+                                  {activeReminders.consentEnabled && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSendReminder('missed')}
+                                      disabled={reminderBusy}
+                                      className="px-3 py-1.5 rounded-xl bg-white border border-red-300 text-red-800 text-[11px] font-bold inline-flex items-center gap-1.5 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50"
+                                    >
+                                      <BellRing className="w-3.5 h-3.5" />
+                                      <span>{isFr ? 'Envoyer un rappel' : 'Send reminder'}</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {/* Upcoming appointment countdown banner */}
+                        {activeReminders.appointment && activeReminders.appointment.daysUntil !== null && activeReminders.appointment.daysUntil >= 0 && activeReminders.appointment.daysUntil <= 3 && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="rounded-2xl border-2 border-[#0F6B6B]/40 bg-[#F0FDFA] p-4 flex items-center justify-between gap-3"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-[#D5F2EE] border border-[#99F6E4] flex items-center justify-center shrink-0">
+                                <CalendarClock className="w-4.5 h-4.5 text-[#0F6B6B]" />
+                              </div>
+                              <div>
+                                <p className="text-xs font-extrabold text-[#0B3B3C]">
+                                  {activeReminders.appointment.daysUntil === 0
+                                    ? (isFr ? '📅 Votre rendez-vous est aujourd\'hui !' : '📅 Your appointment is today!')
+                                    : (isFr ? `📅 Rendez-vous dans ${activeReminders.appointment.daysUntil} jour(s)` : `📅 Appointment in ${activeReminders.appointment.daysUntil} day(s)`)}
+                                </p>
+                                <p className="text-[11px] text-[#334155]">
+                                  {activeReminders.appointment.title} — {activeReminders.appointment.facility}
+                                </p>
+                              </div>
+                            </div>
+                          </motion.div>
                         )}
 
                         {activeReminders.appointment ? (
@@ -2413,6 +2771,26 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {/* Reminder counters summary */}
+                          <div className="col-span-full flex flex-wrap items-center gap-2 pb-1">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-amber-200 bg-amber-50 text-[10px] font-bold text-amber-800">
+                              <Clock className="w-3 h-3" />
+                              {(activeReminders.upcomingReminders || []).filter((r: any) => r.status === 'to_send').length}{' '}
+                              {isFr ? 'rappel(s) à envoyer' : 'reminder(s) to send'}
+                            </span>
+                            {(activeReminders.missedReminders || []).length > 0 && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-red-200 bg-red-50 text-[10px] font-bold text-red-800">
+                                <AlertTriangle className="w-3 h-3" />
+                                {(activeReminders.missedReminders || []).length}{' '}
+                                {isFr ? 'rappel(s) visite manquée' : 'missed visit reminder(s)'}
+                              </span>
+                            )}
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-[10px] font-bold text-emerald-800">
+                              <BellRing className="w-3 h-3" />
+                              {(activeReminders.upcomingReminders || []).length + (activeReminders.missedReminders || []).length}{' '}
+                              {isFr ? 'total programmé(s)' : 'total scheduled'}
+                            </span>
+                          </div>
                           <div className="space-y-2">
                             <h3 className="text-xs font-bold text-[#0B3B3C]">
                               {isFr ? 'Avant la visite' : 'Before the visit'}
@@ -2770,13 +3148,20 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       </div>
                       <button
                         type="button"
-                        onClick={() =>
-                          setFeedbackBanner('Personal data summary downloaded (Simulated JSON).')
-                        }
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#0B3B3C] text-white text-xs font-semibold cursor-pointer"
+                        onClick={handleExportData}
+                        disabled={exporting}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#0B3B3C] text-white text-xs font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download className="w-3.5 h-3.5" />
-                        <span>{isFr ? 'Exporter' : 'Download'}</span>
+                        <span>
+                          {exporting
+                            ? isFr
+                              ? 'Préparation…'
+                              : 'Preparing…'
+                            : isFr
+                            ? 'Exporter'
+                            : 'Download'}
+                        </span>
                       </button>
                     </div>
 
