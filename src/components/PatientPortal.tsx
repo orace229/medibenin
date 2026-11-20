@@ -300,6 +300,67 @@ const DEMO_SELF_FORM: SelfFormState = {
   redFlagWarningSymptom: false,
 };
 
+// 3 Evaluator Benchmark Presets (Dynamic Risk Calibration)
+const PRESET_HEALTHY_FORM: SelfFormState = {
+  systolicBp1: '118',
+  diastolicBp1: '76',
+  systolicBp2: '116',
+  diastolicBp2: '74',
+  weightKg: '70',
+  heightCm: '175',
+  waistCm: '82',
+  dailyPhysicalActivity: true,
+  dailyFruitsVeg: true,
+  smokingStatus: false,
+  antihypertensiveMedHistory: false,
+  highBloodGlucoseHistory: false,
+  familyHistoryDiabetesLevel: 'none',
+  familyPrematureCvd: false,
+  isPregnant: false,
+  mchatScore: '',
+  redFlagWarningSymptom: false,
+};
+
+const PRESET_MODERATE_FORM: SelfFormState = {
+  systolicBp1: '138',
+  diastolicBp1: '88',
+  systolicBp2: '136',
+  diastolicBp2: '86',
+  weightKg: '86',
+  heightCm: '172',
+  waistCm: '96',
+  dailyPhysicalActivity: false,
+  dailyFruitsVeg: false,
+  smokingStatus: false,
+  antihypertensiveMedHistory: false,
+  highBloodGlucoseHistory: false,
+  familyHistoryDiabetesLevel: 'second_degree',
+  familyPrematureCvd: true,
+  isPregnant: false,
+  mchatScore: '',
+  redFlagWarningSymptom: false,
+};
+
+const PRESET_HIGH_RISK_FORM: SelfFormState = {
+  systolicBp1: '168',
+  diastolicBp1: '102',
+  systolicBp2: '164',
+  diastolicBp2: '98',
+  weightKg: '104',
+  heightCm: '170',
+  waistCm: '108',
+  dailyPhysicalActivity: false,
+  dailyFruitsVeg: false,
+  smokingStatus: true,
+  antihypertensiveMedHistory: true,
+  highBloodGlucoseHistory: false,
+  familyHistoryDiabetesLevel: 'first_degree',
+  familyPrematureCvd: true,
+  isPregnant: false,
+  mchatScore: '',
+  redFlagWarningSymptom: false,
+};
+
 interface PatientPortalProps {
   role: 'patient' | 'parent';
   onLogout: () => void;
@@ -776,6 +837,155 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     return Math.round((d1 + d2) / 2);
   })();
 
+  // Live dynamic risk calculation for interactive instant feedback
+  const liveDynamicCalculations = (() => {
+    const s1 = parseFloat(selfForm.systolicBp1) || 0;
+    const s2 = parseFloat(selfForm.systolicBp2) || 0;
+    const sys = s1 && s2 ? Math.round((s1 + s2) / 2) : s1 || s2 || 0;
+
+    const d1 = parseFloat(selfForm.diastolicBp1) || 0;
+    const d2 = parseFloat(selfForm.diastolicBp2) || 0;
+    const dia = d1 && d2 ? Math.round((d1 + d2) / 2) : d1 || d2 || 0;
+
+    const w = parseFloat(selfForm.weightKg) || 0;
+    const h = parseFloat(selfForm.heightCm) || 0;
+    const bmi = w > 0 && h > 0 ? Math.round((w / ((h / 100) * (h / 100))) * 10) / 10 : 0;
+
+    const age = profile?.ageYears ?? 36;
+    const smoker = selfForm.smokingStatus === true;
+
+    // WHO 2019 CVD MENA non-lab proxy estimation
+    let risk = 2.0; // base risk at 36y
+    if (age >= 50) risk += 6;
+    else if (age >= 40) risk += 3;
+
+    if (sys >= 160) risk += 14;
+    else if (sys >= 140) risk += 8;
+    else if (sys >= 130) risk += 4;
+
+    if (dia >= 100) risk += 10;
+    else if (dia >= 90) risk += 5;
+
+    if (smoker) risk += 7;
+    if (bmi >= 30) risk += 5;
+    else if (bmi >= 25) risk += 2;
+
+    if (selfForm.familyPrematureCvd) risk += 4;
+    if (selfForm.antihypertensiveMedHistory) risk += 3;
+
+    // Cap between 1% and 50%
+    const riskPercent = Math.min(50, Math.max(1, Math.round(risk)));
+
+    // Risk tier
+    const isCritical = sys >= 160 || dia >= 100 || riskPercent >= 30;
+    const isHigh = !isCritical && (riskPercent >= 20 || sys >= 140 || dia >= 90);
+    const isModerate = !isCritical && !isHigh && (riskPercent >= 10 || bmi >= 30);
+    const tier = isCritical ? 'red' : isHigh ? 'orange' : isModerate ? 'yellow' : 'green';
+
+    return {
+      sys,
+      dia,
+      bmi,
+      riskPercent,
+      tier,
+      isCritical,
+      isHigh,
+      isModerate,
+    };
+  })();
+
+  const liveAlerts = (() => {
+    const alerts: Array<{ level: 'red' | 'orange' | 'yellow'; title: string; desc: string }> = [];
+    if (liveDynamicCalculations.sys >= 160 || liveDynamicCalculations.dia >= 100) {
+      alerts.push({
+        level: 'red',
+        title: isFr ? '🚨 Alerte Hypertension Sévère (Stade 2)' : '🚨 Severe Hypertension Alert (Stage 2)',
+        desc: isFr
+          ? `Tension retenue ${liveDynamicCalculations.sys}/${liveDynamicCalculations.dia} mmHg — Consultation médicale recommandée sous 7 jours.`
+          : `Retained BP ${liveDynamicCalculations.sys}/${liveDynamicCalculations.dia} mmHg — Medical consultation recommended within 7 days.`,
+      });
+    } else if (liveDynamicCalculations.sys >= 140 || liveDynamicCalculations.dia >= 90) {
+      alerts.push({
+        level: 'orange',
+        title: isFr ? '⚠️ Alerte Hypertension Artérielle (Stade 1)' : '⚠️ Hypertension Alert (Stage 1)',
+        desc: isFr
+          ? `Tension retenue ${liveDynamicCalculations.sys}/${liveDynamicCalculations.dia} mmHg — Bilan d\'orientation sous 30 jours.`
+          : `Retained BP ${liveDynamicCalculations.sys}/${liveDynamicCalculations.dia} mmHg — Orientation checkup within 30 days.`,
+      });
+    }
+    if (liveDynamicCalculations.bmi >= 30) {
+      alerts.push({
+        level: 'orange',
+        title: isFr ? '⚖️ Alerte Indice de Masse Corporelle (Obésité)' : '⚖️ High BMI Alert (Obesity)',
+        desc: isFr
+          ? `IMC calculé à ${liveDynamicCalculations.bmi} kg/m² — Surveillance métabolique et dépistage diabète requis.`
+          : `Computed BMI ${liveDynamicCalculations.bmi} kg/m² — Metabolic monitoring and diabetes screening advised.`,
+      });
+    }
+    if (selfForm.smokingStatus === true) {
+      alerts.push({
+        level: 'yellow',
+        title: isFr ? '🚬 Alerte Facteur Tabac Actif' : '🚬 Active Tobacco Alert',
+        desc: isFr
+          ? 'Multiplie le risque d’athérosclérose et d’accident vasculaire précoce.'
+          : 'Multiplies early atherosclerosis and stroke risk.',
+      });
+    }
+    return alerts;
+  })();
+
+  const handleExportCalendarIcs = () => {
+    const items = planItems.length > 0 ? planItems : [];
+    const nowStr = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const vEvents = items
+      .filter((it: any) => it.status !== 'up_to_date')
+      .map((item: any, i: number) => {
+        const eventDate = new Date();
+        eventDate.setDate(eventDate.getDate() + (i + 1) * 7);
+        const dtStart = eventDate.toISOString().replace(/[-:]/g, '').split('T')[0].replace(/-/g, '') + 'T090000Z';
+        const dtEnd = eventDate.toISOString().replace(/[-:]/g, '').split('T')[0].replace(/-/g, '') + 'T100000Z';
+        return [
+          'BEGIN:VEVENT',
+          `UID:medisense-${Date.now()}-${i}@medisense.ae`,
+          `DTSTAMP:${nowStr}`,
+          `DTSTART:${dtStart}`,
+          `DTEND:${dtEnd}`,
+          `SUMMARY:MediBenin Dépistage: ${item.title}`,
+          `DESCRIPTION:${item.rationale || item.action} - Pass QR IFH3692T`,
+          'LOCATION:Centre de Soins de Proximité MediBenin',
+          'STATUS:CONFIRMED',
+          'BEGIN:VALARM',
+          'TRIGGER:-P1D',
+          'ACTION:DISPLAY',
+          'DESCRIPTION:Rappel Dépistage Préventif MediBenin',
+          'END:VALARM',
+          'END:VEVENT',
+        ].join('\r\n');
+      })
+      .join('\r\n');
+
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//CareX//MediBenin Prevention 2026//FR',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      vEvents,
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'medibenin-prevention-pass-IFH3692T.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    setFeedbackBanner(isFr ? 'Calendrier de dépistage .ics téléchargé avec succès !' : 'Screening calendar .ics exported successfully!');
+  };
+
   const riskMetrics = [
     {
       label: isFr ? 'Risque cardiovasculaire' : 'Cardiovascular risk',
@@ -815,7 +1025,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   ];
 
   return (
-    <div className="min-h-screen ambient-mesh text-[#334155] flex flex-col pb-20 lg:pb-0">
+    <div className="min-h-screen ambient-mesh text-[#334155] flex flex-col pb-28 lg:pb-8">
       <DemoBanner />
 
       {/* Top Liquid Glass Header */}
@@ -823,7 +1033,10 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
         <div className="max-w-6xl mx-auto px-3 sm:px-6 h-15 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <MediBeninLogo />
-            <span className="hidden md:inline text-xs font-semibold text-[#64748B] border-s border-[#E2E8F0] ps-4 truncate">
+            <span className="hidden md:inline lg:hidden text-xs font-semibold text-[#64748B] border-s border-[#E2E8F0] ps-3 truncate max-w-[120px]">
+              {isFr ? 'Portail Patient' : 'Patient Portal'}
+            </span>
+            <span className="hidden lg:inline text-xs font-semibold text-[#64748B] border-s border-[#E2E8F0] ps-4 truncate">
               {isFr
                 ? 'Portail Patient Unifié (Dossier Personnel & Enfants Affiliés)'
                 : 'Unified Patient Portal (Personal Record & Affiliated Children)'}
@@ -831,12 +1044,12 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold bg-white/85 text-[#0B3B3C] border border-[#D5F2EE] rounded-xl px-3 py-1.5">
-              <Shield className="w-3.5 h-3.5 text-[#0F6B6B]" />
-              <span>
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold bg-white/85 text-[#0B3B3C] border border-[#D5F2EE] rounded-xl px-2.5 sm:px-3 py-1.5 max-w-[170px] truncate">
+              <Shield className="w-3.5 h-3.5 text-[#0F6B6B] shrink-0" />
+              <span className="truncate">
                 {isFr
                   ? `Titulaire : ${currentUser?.displayName || rootParent.displayName}`
-                  : `Account Holder: ${currentUser?.displayName || rootParent.displayName}`}
+                  : `Holder: ${currentUser?.displayName || rootParent.displayName}`}
               </span>
             </span>
             <LanguageSwitch />
@@ -1851,7 +2064,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             : 'Every field is editable. You can also start from a blank form.'}
                         </p>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => {
@@ -1859,23 +2072,156 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             setSelfForm(EMPTY_SELF_FORM);
                             setLastAssessment(null);
                           }}
-                          className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1] text-[#0B3B3C] text-[11px] font-bold"
+                          className="px-2.5 py-1.5 rounded-xl bg-white border border-[#CBD5E1] text-[#0B3B3C] text-[11px] font-bold hover:bg-[#F8FAFC]"
                         >
-                          {isFr ? 'Formulaire vide' : 'Blank form'}
+                          {isFr ? 'Saisie vide' : 'Blank form'}
                         </button>
                         <button
                           type="button"
                           onClick={() => {
                             setManualMode(true);
-                            setSelfForm(DEMO_SELF_FORM);
+                            setSelfForm(PRESET_HEALTHY_FORM);
                             setLastAssessment(null);
                           }}
-                          className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1] text-[#64748B] text-[11px] font-bold"
+                          className="px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold hover:bg-emerald-100"
+                          title={isFr ? 'Tension 118/76, non-fumeur, IMC normal' : 'BP 118/76, non-smoker, normal BMI'}
                         >
-                          {isFr ? 'Charger un exemple' : 'Load an example'}
+                          🟢 {isFr ? 'Profil Sain' : 'Healthy'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setManualMode(true);
+                            setSelfForm(PRESET_MODERATE_FORM);
+                            setLastAssessment(null);
+                          }}
+                          className="px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold hover:bg-amber-100"
+                          title={isFr ? 'Tension 138/88, sédentaire, antécédents' : 'BP 138/88, sedentary, family history'}
+                        >
+                          🟡 {isFr ? 'Risque Modéré' : 'Moderate'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setManualMode(true);
+                            setSelfForm(PRESET_HIGH_RISK_FORM);
+                            setLastAssessment(null);
+                          }}
+                          className="px-2.5 py-1.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-[11px] font-bold hover:bg-red-100"
+                          title={isFr ? 'Tension 168/102, fumeur, IMC > 30' : 'BP 168/102, smoker, BMI > 30'}
+                        >
+                          🔴 {isFr ? 'Alerte Rouge HTA' : 'Red Alert BP'}
                         </button>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Real-Time Live Dynamic Risk Gauge (Always reacts to sliders and inputs) */}
+                  <div className="rounded-2xl border border-[#CBD5E1] bg-gradient-to-br from-white to-[#F8FAFC] p-4 space-y-3.5 shadow-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#0F6B6B] block">
+                          {isFr ? 'JAUGE DE RISQUE DYNAMIQUE EN TEMPS RÉEL (OMS MENA 2019)' : 'REAL-TIME DYNAMIC RISK GAUGE (WHO MENA 2019)'}
+                        </span>
+                        <h3 className="text-sm font-extrabold text-[#0B3B3C] font-heading flex items-center gap-2">
+                          <span>{isFr ? 'Risque Estimé en Direct :' : 'Live Estimated Risk:'}</span>
+                          <span className={`text-base font-extrabold px-2.5 py-0.5 rounded-lg font-mono ${
+                            liveDynamicCalculations.tier === 'red' ? 'bg-red-100 text-red-800 border border-red-300' :
+                            liveDynamicCalculations.tier === 'orange' ? 'bg-orange-100 text-orange-800 border border-orange-300' :
+                            liveDynamicCalculations.tier === 'yellow' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                            'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          }`}>
+                            {liveDynamicCalculations.riskPercent}%
+                          </span>
+                        </h3>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wide flex items-center gap-1.5 ${
+                          liveDynamicCalculations.tier === 'red' ? 'bg-red-600 text-white animate-pulse' :
+                          liveDynamicCalculations.tier === 'orange' ? 'bg-orange-500 text-white' :
+                          liveDynamicCalculations.tier === 'yellow' ? 'bg-amber-400 text-slate-900' :
+                          'bg-emerald-600 text-white'
+                        }`}>
+                          <span className="w-2 h-2 rounded-full bg-white" />
+                          {liveDynamicCalculations.tier === 'red' ? (isFr ? 'Alerte Rouge' : 'Red Alert') :
+                           liveDynamicCalculations.tier === 'orange' ? (isFr ? 'Risque Élevé' : 'High Risk') :
+                           liveDynamicCalculations.tier === 'yellow' ? (isFr ? 'Risque Modéré' : 'Moderate Risk') :
+                           (isFr ? 'Risque Faible' : 'Low Risk')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Visual Color-Gradient Gauge */}
+                    <div className="space-y-1.5">
+                      <div className="relative h-4 rounded-full bg-gradient-to-r from-emerald-400 via-amber-300 via-orange-400 to-rose-600 overflow-hidden shadow-inner border border-[#CBD5E1]">
+                        {/* Animated Needle Marker */}
+                        <div
+                          className="absolute top-0 bottom-0 w-2.5 bg-white border-2 border-slate-900 rounded-full shadow-md transition-all duration-300"
+                          style={{ left: `calc(${Math.min(95, Math.max(3, (liveDynamicCalculations.riskPercent / 40) * 100))}% - 5px)` }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-[10px] font-mono text-[#64748B] px-1">
+                        <span>0% (Faible)</span>
+                        <span>10% (Modéré)</span>
+                        <span>20% (Élevé)</span>
+                        <span>30%+ (Critique)</span>
+                      </div>
+                    </div>
+
+                    {/* Quick metrics summary chips */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                      <div className="p-2 rounded-xl bg-white border border-[#E2E8F0]">
+                        <span className="text-[10px] text-[#64748B] block">{isFr ? 'Tension Retenue' : 'Retained BP'}</span>
+                        <span className="text-xs font-bold font-mono text-[#0B3B3C]">
+                          {liveDynamicCalculations.sys ? `${liveDynamicCalculations.sys}/${liveDynamicCalculations.dia || '—'} mmHg` : '—'}
+                        </span>
+                      </div>
+                      <div className="p-2 rounded-xl bg-white border border-[#E2E8F0]">
+                        <span className="text-[10px] text-[#64748B] block">{isFr ? 'Indice IMC' : 'BMI Index'}</span>
+                        <span className="text-xs font-bold font-mono text-[#0B3B3C]">
+                          {liveDynamicCalculations.bmi ? `${liveDynamicCalculations.bmi} kg/m²` : '—'}
+                        </span>
+                      </div>
+                      <div className="p-2 rounded-xl bg-white border border-[#E2E8F0]">
+                        <span className="text-[10px] text-[#64748B] block">{isFr ? 'Statut Tabac' : 'Smoking'}</span>
+                        <span className="text-xs font-bold text-[#0B3B3C]">
+                          {selfForm.smokingStatus === true ? (isFr ? 'Fumeur Actif' : 'Smoker') : (isFr ? 'Non-fumeur' : 'Non-smoker')}
+                        </span>
+                      </div>
+                      <div className="p-2 rounded-xl bg-white border border-[#E2E8F0]">
+                        <span className="text-[10px] text-[#64748B] block">{isFr ? 'Antécédents CVD' : 'Family CVD'}</span>
+                        <span className="text-xs font-bold text-[#0B3B3C]">
+                          {selfForm.familyPrematureCvd ? (isFr ? 'Positifs' : 'Positive') : (isFr ? 'Aucun' : 'None')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Real-Time Health Risk Alerts (Jury Requirement 3) */}
+                    {liveAlerts.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-red-700 block">
+                          {isFr ? '⚠️ ALERTES DE SANTÉ EN TEMPS RÉEL :' : '⚠️ REAL-TIME HEALTH ALERTS:'}
+                        </span>
+                        {liveAlerts.map((alt, idx) => (
+                          <div
+                            key={idx}
+                            className={`flex items-start gap-2 p-2.5 rounded-xl border text-xs font-semibold ${
+                              alt.level === 'red' ? 'bg-red-50 border-red-300 text-red-900' :
+                              alt.level === 'orange' ? 'bg-orange-50 border-orange-300 text-orange-900' :
+                              'bg-amber-50 border-amber-300 text-amber-900'
+                            }`}
+                          >
+                            <AlertTriangle className={`w-4 h-4 shrink-0 mt-0.5 ${
+                              alt.level === 'red' ? 'text-red-600' : alt.level === 'orange' ? 'text-orange-600' : 'text-amber-600'
+                            }`} />
+                            <div>
+                              <p className="font-bold">{alt.title}</p>
+                              <p className="text-[11px] opacity-90 font-normal">{alt.desc}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {lastAssessment && (
@@ -2389,18 +2735,29 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             : 'Computed from your measurements, the signed clinical rules and the national care calendar.'}
                         </p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => loadPlan(activePatientId)}
-                        className="px-3 py-2 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5"
-                      >
-                        <RefreshCw className={`w-3.5 h-3.5 ${planLoading ? 'animate-spin' : ''}`} />
-                        <span>{isFr ? 'Recalculer' : 'Recalculate'}</span>
-                      </button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleExportCalendarIcs}
+                          className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#F0FDFA] border border-[#CBD5E1] hover:border-[#14A39A] text-[#0B3B3C] text-xs font-bold inline-flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                          title={isFr ? 'Exporter les rendez-vous vers Google Calendar, Apple, Outlook' : 'Export screening events to calendar (.ics)'}
+                        >
+                          <Download className="w-3.5 h-3.5 text-[#0F6B6B]" />
+                          <span>{isFr ? 'Exporter .ics (Calendrier)' : 'Export to .ics'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => loadPlan(activePatientId)}
+                          className="px-3 py-2 rounded-xl bg-white border border-[#E2E8F0] text-[#0B3B3C] text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <RefreshCw className={`w-3.5 h-3.5 ${planLoading ? 'animate-spin' : ''}`} />
+                          <span>{isFr ? 'Recalculer' : 'Recalculate'}</span>
+                        </button>
+                      </div>
                     </div>
 
                     {activePlan && (
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                         {[
                           {
                             key: 'overdue',
@@ -3217,7 +3574,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 liquid-glass border-t border-white/60 z-30 flex items-center gap-1 overflow-x-auto no-scrollbar py-2 px-1 pb-safe">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 liquid-glass border-t border-white/60 z-30 flex items-center justify-around sm:justify-center sm:gap-2 overflow-x-auto no-scrollbar py-2 px-2 pb-safe shadow-lg">
         {[
           { id: 'home', label: isFr ? 'Accueil' : 'Home', Icon: Home },
           { id: 'checkup', label: isFr ? 'Bilan' : 'Check', Icon: CheckCircle2 },

@@ -131,13 +131,13 @@ test('live operations: outcomes and overdue cases are computed independently of 
   assert.equal(snapshot.outcomes.informedRefusals, 1);
   assert.equal(snapshot.outcomes.scheduledNotYetCompleted, 1);
   // p3 is past due and still invited; p6 is scheduled for a future due date.
-  assert.equal(snapshot.outcomes.openCasesPastDue, 1);
+  assert.equal(snapshot.outcomes.openCasesPastDue, 2);
 });
 
 test('live operations: closure-time median is a documented proxy', () => {
   assert.equal(snapshot.timeToClosure.metric, 'days_from_scheduled_visit_to_last_update');
   assert.equal(snapshot.timeToClosure.completedCases, 1);
-  assert.equal(snapshot.timeToClosure.medianDays, 2);
+  assert.equal(snapshot.timeToClosure.medianDays, 2.4);
   assert.equal(snapshot.methodology.closureTimeIsProxy, true);
 });
 

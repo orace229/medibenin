@@ -69,34 +69,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     ctaSecondary: isFr ? 'Découvrir l’architecture' : 'Explore the pathway',
   };
 
-  // Value Propositions in Section 2
+  // Value Propositions in Section 2 (High-Impact Visual KPIs)
   const valuePillars = [
     {
-      num: '01 · PRECISION DETECTION',
-      title: isFr
-        ? 'Détection multidimensionnelle au-delà de l’âge'
-        : 'Multidimensional detection beyond age & sex',
+      num: '01 · RÈGLES DÉTERMINISTES',
+      metric: '100%',
+      title: isFr ? 'Zéro Boîte Noire IA' : 'Zero AI Black Box',
       desc: isFr
-        ? 'Croisement des antécédents familiaux, de la pédiatrie et des facteurs de risque adaptés avec traçabilité complète.'
-        : 'Combines family history, pediatric milestones, and ethnically adapted risk factors with full rule traceability.',
+        ? '22 règles cliniques explicites (OMS HEARTS, FINDRISC, LMS) scellées par signature SHA-256.'
+        : '22 published clinical rules (WHO HEARTS, FINDRISC, LMS) sealed by SHA-256 signature.',
+      icon: <ShieldCheck className="w-5 h-5" />,
     },
     {
-      num: '02 · PROACTIVE OUTREACH',
-      title: isFr
-        ? 'Relance multilingue proactive sans déclassement'
-        : 'Proactive native-language outreach',
+      num: '02 · SÉPARATION ÉTHIQUE',
+      metric: '4 Portails',
+      title: isFr ? 'Cloisonnement Médical Strict' : 'Strict Medical Isolation',
       desc: isFr
-        ? 'L’IA logistique déclenche un accompagnement renforcé (transport, appel) sans jamais réduire la priorité médicale.'
-        : 'Logistics prediction adds support (transport, phone outreach) and never downgrades a patient’s clinical priority.',
+        ? 'Le médecin ne voit aucun score logistique. Le coordinateur organise le transport sans déclasser l’urgence.'
+        : 'Physicians see zero logistics scores. Coordinators arrange transport without downgrading urgency.',
+      icon: <Users className="w-5 h-5" />,
     },
     {
-      num: '03 · UNIFIED VISIT PASS',
-      title: isFr
-        ? 'Une visite unique scellée par Pass QR'
-        : 'One consolidated visit with a QR Pass',
+      num: '03 · BOUCLE FERMÉE',
+      metric: '1 Pass QR',
+      title: isFr ? 'Parcours Familial Unifié' : 'Unified Family Pass',
       desc: isFr
-        ? 'Au lieu de 3 convocations dispersées, le patient reçoit un Pass QR unique qui ferme la boucle dès l’admission.'
-        : 'Replaces scattered appointments with one unified preventive booking verified at clinic check-in.',
+        ? 'Dossier adulte et pédiatrie regroupés sous un Pass scannable unique (IFH3692T) validé à l’admission.'
+        : 'Adult checkups and pediatric visits bundled under one scannable pass (IFH3692T) verified at check-in.',
+      icon: <HeartHandshake className="w-5 h-5" />,
     },
   ];
 
@@ -569,6 +569,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               key={pillar.num}
               glow
               kicker={pillar.num}
+              metric={pillar.metric}
+              icon={pillar.icon}
               title={pillar.title}
               description={pillar.desc}
             />
@@ -639,15 +641,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5">
-            {fiveVerbs.map((item) => (
-              <GlassCard
+          {/* Sleek 5-Step Closed-Loop Horizontal Stepper */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
+            {fiveVerbs.map((item, idx) => (
+              <div
                 key={item.num}
-                glow
-                kicker={item.num}
-                title={item.verb}
-                description={item.desc}
-              />
+                className="relative p-4 sm:p-5 rounded-2xl liquid-glass border border-white/80 hover:border-[#14A39A]/60 transition-all duration-300 group hover:-translate-y-1 shadow-xs"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] font-mono font-bold tracking-wider text-[#0F6B6B] uppercase">
+                    {item.num}
+                  </span>
+                  <span className="w-6 h-6 rounded-full bg-[#14A39A]/15 text-[#0F6B6B] text-xs font-bold flex items-center justify-center font-mono">
+                    {idx + 1}
+                  </span>
+                </div>
+                <h4 className="text-base font-bold font-heading text-[#0B3B3C] mb-1.5 group-hover:text-[#0F6B6B] transition-colors">
+                  {item.verb}
+                </h4>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  {item.desc}
+                </p>
+              </div>
             ))}
           </div>
         </div>
@@ -1001,22 +1016,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {[
               {
                 kicker: 'SAFEGUARD 01',
+                metric: isFr ? 'Niveau Gris' : 'Level Grey',
                 Icon: Eye,
-                title: isFr ? 'Incertitude visible & Niveau Gris' : 'Visible Uncertainty & Level Grey',
+                title: isFr ? 'Incertitude visible & Incomplétude' : 'Visible Uncertainty & Incompleteness',
                 desc: isFr
                   ? 'Un dossier incomplet est marqué Gris (jamais un faux Vert), avec la liste exacte des mesures à compléter.'
-                  : 'Incomplete records trigger Level Grey (never a false Green) with an explicit checklist of missing clinical measures.',
+                  : 'Incomplete records trigger Level Grey (never a false Green) with an explicit checklist of missing measures.',
               },
               {
                 kicker: 'SAFEGUARD 02',
+                metric: isFr ? '5 Consentements' : '5 Consents',
                 Icon: Lock,
-                title: isFr ? '5 consentements & masquage des petits groupes' : '5 Granular Consents & Small-Group Masking',
+                title: isFr ? 'Contrôle citoyen & k-Anonymat' : 'Citizen Control & k-Anonymity',
                 desc: isFr
-                  ? 'Retrait immédiat par finalité, journal d’accès transparent et masquage automatique des petits effectifs.'
-                  : 'Instant purpose-specific withdrawal, live Data Usage Log, and automatic small-group masking.',
+                  ? 'Retrait immédiat par finalité, journal d’accès transparent et masquage automatique des petits effectifs (n < 10).'
+                  : 'Instant purpose-specific withdrawal, live Data Usage Log, and automatic small-group masking (n < 10).',
               },
               {
                 kicker: 'SAFEGUARD 03',
+                metric: isFr ? '58 Invariants' : '58 Invariants',
                 Icon: Layers,
                 title: isFr ? 'Preuves vérifiables en continu' : 'Verifiable evidence, always open',
                 desc: isFr
@@ -1030,6 +1048,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   key={i}
                   variant="dark"
                   kicker={card.kicker}
+                  metric={card.metric}
                   icon={<IconC className="w-5 h-5" />}
                   title={card.title}
                   description={card.desc}

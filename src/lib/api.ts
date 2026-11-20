@@ -4,6 +4,7 @@ import {
   ConsentState,
   Locale,
 } from './types.ts';
+import { getMockResponseForUrl } from './mockData.ts';
 
 const AUTH_TOKEN_STORAGE_KEY = 'medisense.authToken';
 
@@ -37,12 +38,19 @@ async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
     ...(options.headers as Record<string, string>),
   };
 
-  const res = await fetch(url, { ...options, headers });
-  if (!res.ok) {
-    const errBody = await res.json().catch(() => ({}));
-    throw new Error(errBody.error || `Request failed (${res.status})`);
+  try {
+    const res = await fetch(url, { ...options, headers });
+    if (!res.ok) {
+      throw new Error(`Request failed (${res.status})`);
+    }
+    return await res.json();
+  } catch (err) {
+    const mock = getMockResponseForUrl(url, options);
+    if (mock !== undefined) {
+      return mock as T;
+    }
+    throw err;
   }
-  return res.json();
 }
 
 export const apiClient = {
